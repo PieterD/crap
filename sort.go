@@ -11,15 +11,7 @@ func sortNodeIds(list []NodeId) {
 func (list listNodeId) Less(i, j int) bool {
 	a := list[i]
 	b := list[j]
-	for idx := 0; idx < 32; idx++ {
-		if a[idx] < b[idx] {
-			return true
-		}
-		if a[idx] > b[idx] {
-			return false
-		}
-	}
-	return false
+	return a < b
 }
 
 func (list listNodeId) Swap(i, j int) {
@@ -65,10 +57,7 @@ func sortFlags(list []Flag) {
 func (list listFlag) Less(i, j int) bool {
 	a := list[i]
 	b := list[j]
-	if a < b {
-		return true
-	}
-	return false
+	return a < b
 }
 
 func (list listFlag) Swap(i, j int) {

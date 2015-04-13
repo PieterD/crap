@@ -1,5 +1,7 @@
 package trog
 
+import "encoding/base64"
+
 type rawNode struct {
 	Id        NodeId
 	ParentIds []NodeId // Every ancestor id, all the way up to the root
@@ -14,7 +16,11 @@ type Node struct {
 	Children []*Node // Every direct child of this node
 }
 
-type NodeId [32]byte
+type NodeId string
+
+func (id NodeId) fromHash(h []byte) string {
+	return base64.StdEncoding.EncodeToString(h)
+}
 
 type Pair struct {
 	Key string
