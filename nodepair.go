@@ -23,3 +23,31 @@ func (list listPair) Less(i, j int) bool {
 	}
 	return false
 }
+
+type PairMap map[string]string
+
+func (pm PairMap) Get(key string) string {
+	return pm[key]
+}
+
+func (pm PairMap) Set(key, val string) {
+	pm[key] = val
+}
+
+func (pm PairMap) Del(key string) {
+	delete(pm, key)
+}
+
+func (pm PairMap) Has(key string) bool {
+	_, ok := pm[key]
+	return ok
+}
+
+func (pm PairMap) List() []Pair {
+	list := make([]Pair, 0, len(pm))
+	for key, val := range pm {
+		list = append(list, Pair{Key: key, Val: val})
+	}
+	sortPairs(list)
+	return list
+}

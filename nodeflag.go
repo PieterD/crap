@@ -2,15 +2,26 @@ package trog
 
 import "sort"
 
-type Flag string
+type FlagMap map[string]struct{}
 
-type listFlag []Flag
+func (fm FlagMap) Set(flag string) {
+	fm[flag] = struct{}{}
+}
 
-func sortFlags(list []Flag)         { sort.Sort(listFlag(list)) }
-func (list listFlag) Swap(i, j int) { list[i], list[j] = list[j], list[i] }
-func (list listFlag) Len() int      { return len(list) }
-func (list listFlag) Less(i, j int) bool {
-	a := list[i]
-	b := list[j]
-	return a < b
+func (fm FlagMap) Del(flag string) {
+	delete(fm, flag)
+}
+
+func (fm FlagMap) Has(flag string) bool {
+	_, ok := fm[flag]
+	return ok
+}
+
+func (fm FlagMap) List() []string {
+	list := make([]string, 0, len(fm))
+	for key := range fm {
+		list = append(list, key)
+	}
+	sort.Strings(list)
+	return list
 }

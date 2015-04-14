@@ -2,15 +2,15 @@ package trog
 
 type rawNode struct {
 	Id        NodeId
+	Pairs     []Pair   // Sorted pair of key/value pairs
+	Flags     []string // Sorted list of flags
 	ParentIds []NodeId // Every ancestor id, all the way up to the root
 	ChildIds  []NodeId // Every direct child id of this node
-	Parents   []*Node  // Every ancestor, all the way up to the root
-	Children  []*Node  // Every direct child of this node
 }
 
 type Node struct {
-	Pairs    []Pair  // Key/value pairs
-	Flags    []Flag  // Value-only flags
+	Pairs    PairMap // Key/value pairs
+	Flags    FlagMap // Value-only flags
 	Parent   *Node   // Direct ancestor of this node
 	Children []*Node // Direct children of this node
 	Parents  []*Node // Every ancestor, all the way up to the root
@@ -18,7 +18,10 @@ type Node struct {
 
 // Create a new, empty, node.
 func NewNode() *Node {
-	return &Node{}
+	return &Node{
+		Pairs: make(PairMap),
+		Flags: make(FlagMap),
+	}
 }
 
 // Add a new node between the given node and its parent.
@@ -40,7 +43,6 @@ func (node *Node) AddChild() *Node {
 	node.addChild(newNode)
 	return newNode
 }
-
 func (node *Node) addChild(child *Node) {
 	child.Parent = node
 	node.Children = append(node.Children, child)
