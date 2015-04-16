@@ -1,0 +1,26 @@
+<Config>
+	<ZooKeeper>
+		<Peers>
+			<Peer>localhost:2181</Peer>
+		</Peers>
+	</ZooKeeper>
+	<Kafka>
+		<Peers>
+			<Peer>localhost:9000</Peer>
+			<Peer>localhost:9001</Peer>
+			<Peer>localhost:9002</Peer>
+		</Peers>
+	</Kafka>
+	<Streams>
+		<Stream>
+			<Topic>
+				<Src>test-in</Src>
+				<Dst>test-out</Dst>
+			</Topic>
+			<Partitions>
+				<Partition>0</Partition>
+			</Partitions>
+			<Function>ToUpper</Function>
+		</Stream>
+	</Streams>
+</Config>
