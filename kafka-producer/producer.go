@@ -18,7 +18,7 @@ var (
 	fPartition = flag.Int("partition", -1, "Partition to send on")
 	fTopic     = flag.String("topic", "", "Topic to send on")
 
-	logger = log.New(os.Stderr, "", log.LstdFlags)
+	logger = log.New(os.Stderr, "producer", log.LstdFlags)
 )
 
 func flagbad(f string, i ...interface{}) {

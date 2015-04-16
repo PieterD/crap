@@ -17,7 +17,7 @@ var (
 	fOffset    = flag.String("offset", "newest", "newest, oldest")
 	//fTime      = flag.String("time", "", "Offset time (if -offset=time): yyyy-mm-ddThh:mm:ss.nnnnnnnnn")
 
-	logger = log.New(os.Stderr, "", log.LstdFlags)
+	logger = log.New(os.Stderr, "consumer", log.LstdFlags)
 )
 
 func flagbad(f string, i ...interface{}) {
