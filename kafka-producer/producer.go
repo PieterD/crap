@@ -21,22 +21,22 @@ var (
 	logger = log.New(os.Stderr, "", log.LstdFlags)
 )
 
+func flagbad(f string, i ...interface{}) {
+	fmt.Fprintf(os.Stderr, f, i...)
+	flag.PrintDefaults()
+	os.Exit(1)
+}
+
 func main() {
 	flag.Parse()
 	if *fPeers == "" {
-		fmt.Fprintf(os.Stderr, "-peers is empty\n")
-		flag.PrintDefaults()
-		os.Exit(1)
+		flagbad("-peers is empty\n")
 	}
 	if *fPartition == -1 {
-		fmt.Fprintf(os.Stderr, "-partition is empty\n")
-		flag.PrintDefaults()
-		os.Exit(1)
+		flagbad("-partition is empty\n")
 	}
 	if *fTopic == "" {
-		fmt.Fprintf(os.Stderr, "-topic is empty\n")
-		flag.PrintDefaults()
-		os.Exit(1)
+		flagbad("-topic is empty\n")
 	}
 
 	config := sarama.NewConfig()
