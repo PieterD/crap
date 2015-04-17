@@ -37,6 +37,7 @@ func main() {
 	}
 
 	config := sarama.NewConfig()
+	config.Producer.Partitioner = sarama.NewRandomPartitioner
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.ClientID = "kafkaproc.producer"
 
