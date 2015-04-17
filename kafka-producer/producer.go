@@ -14,10 +14,9 @@ import (
 )
 
 var (
-	fPeers     = flag.String("peers", os.Getenv("KAFKA_PEERS"), "List of Kafka peer addresses (Defaults to KAFKA_PEERS env)")
-	fPartition = flag.Int("partition", -1, "Partition to send on")
-	fTopic     = flag.String("topic", "", "Topic to send on")
-	fVerbose   = flag.Bool("verbose", false, "Print message details")
+	fPeers   = flag.String("peers", os.Getenv("KAFKA_PEERS"), "List of Kafka peer addresses (Defaults to KAFKA_PEERS env)")
+	fTopic   = flag.String("topic", "", "Topic to send on")
+	fVerbose = flag.Bool("verbose", false, "Print message details")
 
 	logger = log.New(os.Stderr, "producer", log.LstdFlags)
 )
@@ -32,9 +31,6 @@ func main() {
 	flag.Parse()
 	if *fPeers == "" {
 		flagbad("-peers is empty\n")
-	}
-	if *fPartition == -1 {
-		flagbad("-partition is empty\n")
 	}
 	if *fTopic == "" {
 		flagbad("-topic is empty\n")
@@ -67,9 +63,8 @@ func main() {
 		}
 		line = bytes.TrimRight(line, "\n")
 		message := &sarama.ProducerMessage{
-			Topic:     *fTopic,
-			Partition: int32(*fPartition),
-			Value:     sarama.ByteEncoder(line),
+			Topic: *fTopic,
+			Value: sarama.ByteEncoder(line),
 		}
 		part, offset, err := producer.SendMessage(message)
 		if err != nil {
