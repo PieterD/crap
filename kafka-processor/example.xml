@@ -1,4 +1,5 @@
 <Config>
+	<Name>kafkaproc-1</Name>
 	<ZooKeeper>
 		<Peers>
 			<Peer>localhost:2181</Peer>

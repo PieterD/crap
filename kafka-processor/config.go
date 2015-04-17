@@ -6,6 +6,7 @@ import (
 )
 
 type Config struct {
+	Name      string          `xml:"Name"`
 	ZooKeeper ConfigZooKeeper `xml:"ZooKeeper"`
 	Kafka     ConfigKafka     `xml:"Kafka"`
 	Stream    []ConfigStream  `xml:"Streams>Stream"`
