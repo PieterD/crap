@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync/atomic"
 	"syscall"
 
 	"github.com/Shopify/sarama"
@@ -98,16 +99,19 @@ type ProcConsumer struct {
 	partition int32
 	function  []string
 	killchan  chan struct{}
+	isclosed  int32
 }
 
 func (pc *ProcConsumer) Close() {
-	pc.consumer.Close()
-	<-pc.killchan
+	if atomic.CompareAndSwapInt32(&pc.isclosed, 0, 1) {
+		pc.consumer.Close()
+		<-pc.killchan
+	}
 }
 
 func (pc *ProcConsumer) Run() {
+	defer pc.Close()
 	defer close(pc.killchan)
-	defer pc.consumer.Close()
 	for msg := range pc.consumer.Messages() {
 		//TODO: more general function
 		newval := bytes.ToUpper(msg.Value)
