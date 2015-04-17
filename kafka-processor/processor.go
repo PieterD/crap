@@ -74,6 +74,7 @@ func main() {
 				function:  stream.Function,
 				killchan:  make(chan struct{}),
 			}
+			fmt.Printf("Starting %s:%d -> %s\n", stream.TopicSrc, partition, stream.TopicDst)
 			cl.Add(pc)
 		}
 	}

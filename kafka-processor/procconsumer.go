@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"sync/atomic"
 
 	"github.com/Shopify/sarama"
@@ -27,17 +28,18 @@ func (pc *ProcConsumer) Close() {
 func (pc *ProcConsumer) Run() {
 	defer pc.Close()
 	defer close(pc.killchan)
+	fmt.Printf("started %s:%d\n", pc.src, pc.partition)
 	for msg := range pc.consumer.Messages() {
 		//TODO: more general function
 		newval := bytes.ToUpper(msg.Value)
 		message := &sarama.ProducerMessage{
-			Topic:     pc.dst,
-			Partition: pc.partition,
-			Value:     sarama.ByteEncoder(newval),
+			Topic: pc.dst,
+			Value: sarama.ByteEncoder(newval),
 		}
+		fmt.Printf("message %s:%d\n", pc.src, msg.Partition)
 		_, _, err := pc.producer.SendMessage(message)
 		if err != nil {
-			logger.Printf("Failed to send message %s:%d(%d): %v", pc.src, pc.partition, msg.Offset, err)
+			logger.Printf("Failed to send message to %s (offset %d): %v", pc.src, msg.Offset, err)
 		}
 	}
 }
