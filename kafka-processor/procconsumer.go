@@ -28,7 +28,7 @@ func (pc *ProcConsumer) Close() {
 func (pc *ProcConsumer) Run() {
 	defer pc.Close()
 	defer close(pc.killchan)
-	fmt.Printf("started %s:%d\n", pc.src, pc.partition)
+	fmt.Printf("started %s:%d -> %s\n", pc.src, pc.partition, pc.dst)
 	for msg := range pc.consumer.Messages() {
 		//TODO: more general function
 		newval := bytes.ToUpper(msg.Value)
@@ -36,7 +36,6 @@ func (pc *ProcConsumer) Run() {
 			Topic: pc.dst,
 			Value: sarama.ByteEncoder(newval),
 		}
-		fmt.Printf("message %s:%d\n", pc.src, msg.Partition)
 		_, _, err := pc.producer.SendMessage(message)
 		if err != nil {
 			logger.Printf("Failed to send message to %s (offset %d): %v", pc.src, msg.Offset, err)

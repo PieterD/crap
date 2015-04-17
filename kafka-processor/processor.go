@@ -74,7 +74,6 @@ func main() {
 				function:  stream.Function,
 				killchan:  make(chan struct{}),
 			}
-			fmt.Printf("Starting %s:%d -> %s\n", stream.TopicSrc, partition, stream.TopicDst)
 			cl.Add(pc)
 		}
 	}
@@ -83,10 +82,7 @@ func main() {
 	signal.Notify(sigchan, syscall.SIGINT)
 	go func() {
 		<-sigchan
-		fmt.Printf("SIGINT\n")
 		cl.Close()
 	}()
-	fmt.Printf("wait\n")
 	<-cl.killchan
-	fmt.Printf("waited\n")
 }
