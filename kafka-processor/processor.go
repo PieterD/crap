@@ -62,9 +62,9 @@ func main() {
 		for _, partition := range stream.Partition {
 			partitionconsumer, err := consumer.ConsumePartition(stream.TopicSrc, partition, sarama.OffsetNewest)
 			if err != nil {
-				logger.Panicf("Creating partition consumer: %v", err)
+				logger.Printf("Failed to create partition consumer %s:%d: %v", stream.TopicSrc, partition, err)
+				continue
 			}
-			//defer partitionconsumer.Close()
 			pc := &ProcConsumer{
 				consumer:  partitionconsumer,
 				producer:  producer,
