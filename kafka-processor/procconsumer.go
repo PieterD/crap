@@ -37,7 +37,7 @@ func (pc *ProcConsumer) Run() {
 		}
 		_, _, err := pc.producer.SendMessage(message)
 		if err != nil {
-			logger.Panicf("Failed to send message: %v", err)
+			logger.Printf("Failed to send message %s:%d(%d): %v", pc.src, pc.partition, msg.Offset, err)
 		}
 	}
 }
