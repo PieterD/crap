@@ -17,6 +17,7 @@ var (
 	fPeers     = flag.String("peers", os.Getenv("KAFKA_PEERS"), "List of Kafka peer addresses (Defaults to KAFKA_PEERS env)")
 	fPartition = flag.Int("partition", -1, "Partition to send on")
 	fTopic     = flag.String("topic", "", "Topic to send on")
+	fVerbose   = flag.Bool("verbose", false, "Print message details")
 
 	logger = log.New(os.Stderr, "producer", log.LstdFlags)
 )
@@ -74,6 +75,8 @@ func main() {
 		if err != nil {
 			logger.Panicf("Sending message: %v", err)
 		}
-		fmt.Printf("send (len=%d, part=%d, offset=%d)\n", len(line), part, offset)
+		if *fVerbose {
+			fmt.Printf("send (len=%d, part=%d, offset=%d)\n", len(line), part, offset)
+		}
 	}
 }

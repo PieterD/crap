@@ -15,6 +15,7 @@ var (
 	fPartition = flag.Int("partition", -1, "Partition to send on")
 	fTopic     = flag.String("topic", "", "Topic to send on")
 	fOffset    = flag.String("offset", "newest", "newest, oldest")
+	fVerbose   = flag.Bool("verbose", false, "Print message details")
 	//fTime      = flag.String("time", "", "Offset time (if -offset=time): yyyy-mm-ddThh:mm:ss.nnnnnnnnn")
 
 	logger = log.New(os.Stderr, "consumer", log.LstdFlags)
@@ -76,6 +77,10 @@ func main() {
 	defer partitionconsumer.Close()
 
 	for message := range partitionconsumer.Messages() {
-		fmt.Printf("(offset=%d) %s\n", message.Offset, message.Value)
+		if *fVerbose {
+			fmt.Printf("(offset=%d) %s\n", message.Offset, message.Value)
+		} else {
+			fmt.Printf("%s\n", message.Value)
+		}
 	}
 }
