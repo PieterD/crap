@@ -8,7 +8,7 @@ import (
 	"github.com/samuel/go-zookeeper/zk"
 )
 
-func GetBrokers(zooConn *zk.Conn) []BrokerInfo {
+func GetKafkaBrokers(zooConn *zk.Conn) []BrokerInfo {
 	brokerids, _, err := zooConn.Children("/brokers/ids")
 	if err != nil {
 		logger.Panicf("Failed to fetch Kafka brokers: %v", err)
@@ -49,4 +49,12 @@ type BrokerInfo struct {
 
 func (bi BrokerInfo) Addr() string {
 	return fmt.Sprintf("%s:%d", bi.Host, bi.Port)
+}
+
+func KafkaBrokerStrings(brokers []BrokerInfo) []string {
+	strs := make([]string, len(brokers))
+	for i := range strs {
+		strs[i] = brokers[i].Addr()
+	}
+	return strs
 }
