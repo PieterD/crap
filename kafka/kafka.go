@@ -16,10 +16,11 @@ var ErrNoBrokers = errors.New("No kafka brokers found")
 var ErrAlreadyListening = errors.New("Already listening to stream")
 
 type Message struct {
-	Key []byte
-	Val []byte
-	Stream
-	Offset int64
+	Key       []byte
+	Val       []byte
+	Topic     string
+	Partition int32
+	Offset    int64
 }
 
 type Stream struct {
@@ -43,7 +44,7 @@ type Kafka struct {
 func New(logger *log.Logger, zkpeers []string) (*Kafka, error) {
 	k := new(Kafka)
 	k.consumers = make(map[Stream]*partConsumer)
-	k.messagebus = make(chan Message)
+	k.messagebus = make(chan Message, 50)
 	k.logger = logger
 	k.zkpeers = zkpeers
 	err := k.connect()
@@ -121,6 +122,12 @@ type partConsumer struct {
 	conn   sarama.PartitionConsumer
 	offset int64
 	stream Stream
+	closed chan struct{}
+}
+
+func (pc *partConsumer) Close() {
+	//TODO: Do we want asynch close, or close to stop the messages?
+	pc.conn.Close()
 }
 
 func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
@@ -144,6 +151,7 @@ func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
 		conn:   kfkPartConsumer,
 		offset: offset,
 		stream: stream,
+		closed: make(chan struct{}),
 	}
 
 	// Re-check if stream was added in the mean time
@@ -164,22 +172,24 @@ func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
 		return ErrAlreadyListening
 	}
 
-	go func() {
-		for {
-			select {
-			case sMessage := <-pc.conn.Messages():
-				k.messagebus <- Message{
-					Key: sMessage.Key,
-					Val: sMessage.Value,
-					Stream: Stream{
-						Topic:     topic,
-						Partition: partition,
-					},
-					Offset: sMessage.Offset,
-				}
-			}
-		}
-	}()
+	go k.run(pc)
 
 	return nil
+}
+
+func (k *Kafka) run(pc *partConsumer) {
+	defer close(pc.closed)
+	for {
+		//TODO: Is a killchan necessary here?
+		select {
+		case sMessage := <-pc.conn.Messages():
+			k.messagebus <- Message{
+				Key:       sMessage.Key,
+				Val:       sMessage.Value,
+				Topic:     pc.stream.Topic,
+				Partition: pc.stream.Partition,
+				Offset:    sMessage.Offset,
+			}
+		}
+	}
 }
