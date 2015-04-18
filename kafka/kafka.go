@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/PieterD/kafka-processor/killchan"
 	"github.com/Shopify/sarama"
 	"github.com/samuel/go-zookeeper/zk"
 )
@@ -120,14 +119,6 @@ func (k *Kafka) Close() error {
 	return nil
 }
 
-type partConsumer struct {
-	conn   sarama.PartitionConsumer
-	offset int64
-	stream Stream
-	kill   killchan.Killchan
-	killed killchan.Killchan
-}
-
 func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
 	stream := Stream{Topic: topic, Partition: partition}
 
@@ -140,18 +131,12 @@ func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
 	}
 
 	// Create parititon consumer
-	kfkPartConsumer, err := k.kfkConsumer.ConsumePartition(topic, partition, offset)
+	conn, err := k.kfkConsumer.ConsumePartition(topic, partition, offset)
 	if err != nil {
 		return err
 	}
 
-	pc := &partConsumer{
-		conn:   kfkPartConsumer,
-		offset: offset,
-		stream: stream,
-		kill:   killchan.New(),
-		killed: killchan.New(),
-	}
+	pc := newPartConsumer(conn, stream, offset)
 
 	// Re-check if stream was added in the mean time
 	k.lock.Lock()
@@ -163,7 +148,7 @@ func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
 
 	// It was added in the mean time; close the partition consumer
 	if ok {
-		err = kfkPartConsumer.Close()
+		err = conn.Close()
 		if err != nil {
 			//TODO: Is this the right thing to do?
 			return err
@@ -177,6 +162,10 @@ func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
 }
 
 func (k *Kafka) Unlisten(topic string, partition int32) error {
+	stream := Stream{
+		Topic:     topic,
+		Partition: partition,
+	}
 	k.lock.Lock()
 	pc, ok := k.consumers[stream]
 	k.lock.Unlock()
@@ -191,41 +180,4 @@ func (k *Kafka) Unlisten(topic string, partition int32) error {
 	k.lock.Unlock()
 
 	return nil
-}
-
-func (pc *partConsumer) close() bool {
-	if pc.kill.Kill() {
-		pc.killed.Wait()
-		return true
-	}
-	return false
-}
-
-func (pc *partConsumer) run(k *Kafka) {
-	defer pc.killed.Kill()
-	defer pc.conn.Close()
-	for {
-		var msg Message
-
-		// Receive a message
-		select {
-		case sMessage := <-pc.conn.Messages():
-			msg = Message{
-				Key:       sMessage.Key,
-				Val:       sMessage.Value,
-				Topic:     pc.stream.Topic,
-				Partition: pc.stream.Partition,
-				Offset:    sMessage.Offset,
-			}
-		case <-pc.kill.Chan():
-			return
-		}
-
-		// Send the message on
-		select {
-		case k.messagebus <- msg:
-		case <-pc.kill.Chan():
-			return
-		}
-	}
 }
