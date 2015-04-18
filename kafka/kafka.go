@@ -8,12 +8,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/PieterD/kafka-processor/killchan"
 	"github.com/Shopify/sarama"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
 var ErrNoBrokers = errors.New("No kafka brokers found")
 var ErrAlreadyListening = errors.New("Already listening to stream")
+var ErrNotListening = errors.New("Not listening to stream")
 
 type Message struct {
 	Key       []byte
@@ -44,7 +46,7 @@ type Kafka struct {
 func New(logger *log.Logger, zkpeers []string) (*Kafka, error) {
 	k := new(Kafka)
 	k.consumers = make(map[Stream]*partConsumer)
-	k.messagebus = make(chan Message, 50)
+	k.messagebus = make(chan Message)
 	k.logger = logger
 	k.zkpeers = zkpeers
 	err := k.connect()
@@ -122,12 +124,8 @@ type partConsumer struct {
 	conn   sarama.PartitionConsumer
 	offset int64
 	stream Stream
-	closed chan struct{}
-}
-
-func (pc *partConsumer) Close() {
-	//TODO: Do we want asynch close, or close to stop the messages?
-	pc.conn.Close()
+	kill   killchan.Killchan
+	killed killchan.Killchan
 }
 
 func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
@@ -151,7 +149,8 @@ func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
 		conn:   kfkPartConsumer,
 		offset: offset,
 		stream: stream,
-		closed: make(chan struct{}),
+		kill:   killchan.New(),
+		killed: killchan.New(),
 	}
 
 	// Re-check if stream was added in the mean time
@@ -172,24 +171,61 @@ func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
 		return ErrAlreadyListening
 	}
 
-	go k.run(pc)
+	go pc.run(k)
 
 	return nil
 }
 
-func (k *Kafka) run(pc *partConsumer) {
-	defer close(pc.closed)
+func (k *Kafka) Unlisten(topic string, partition int32) error {
+	k.lock.Lock()
+	pc, ok := k.consumers[stream]
+	k.lock.Unlock()
+	if !ok {
+		return ErrNotListening
+	}
+
+	pc.close()
+
+	k.lock.Lock()
+	delete(k.consumers, stream)
+	k.lock.Unlock()
+
+	return nil
+}
+
+func (pc *partConsumer) close() bool {
+	if pc.kill.Kill() {
+		pc.killed.Wait()
+		return true
+	}
+	return false
+}
+
+func (pc *partConsumer) run(k *Kafka) {
+	defer pc.killed.Kill()
+	defer pc.conn.Close()
 	for {
-		//TODO: Is a killchan necessary here?
+		var msg Message
+
+		// Receive a message
 		select {
 		case sMessage := <-pc.conn.Messages():
-			k.messagebus <- Message{
+			msg = Message{
 				Key:       sMessage.Key,
 				Val:       sMessage.Value,
 				Topic:     pc.stream.Topic,
 				Partition: pc.stream.Partition,
 				Offset:    sMessage.Offset,
 			}
+		case <-pc.kill.Chan():
+			return
+		}
+
+		// Send the message on
+		select {
+		case k.messagebus <- msg:
+		case <-pc.kill.Chan():
+			return
 		}
 	}
 }
