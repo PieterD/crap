@@ -74,11 +74,15 @@ func (th *threadHandler) run() {
 			logger.Panicf("Message received from topic we are not supposed to be listening to")
 		}
 
+		// PROCESSING
+		newVal := bytes.ToUpper(msg.Val)
+		// PROCESSING
+
 		select {
 		case <-th.kill.Chan():
 			return
 		case trans := <-th.kfk.Outgoing():
-			partition, offset, err := trans.Send(msg.Key, bytes.ToUpper(msg.Val), action.dst)
+			partition, offset, err := trans.Send(msg.Key, newVal, action.dst)
 			if err != nil {
 				logger.Panicf("Message send failed to %s: %v", action.dst, err)
 			}
