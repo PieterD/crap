@@ -10,11 +10,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Shopify/sarama"
+	"github.com/PieterD/kafka-processor/kafka"
 )
 
 var (
-	fPeers   = flag.String("peers", os.Getenv("KAFKA_PEERS"), "List of Kafka peer addresses (Defaults to KAFKA_PEERS env)")
+	fPeers   = flag.String("peers", os.Getenv("ZOOKEEPER_PEERS"), "List of Zookeeper peer addresses (Defaults to ZOOKEEPER_PEERS env)")
 	fTopic   = flag.String("topic", "", "Topic to send on")
 	fVerbose = flag.Bool("verbose", false, "Print message details")
 
@@ -36,22 +36,11 @@ func main() {
 		flagbad("-topic is empty\n")
 	}
 
-	config := sarama.NewConfig()
-	config.Producer.Partitioner = sarama.NewRandomPartitioner
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.ClientID = "kafkaproc.producer"
-
-	client, err := sarama.NewClient(strings.Split(*fPeers, ","), config)
+	kfk, err := kafka.New("kafka-producer", logger, strings.Split(*fPeers, ","))
 	if err != nil {
-		logger.Panicf("Creating sarama client: %v", err)
+		logger.Panicf("Failed to start kafka")
 	}
-	defer client.Close()
-
-	producer, err := sarama.NewSyncProducerFromClient(client)
-	if err != nil {
-		logger.Panicf("Creating sarama syncproducer: %v", err)
-	}
-	defer producer.Close()
+	defer kfk.Close()
 
 	br := bufio.NewReader(os.Stdin)
 	for {
@@ -63,11 +52,7 @@ func main() {
 			logger.Panicf("Reading from stdin: %v", err)
 		}
 		line = bytes.TrimRight(line, "\n")
-		message := &sarama.ProducerMessage{
-			Topic: *fTopic,
-			Value: sarama.ByteEncoder(line),
-		}
-		part, offset, err := producer.SendMessage(message)
+		part, offset, err := kfk.Send(nil, line, *fTopic)
 		if err != nil {
 			logger.Panicf("Sending message: %v", err)
 		}
