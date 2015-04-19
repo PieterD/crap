@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"github.com/PieterD/kafka-processor/kafka/internal/listenhandler"
+	"github.com/PieterD/kafka-processor/kafka/internal/transmithandler"
 	"github.com/Shopify/sarama"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
 var ErrNoBrokers = errors.New("No kafka brokers found")
+var ErrTransmitHandlerClosed = errors.New("Transmit handler has closed")
 
 type Message struct {
 	Key       []byte
@@ -30,6 +32,7 @@ type Kafka struct {
 	kfkConn  sarama.Client
 	lh       *listenhandler.ListenHandler
 	incoming chan Message
+	th       *transmithandler.TransmitHandler
 }
 
 type messageTransmitter chan<- Message
@@ -99,11 +102,20 @@ func (k *Kafka) connect(clientid string) error {
 		return fmt.Errorf("Failed to start listen handler: %v", err)
 	}
 
+	k.th, err = transmithandler.New(kfkConn)
+	if err != nil {
+		k.Close()
+		return fmt.Errorf("Failed to start transmit handler: %v", err)
+	}
+
 	return nil
 }
 
 func (k *Kafka) Close() {
 	if atomic.CompareAndSwapInt32(&k.isclosed, 0, 1) {
+		if k.th != nil {
+			k.th.Close()
+		}
 		if k.lh != nil {
 			k.lh.Close()
 		}
@@ -130,4 +142,16 @@ func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
 
 func (k *Kafka) Unlisten(topic string, partition int32) error {
 	return k.lh.Unlisten(topic, partition)
+}
+
+func (k *Kafka) Outgoing() <-chan transmithandler.Transmit {
+	return k.th.Outgoing()
+}
+
+func (k *Kafka) Send(key, val []byte, topic string) (partition int32, offset int64, err error) {
+	trans, ok := <-k.th.Outgoing()
+	if !ok {
+		return 0, 0, ErrTransmitHandlerClosed
+	}
+	return trans.Send(key, val, topic)
 }
