@@ -59,6 +59,10 @@ func New(logger *log.Logger, zkpeers []string) (*Kafka, error) {
 	return k, nil
 }
 
+func (k *Kafka) Incoming() <-chan Message {
+	return k.incoming
+}
+
 func (k *Kafka) connect() error {
 	zooConn, _, err := zk.Connect(k.zkpeers, time.Second)
 	if err != nil {
@@ -109,4 +113,20 @@ func (k *Kafka) Close() {
 			k.zooConn.Close()
 		}
 	}
+}
+
+func (k *Kafka) ListenNewest(topic string, partition int32) error {
+	return k.lh.Listen(topic, partition, sarama.OffsetNewest)
+}
+
+func (k *Kafka) ListenOldest(topic string, partition int32) error {
+	return k.lh.Listen(topic, partition, sarama.OffsetOldest)
+}
+
+func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
+	return k.lh.Listen(topic, partition, offset)
+}
+
+func (k *Kafka) Unlisten(topic string, partition int32) error {
+	return k.lh.Unlisten(topic, partition)
 }
