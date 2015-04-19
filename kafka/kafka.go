@@ -48,11 +48,11 @@ func (mt messageTransmitter) Close() {
 	close(mt)
 }
 
-func New(logger *log.Logger, zkpeers []string) (*Kafka, error) {
+func New(clientid string, logger *log.Logger, zkpeers []string) (*Kafka, error) {
 	k := new(Kafka)
 	k.logger = logger
 	k.zkpeers = zkpeers
-	err := k.connect()
+	err := k.connect(clientid)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (k *Kafka) Incoming() <-chan Message {
 	return k.incoming
 }
 
-func (k *Kafka) connect() error {
+func (k *Kafka) connect(clientid string) error {
 	zooConn, _, err := zk.Connect(k.zkpeers, time.Second)
 	if err != nil {
 		return fmt.Errorf("Failed to connect to zookeeper: %v", err)
@@ -83,7 +83,7 @@ func (k *Kafka) connect() error {
 	config := sarama.NewConfig()
 	config.Producer.Partitioner = sarama.NewRandomPartitioner
 	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.ClientID = "kafka-go"
+	config.ClientID = clientid
 
 	kfkConn, err := sarama.NewClient(brokerStrings(kafkaBrokers), config)
 	if err != nil {
