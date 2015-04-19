@@ -5,18 +5,21 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
+	"github.com/PieterD/kafka-processor/kafka"
+	"github.com/PieterD/kafka-processor/killchan"
 	"github.com/Shopify/sarama"
 )
 
 var (
-	fPeers     = flag.String("peers", os.Getenv("KAFKA_PEERS"), "List of Kafka peer addresses (Defaults to KAFKA_PEERS env)")
+	fPeers     = flag.String("peers", os.Getenv("ZOOKEEPER_PEERS"), "List of Zookeeper peer addresses (Defaults to ZOOKEEPER_PEERS env)")
 	fPartition = flag.Int("partition", -1, "Partition to send on")
 	fTopic     = flag.String("topic", "", "Topic to send on")
 	fOffset    = flag.String("offset", "newest", "newest, oldest")
 	fVerbose   = flag.Bool("verbose", false, "Print message details")
-	//fTime      = flag.String("time", "", "Offset time (if -offset=time): yyyy-mm-ddThh:mm:ss.nnnnnnnnn")
 
 	logger = log.New(os.Stderr, "consumer", log.LstdFlags)
 )
@@ -44,43 +47,40 @@ func main() {
 		offset = sarama.OffsetNewest
 	case "oldest":
 		offset = sarama.OffsetOldest
-		/*
-			case "time":
-				t, err := time.Parse("2006-01-02T15:04:05.999999999", *fTime)
-				if err != nil {
-					flagbad("-offset expects newest, oldest or time\n")
-				}
-		*/
 	default:
 		flagbad("-offset expects newest, oldest or time\n")
 	}
 
-	config := sarama.NewConfig()
-	config.ClientID = "kafkaproc.consumer"
-
-	client, err := sarama.NewClient(strings.Split(*fPeers, ","), config)
+	kfk, err := kafka.New("kafka-consumer", logger, strings.Split(*fPeers, ","))
 	if err != nil {
-		logger.Panicf("Creating sarama client: %v", err)
+		logger.Panicf("Creating kafka client: %v", err)
 	}
-	defer client.Close()
+	defer kfk.Close()
 
-	consumer, err := sarama.NewConsumerFromClient(client)
+	err = kfk.Listen(*fTopic, int32(*fPartition), offset)
 	if err != nil {
-		logger.Panicf("Creating sarama consumer: %v", err)
+		logger.Panicf("Listen to partition %s:%d", *fTopic, *fPartition)
 	}
-	defer consumer.Close()
 
-	partitionconsumer, err := consumer.ConsumePartition(*fTopic, int32(*fPartition), offset)
-	if err != nil {
-		logger.Panicf("Creating partition consumer: %v", err)
-	}
-	defer partitionconsumer.Close()
+	sigchan := make(chan os.Signal)
+	signal.Notify(sigchan, syscall.SIGINT)
+	kc := killchan.New()
+	go func() {
+		<-sigchan
+		kc.Kill()
+	}()
 
-	for message := range partitionconsumer.Messages() {
-		if *fVerbose {
-			fmt.Printf("(offset=%d) %s\n", message.Offset, message.Value)
-		} else {
-			fmt.Printf("%s\n", message.Value)
+	for {
+		select {
+		case <-kc.Chan():
+			logger.Printf("Interrupt\n")
+			return
+		case message := <-kfk.Incoming():
+			if *fVerbose {
+				fmt.Printf("%s:%d (offset %d) %s\n", message.Topic, message.Partition, message.Offset, message.Val)
+			} else {
+				fmt.Printf("%s\n", message.Val)
+			}
 		}
 	}
 }
