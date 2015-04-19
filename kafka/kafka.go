@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/PieterD/kafka-processor/killchan"
 	"github.com/Shopify/sarama"
 	"github.com/samuel/go-zookeeper/zk"
 )
@@ -15,6 +16,7 @@ import (
 var ErrNoBrokers = errors.New("No kafka brokers found")
 var ErrAlreadyListening = errors.New("Already listening to stream")
 var ErrNotListening = errors.New("Not listening to stream")
+var ErrListenerQuit = errors.New("Listener exited unexpectedly; offset out of range?")
 
 type Message struct {
 	Key       []byte
@@ -38,13 +40,111 @@ type Kafka struct {
 	kfkConsumer sarama.Consumer
 	kfkProducer sarama.SyncProducer
 	lock        sync.Mutex
-	consumers   map[Stream]*partConsumer
+	listenbus   chan listenRequest
 	messagebus  chan Message
+}
+
+type listenRequest struct {
+	stream   Stream
+	offset   int64
+	response chan error
+	enable   bool
+}
+
+type listener struct {
+	stream Stream
+	conn   sarama.PartitionConsumer
+	killed killchan.Killchan
+}
+
+func (k *Kafka) run() {
+	defer k.close()
+	consumers := make(map[Stream]listener)
+	for {
+		select {
+		case req := <-k.listenbus:
+			if req.response == nil {
+				err := k.exited(consumers, req.stream)
+				if err != nil {
+					//TODO: This needs to be better.
+					panic(err)
+				}
+				continue
+			}
+			if req.enable {
+				err := k.listen(consumers, req.stream, req.offset)
+				if err != nil {
+					req.response <- err
+				}
+			} else {
+				err := k.unlisten(consumers, req.stream)
+				if err != nil {
+					req.response <- err
+				}
+			}
+			close(req.response)
+		}
+	}
+}
+
+func (k *Kafka) exited(consumers map[Stream]listener, stream Stream) error {
+	_, ok := consumers[stream]
+	if ok {
+		// Listener quit without us first removing it from the map;
+		// this means it was not caused by us, and thus unexpected.
+		return ErrListenerQuit
+	}
+	return nil
+}
+
+func (k *Kafka) listen(consumers map[Stream]listener, stream Stream, offset int64) error {
+	_, ok := consumers[stream]
+	if ok {
+		return ErrAlreadyListening
+	} else {
+		conn, err := k.kfkConsumer.ConsumePartition(stream.Topic, stream.Partition, offset)
+		if err != nil {
+			return err
+		}
+		l := listener{
+			stream: stream,
+			conn:   conn,
+			killed: killchan.New(),
+		}
+		consumers[stream] = l
+		go func() {
+			defer func() { k.listenbus <- listenRequest{stream: stream} }()
+			defer l.killed.Kill()
+			for msg := range conn.Messages() {
+				k.messagebus <- Message{
+					Key:       msg.Key,
+					Val:       msg.Value,
+					Topic:     stream.Topic,
+					Partition: stream.Partition,
+					Offset:    offset,
+				}
+			}
+		}()
+	}
+	return nil
+}
+
+func (k *Kafka) unlisten(consumers map[Stream]listener, stream Stream) error {
+	l, ok := consumers[stream]
+	if !ok {
+		return ErrNotListening
+	} else {
+		delete(consumers, stream)
+		//TODO: Perhaps use asynch close?
+		l.conn.Close()
+		l.killed.Wait()
+	}
+	return nil
 }
 
 func New(logger *log.Logger, zkpeers []string) (*Kafka, error) {
 	k := new(Kafka)
-	k.consumers = make(map[Stream]*partConsumer)
+	k.listenbus = make(chan listenRequest)
 	k.messagebus = make(chan Message)
 	k.logger = logger
 	k.zkpeers = zkpeers
@@ -52,6 +152,7 @@ func New(logger *log.Logger, zkpeers []string) (*Kafka, error) {
 	if err != nil {
 		return nil, err
 	}
+	go k.run()
 	return k, nil
 }
 
@@ -64,11 +165,11 @@ func (k *Kafka) connect() error {
 
 	kafkaBrokers, err := k.GetKafkaBrokersFromZookeeper()
 	if err != nil {
-		k.Close()
+		k.close()
 		return fmt.Errorf("Failed to feth brokers from zookeeper: %v", err)
 	}
 	if len(kafkaBrokers) == 0 {
-		k.Close()
+		k.close()
 		return ErrNoBrokers
 	}
 
@@ -79,21 +180,21 @@ func (k *Kafka) connect() error {
 
 	kfkConn, err := sarama.NewClient(brokerStrings(kafkaBrokers), config)
 	if err != nil {
-		k.Close()
+		k.close()
 		return fmt.Errorf("Failed to connect to Kafka: %v", err)
 	}
 	k.kfkConn = kfkConn
 
 	consumer, err := sarama.NewConsumerFromClient(kfkConn)
 	if err != nil {
-		k.Close()
+		k.close()
 		return fmt.Errorf("Failed to create Kafka consumer: %v", err)
 	}
 	k.kfkConsumer = consumer
 
 	producer, err := sarama.NewSyncProducerFromClient(kfkConn)
 	if err != nil {
-		consumer.Close()
+		k.close()
 		return fmt.Errorf("Failed to create sarama syncproducer: %v", err)
 	}
 	k.kfkProducer = producer
@@ -101,7 +202,7 @@ func (k *Kafka) connect() error {
 	return nil
 }
 
-func (k *Kafka) Close() error {
+func (k *Kafka) close() {
 	if atomic.CompareAndSwapInt32(&k.isclosed, 0, 1) {
 		if k.kfkProducer != nil {
 			k.kfkProducer.Close()
@@ -116,68 +217,37 @@ func (k *Kafka) Close() error {
 			k.zooConn.Close()
 		}
 	}
-	return nil
 }
 
 func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
 	stream := Stream{Topic: topic, Partition: partition}
-
-	// Check if the stream was already added
-	k.lock.Lock()
-	_, ok := k.consumers[stream]
-	k.lock.Unlock()
-	if ok {
-		return ErrAlreadyListening
+	req := listenRequest{
+		stream:   stream,
+		offset:   offset,
+		response: make(chan error),
+		enable:   true,
 	}
-
-	// Create parititon consumer
-	conn, err := k.kfkConsumer.ConsumePartition(topic, partition, offset)
-	if err != nil {
+	k.listenbus <- req
+	err, ok := <-req.response
+	if ok {
 		return err
 	}
-
-	pc := newPartConsumer(conn, stream, offset)
-
-	// Re-check if stream was added in the mean time
-	k.lock.Lock()
-	_, ok = k.consumers[stream]
-	if !ok {
-		k.consumers[stream] = pc
-	}
-	k.lock.Unlock()
-
-	// It was added in the mean time; close the partition consumer
-	if ok {
-		err = conn.Close()
-		if err != nil {
-			//TODO: Is this the right thing to do?
-			return err
-		}
-		return ErrAlreadyListening
-	}
-
-	go pc.run(k)
 
 	return nil
 }
 
 func (k *Kafka) Unlisten(topic string, partition int32) error {
-	stream := Stream{
-		Topic:     topic,
-		Partition: partition,
+	stream := Stream{Topic: topic, Partition: partition}
+	req := listenRequest{
+		stream:   stream,
+		response: make(chan error),
+		enable:   false,
 	}
-	k.lock.Lock()
-	pc, ok := k.consumers[stream]
-	k.lock.Unlock()
-	if !ok {
-		return ErrNotListening
+	k.listenbus <- req
+	err, ok := <-req.response
+	if ok {
+		return err
 	}
-
-	pc.close()
-
-	k.lock.Lock()
-	delete(k.consumers, stream)
-	k.lock.Unlock()
 
 	return nil
 }
