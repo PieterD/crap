@@ -25,19 +25,26 @@ type Message struct {
 	Offset    int64
 }
 
-type Stream struct {
-	Topic     string
-	Partition int32
-}
-
 type Kafka struct {
 	isclosed int32
 	logger   *log.Logger
 	zkpeers  []string
 	zooConn  *zk.Conn
 	kfkConn  sarama.Client
-	//kfkProducer sarama.SyncProducer
-	lh *listenHandler
+	lh       *listenHandler
+	incoming chan Message
+}
+
+type messageTransmitter chan<- Message
+
+func (mt messageTransmitter) Transmit(key, val []byte, topic string, partition int32, offset int64) {
+	mt <- Message{
+		Key:       key,
+		Val:       val,
+		Topic:     topic,
+		Partition: partition,
+		Offset:    offset,
+	}
 }
 
 func New(logger *log.Logger, zkpeers []string) (*Kafka, error) {
@@ -80,12 +87,11 @@ func (k *Kafka) connect() error {
 	}
 	k.kfkConn = kfkConn
 
-	//producer, err := sarama.NewSyncProducerFromClient(kfkConn)
-	//if err != nil {
-	//	k.close()
-	//	return fmt.Errorf("Failed to create sarama syncproducer: %v", err)
-	//}
-	//k.kfkProducer = producer
+	k.lh, err = newListenHandler(kfkConn, messageTransmitter(k.incoming))
+	if err != nil {
+		k.close()
+		return fmt.Errorf("Failed to start listen handler: %v", err)
+	}
 
 	return nil
 }
@@ -95,9 +101,6 @@ func (k *Kafka) close() {
 		if k.lh != nil {
 			k.lh.close()
 		}
-		//if k.kfkProducer != nil {
-		//	k.kfkProducer.Close()
-		//}
 		if k.kfkConn != nil {
 			k.kfkConn.Close()
 		}

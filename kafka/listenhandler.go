@@ -7,11 +7,20 @@ import (
 	"github.com/Shopify/sarama"
 )
 
+type Transmitter interface {
+	Transmit(key, val []byte, topic string, partition int32, offset int64)
+}
+
+type Stream struct {
+	Topic     string
+	Partition int32
+}
+
 type listenHandler struct {
-	listenbus  chan listenRequest
-	messagebus chan Message
-	consumer   sarama.Consumer
-	kill       killchan.Killchan
+	listenbus   chan listenRequest
+	transmitter Transmitter
+	consumer    sarama.Consumer
+	kill        killchan.Killchan
 }
 
 type listenRequest struct {
@@ -27,15 +36,16 @@ type listener struct {
 	killed killchan.Killchan
 }
 
-func newListenHandler(kfkConn sarama.Client) (*listenHandler, error) {
+func newListenHandler(kfkConn sarama.Client, transmitter Transmitter) (*listenHandler, error) {
 	consumer, err := sarama.NewConsumerFromClient(kfkConn)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create Kafka consumer: %v", err)
 	}
 	lh := &listenHandler{
-		listenbus:  make(chan listenRequest),
-		messagebus: make(chan Message),
-		consumer:   consumer,
+		listenbus:   make(chan listenRequest),
+		transmitter: transmitter,
+		consumer:    consumer,
+		kill:        killchan.New(),
 	}
 	go lh.run()
 	return lh, nil
@@ -118,13 +128,7 @@ func (lh *listenHandler) listen(consumers map[Stream]listener, stream Stream, of
 			defer func() { lh.listenbus <- listenRequest{stream: stream} }()
 			defer l.killed.Kill()
 			for msg := range conn.Messages() {
-				lh.messagebus <- Message{
-					Key:       msg.Key,
-					Val:       msg.Value,
-					Topic:     stream.Topic,
-					Partition: stream.Partition,
-					Offset:    offset,
-				}
+				lh.transmitter.Transmit(msg.Key, msg.Value, stream.Topic, stream.Partition, offset)
 			}
 		}()
 	}
