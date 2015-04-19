@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/PieterD/kafka-processor/kafka"
-	"github.com/PieterD/kafka-processor/kafka/internal/killchan"
+	"github.com/PieterD/kafka"
+	"github.com/PieterD/kafka/internal/killchan"
 )
 
 type threadHandler struct {

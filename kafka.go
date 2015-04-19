@@ -7,8 +7,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/PieterD/kafka-processor/kafka/internal/listenhandler"
-	"github.com/PieterD/kafka-processor/kafka/internal/transmithandler"
+	"github.com/PieterD/kafka/internal/listenhandler"
+	"github.com/PieterD/kafka/internal/transmithandler"
 	"github.com/Shopify/sarama"
 	"github.com/samuel/go-zookeeper/zk"
 )

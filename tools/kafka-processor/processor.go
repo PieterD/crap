@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/PieterD/kafka-processor/kafka"
+	"github.com/PieterD/kafka"
 )
 
 var (
