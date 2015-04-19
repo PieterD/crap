@@ -44,6 +44,10 @@ func (mt messageTransmitter) Transmit(key, val []byte, topic string, partition i
 	}
 }
 
+func (mt messageTransmitter) Close() {
+	close(mt)
+}
+
 func New(logger *log.Logger, zkpeers []string) (*Kafka, error) {
 	k := new(Kafka)
 	k.logger = logger
@@ -64,11 +68,11 @@ func (k *Kafka) connect() error {
 
 	kafkaBrokers, err := k.GetKafkaBrokersFromZookeeper()
 	if err != nil {
-		k.close()
+		k.Close()
 		return fmt.Errorf("Failed to feth brokers from zookeeper: %v", err)
 	}
 	if len(kafkaBrokers) == 0 {
-		k.close()
+		k.Close()
 		return ErrNoBrokers
 	}
 
@@ -79,21 +83,21 @@ func (k *Kafka) connect() error {
 
 	kfkConn, err := sarama.NewClient(brokerStrings(kafkaBrokers), config)
 	if err != nil {
-		k.close()
+		k.Close()
 		return fmt.Errorf("Failed to connect to Kafka: %v", err)
 	}
 	k.kfkConn = kfkConn
 
 	k.lh, err = listenhandler.New(kfkConn, messageTransmitter(k.incoming))
 	if err != nil {
-		k.close()
+		k.Close()
 		return fmt.Errorf("Failed to start listen handler: %v", err)
 	}
 
 	return nil
 }
 
-func (k *Kafka) close() {
+func (k *Kafka) Close() {
 	if atomic.CompareAndSwapInt32(&k.isclosed, 0, 1) {
 		if k.lh != nil {
 			k.lh.Close()

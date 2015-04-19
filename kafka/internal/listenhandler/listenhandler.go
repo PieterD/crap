@@ -15,6 +15,7 @@ var ErrListenHandlerClosed = errors.New("Listen handler had been closed")
 
 type Transmitter interface {
 	Transmit(key, val []byte, topic string, partition int32, offset int64)
+	Close()
 }
 
 type Stream struct {
@@ -64,6 +65,7 @@ func (lh *ListenHandler) Close() {
 }
 
 func (lh *ListenHandler) run() {
+	defer lh.transmitter.Close()
 	defer lh.dead.Kill()
 	defer lh.consumer.Close()
 	consumers := make(map[Stream]listener)
