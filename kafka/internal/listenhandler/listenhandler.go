@@ -24,7 +24,7 @@ type Stream struct {
 }
 
 type ListenHandler struct {
-	listenbus   chan listenRequest
+	listenbus   chan chan<- listenRequest
 	transmitter Transmitter
 	consumer    sarama.Consumer
 	kill        *killchan.Killchan
@@ -50,7 +50,7 @@ func New(kfkConn sarama.Client, transmitter Transmitter) (*ListenHandler, error)
 		return nil, fmt.Errorf("Failed to create Kafka consumer: %v", err)
 	}
 	lh := &ListenHandler{
-		listenbus:   make(chan listenRequest),
+		listenbus:   make(chan chan<- listenRequest),
 		transmitter: transmitter,
 		consumer:    consumer,
 		kill:        killchan.New(),
@@ -66,8 +66,6 @@ func (lh *ListenHandler) Close() {
 }
 
 func (lh *ListenHandler) run() {
-	//TODO: We need to close listenbus.
-	// This may cause problems with Listen and Unlisten.
 	defer lh.transmitter.Close()
 	defer lh.dead.Kill()
 	defer lh.consumer.Close()
@@ -76,25 +74,16 @@ func (lh *ListenHandler) run() {
 		for stream := range consumers {
 			lh.unlisten(consumers, stream)
 		}
-		stop := false
-		for !stop {
-			select {
-			case req := <-lh.listenbus:
-				if req.response != nil {
-					req.response <- ErrListenHandlerClosed
-					close(req.response)
-				}
-			default:
-				stop = true
-			}
-		}
 	}()
+	defer close(lh.listenbus)
 
+	listenrecv := make(chan listenRequest, 1)
 	for {
 		select {
 		case <-lh.kill.Chan():
 			return
-		case req := <-lh.listenbus:
+		case lh.listenbus <- listenrecv:
+			req := <-listenrecv
 			if req.response == nil {
 				err := lh.exited(consumers, req.stream)
 				if err != nil {
@@ -145,7 +134,7 @@ func (lh *ListenHandler) listen(consumers map[Stream]listener, stream Stream, of
 		}
 		consumers[stream] = l
 		go func() {
-			defer func() { lh.listenbus <- listenRequest{stream: stream} }()
+			defer lh.sendListenRequest(stream, 0, nil, false)
 			defer l.killed.Kill()
 			for msg := range conn.Messages() {
 				lh.transmitter.Transmit(msg.Key, msg.Value, stream.Topic, stream.Partition, msg.Offset)
@@ -153,6 +142,20 @@ func (lh *ListenHandler) listen(consumers map[Stream]listener, stream Stream, of
 		}()
 	}
 	return nil
+}
+
+func (lh *ListenHandler) sendListenRequest(stream Stream, offset int64, response chan error, enable bool) bool {
+	recv, ok := <-lh.listenbus
+	if ok {
+		recv <- listenRequest{
+			stream:   stream,
+			offset:   offset,
+			response: response,
+			enable:   enable,
+		}
+		return true
+	}
+	return false
 }
 
 func (lh *ListenHandler) unlisten(consumers map[Stream]listener, stream Stream) error {
@@ -170,14 +173,11 @@ func (lh *ListenHandler) unlisten(consumers map[Stream]listener, stream Stream) 
 
 func (lh *ListenHandler) Listen(topic string, partition int32, offset int64) error {
 	stream := Stream{Topic: topic, Partition: partition}
-	req := listenRequest{
-		stream:   stream,
-		offset:   offset,
-		response: make(chan error),
-		enable:   true,
+	response := make(chan error)
+	if !lh.sendListenRequest(stream, offset, response, true) {
+		return ErrListenHandlerClosed
 	}
-	lh.listenbus <- req
-	err, ok := <-req.response
+	err, ok := <-response
 	if ok {
 		return err
 	}
@@ -187,13 +187,11 @@ func (lh *ListenHandler) Listen(topic string, partition int32, offset int64) err
 
 func (lh *ListenHandler) Unlisten(topic string, partition int32) error {
 	stream := Stream{Topic: topic, Partition: partition}
-	req := listenRequest{
-		stream:   stream,
-		response: make(chan error),
-		enable:   false,
+	response := make(chan error)
+	if !lh.sendListenRequest(stream, 0, response, false) {
+		return ErrListenHandlerClosed
 	}
-	lh.listenbus <- req
-	err, ok := <-req.response
+	err, ok := <-response
 	if ok {
 		return err
 	}
