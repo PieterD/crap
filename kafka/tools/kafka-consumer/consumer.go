@@ -18,7 +18,8 @@ var (
 	fPeers     = flag.String("peers", os.Getenv("ZOOKEEPER_PEERS"), "List of Zookeeper peer addresses (Defaults to ZOOKEEPER_PEERS env)")
 	fPartition = flag.Int("partition", -1, "Partition to send on")
 	fTopic     = flag.String("topic", "", "Topic to send on")
-	fOffset    = flag.String("offset", "newest", "newest, oldest")
+	fOffset    = flag.String("offset", "newest", "newest, oldest, manual")
+	fManual    = flag.Int64("manual", -1, "Set offset when -offset=manual")
 	fVerbose   = flag.Bool("verbose", false, "Print message details")
 
 	logger = log.New(os.Stderr, "consumer", log.LstdFlags)
@@ -47,6 +48,11 @@ func main() {
 		offset = sarama.OffsetNewest
 	case "oldest":
 		offset = sarama.OffsetOldest
+	case "manual":
+		offset = *fManual
+		if offset <= -1 {
+			flagbad("-manual positive integer expected")
+		}
 	default:
 		flagbad("-offset expects newest, oldest or time\n")
 	}
