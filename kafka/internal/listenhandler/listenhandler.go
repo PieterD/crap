@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/PieterD/kafka-processor/killchan"
+	"github.com/PieterD/kafka-processor/kafka/internal/killchan"
 	"github.com/Shopify/sarama"
 )
 
