@@ -1,11 +1,17 @@
-package kafka
+package listenhandler
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/PieterD/kafka-processor/killchan"
 	"github.com/Shopify/sarama"
 )
+
+var ErrAlreadyListening = errors.New("Already listening to stream")
+var ErrNotListening = errors.New("Not listening to stream")
+var ErrListenerQuit = errors.New("Listener exited unexpectedly; offset out of range?")
+var ErrListenHandlerClosed = errors.New("Listen handler had been closed")
 
 type Transmitter interface {
 	Transmit(key, val []byte, topic string, partition int32, offset int64)
@@ -16,11 +22,12 @@ type Stream struct {
 	Partition int32
 }
 
-type listenHandler struct {
+type ListenHandler struct {
 	listenbus   chan listenRequest
 	transmitter Transmitter
 	consumer    sarama.Consumer
 	kill        killchan.Killchan
+	dead        killchan.Killchan
 }
 
 type listenRequest struct {
@@ -36,12 +43,12 @@ type listener struct {
 	killed killchan.Killchan
 }
 
-func newListenHandler(kfkConn sarama.Client, transmitter Transmitter) (*listenHandler, error) {
+func New(kfkConn sarama.Client, transmitter Transmitter) (*ListenHandler, error) {
 	consumer, err := sarama.NewConsumerFromClient(kfkConn)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create Kafka consumer: %v", err)
 	}
-	lh := &listenHandler{
+	lh := &ListenHandler{
 		listenbus:   make(chan listenRequest),
 		transmitter: transmitter,
 		consumer:    consumer,
@@ -51,11 +58,13 @@ func newListenHandler(kfkConn sarama.Client, transmitter Transmitter) (*listenHa
 	return lh, nil
 }
 
-func (lh *listenHandler) close() {
+func (lh *ListenHandler) Close() {
 	lh.kill.Kill()
+	lh.dead.Wait()
 }
 
-func (lh *listenHandler) run() {
+func (lh *ListenHandler) run() {
+	defer lh.dead.Kill()
 	defer lh.consumer.Close()
 	consumers := make(map[Stream]listener)
 	defer func() {
@@ -99,7 +108,7 @@ func (lh *listenHandler) run() {
 	}
 }
 
-func (lh *listenHandler) exited(consumers map[Stream]listener, stream Stream) error {
+func (lh *ListenHandler) exited(consumers map[Stream]listener, stream Stream) error {
 	_, ok := consumers[stream]
 	if ok {
 		// Listener quit without us first removing it from the map;
@@ -109,7 +118,7 @@ func (lh *listenHandler) exited(consumers map[Stream]listener, stream Stream) er
 	return nil
 }
 
-func (lh *listenHandler) listen(consumers map[Stream]listener, stream Stream, offset int64) error {
+func (lh *ListenHandler) listen(consumers map[Stream]listener, stream Stream, offset int64) error {
 	_, ok := consumers[stream]
 	if ok {
 		return ErrAlreadyListening
@@ -135,7 +144,7 @@ func (lh *listenHandler) listen(consumers map[Stream]listener, stream Stream, of
 	return nil
 }
 
-func (lh *listenHandler) unlisten(consumers map[Stream]listener, stream Stream) error {
+func (lh *ListenHandler) unlisten(consumers map[Stream]listener, stream Stream) error {
 	l, ok := consumers[stream]
 	if !ok {
 		return ErrNotListening
@@ -148,7 +157,7 @@ func (lh *listenHandler) unlisten(consumers map[Stream]listener, stream Stream) 
 	return nil
 }
 
-func (lh *listenHandler) Listen(topic string, partition int32, offset int64) error {
+func (lh *ListenHandler) Listen(topic string, partition int32, offset int64) error {
 	stream := Stream{Topic: topic, Partition: partition}
 	req := listenRequest{
 		stream:   stream,
@@ -165,7 +174,7 @@ func (lh *listenHandler) Listen(topic string, partition int32, offset int64) err
 	return nil
 }
 
-func (lh *listenHandler) Unlisten(topic string, partition int32) error {
+func (lh *ListenHandler) Unlisten(topic string, partition int32) error {
 	stream := Stream{Topic: topic, Partition: partition}
 	req := listenRequest{
 		stream:   stream,

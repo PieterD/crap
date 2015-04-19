@@ -7,15 +7,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/PieterD/kafka-processor/kafka/internal/listenhandler"
 	"github.com/Shopify/sarama"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
 var ErrNoBrokers = errors.New("No kafka brokers found")
-var ErrAlreadyListening = errors.New("Already listening to stream")
-var ErrNotListening = errors.New("Not listening to stream")
-var ErrListenerQuit = errors.New("Listener exited unexpectedly; offset out of range?")
-var ErrListenHandlerClosed = errors.New("Listen handler had been closed")
 
 type Message struct {
 	Key       []byte
@@ -31,7 +28,7 @@ type Kafka struct {
 	zkpeers  []string
 	zooConn  *zk.Conn
 	kfkConn  sarama.Client
-	lh       *listenHandler
+	lh       *listenhandler.ListenHandler
 	incoming chan Message
 }
 
@@ -87,7 +84,7 @@ func (k *Kafka) connect() error {
 	}
 	k.kfkConn = kfkConn
 
-	k.lh, err = newListenHandler(kfkConn, messageTransmitter(k.incoming))
+	k.lh, err = listenhandler.New(kfkConn, messageTransmitter(k.incoming))
 	if err != nil {
 		k.close()
 		return fmt.Errorf("Failed to start listen handler: %v", err)
@@ -99,7 +96,7 @@ func (k *Kafka) connect() error {
 func (k *Kafka) close() {
 	if atomic.CompareAndSwapInt32(&k.isclosed, 0, 1) {
 		if k.lh != nil {
-			k.lh.close()
+			k.lh.Close()
 		}
 		if k.kfkConn != nil {
 			k.kfkConn.Close()
