@@ -157,6 +157,14 @@ func (lh *ListenHandler) unlisten(consumers map[Stream]listener, stream Stream) 
 	return nil
 }
 
+func (lh *ListenHandler) ListenNewest(topic string, partition int32) error {
+	return lh.Listen(topic, partition, sarama.OffsetNewest)
+}
+
+func (lh *ListenHandler) ListenOldest(topic string, partition int32) error {
+	return lh.Listen(topic, partition, sarama.OffsetOldest)
+}
+
 func (lh *ListenHandler) Listen(topic string, partition int32, offset int64) error {
 	stream := Stream{Topic: topic, Partition: partition}
 	req := listenRequest{
