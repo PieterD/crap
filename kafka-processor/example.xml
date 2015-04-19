@@ -1,27 +1,20 @@
 <Config>
 	<Name>kafkaproc-1</Name>
-	<ZooKeeper>
+	<Threads>4</Threads>
+	<Zookeeper>
 		<Peers>
 			<Peer>localhost:2181</Peer>
 		</Peers>
-	</ZooKeeper>
-	<Kafka>
-		<Peers>
-			<Peer>localhost:9000</Peer>
-			<Peer>localhost:9001</Peer>
-			<Peer>localhost:9002</Peer>
-		</Peers>
-	</Kafka>
+	</Zookeeper>
 	<Streams>
 		<Stream>
 			<Topic>
-				<Src>test-in</Src>
-				<Dst>test-out</Dst>
+				<Src>test</Src>
+				<Dst>test2</Dst>
 			</Topic>
 			<Partitions>
 				<Partition>0</Partition>
 				<Partition>1</Partition>
-				<Partition>2</Partition>
 			</Partitions>
 			<Function>ToUpper</Function>
 		</Stream>

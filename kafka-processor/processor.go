@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Shopify/sarama"
+	"github.com/PieterD/kafka-processor/kafka"
 )
 
 var (
@@ -34,56 +34,22 @@ func main() {
 		logger.Panicf("Failed to parse config: %v", err)
 	}
 
-	config := sarama.NewConfig()
-	config.Producer.Partitioner = sarama.NewRandomPartitioner
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.ClientID = "kafkaproc.processor"
-
-	client, err := sarama.NewClient(cfg.Kafka.Peer, config)
+	kfk, err := kafka.New("kafka-processor", logger, cfg.Zookeeper.Peer)
 	if err != nil {
-		logger.Panicf("Creating sarama client: %v", err)
+		logger.Panicf("Failed to start kafka")
 	}
-	defer client.Close()
+	defer kfk.Close()
 
-	consumer, err := sarama.NewConsumerFromClient(client)
+	th, err := newThreadHandler(kfk, cfg)
 	if err != nil {
-		logger.Panicf("Creating sarama consumer: %v", err)
-	}
-	defer consumer.Close()
-
-	producer, err := sarama.NewSyncProducerFromClient(client)
-	if err != nil {
-		logger.Panicf("Creating sarama syncproducer: %v", err)
-	}
-	defer producer.Close()
-
-	cl := NewConsumerList()
-
-	for _, stream := range cfg.Stream {
-		for _, partition := range stream.Partition {
-			partitionconsumer, err := consumer.ConsumePartition(stream.TopicSrc, partition, sarama.OffsetNewest)
-			if err != nil {
-				logger.Printf("Failed to create partition consumer %s:%d: %v", stream.TopicSrc, partition, err)
-				continue
-			}
-			pc := &ProcConsumer{
-				consumer:  partitionconsumer,
-				producer:  producer,
-				src:       stream.TopicSrc,
-				dst:       stream.TopicDst,
-				partition: partition,
-				function:  stream.Function,
-				killchan:  make(chan struct{}),
-			}
-			cl.Add(pc)
-		}
+		logger.Panicf("Failed to start thread handler")
 	}
 
 	sigchan := make(chan os.Signal)
 	signal.Notify(sigchan, syscall.SIGINT)
 	go func() {
 		<-sigchan
-		cl.Close()
+		th.close()
 	}()
-	<-cl.killchan
+	th.wait()
 }

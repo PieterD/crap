@@ -7,8 +7,8 @@ import (
 
 type Config struct {
 	Name      string          `xml:"Name"`
-	ZooKeeper ConfigZooKeeper `xml:"ZooKeeper"`
-	Kafka     ConfigKafka     `xml:"Kafka"`
+	Threads   int             `xml:"Threads"`
+	Zookeeper ConfigZooKeeper `xml:"Zookeeper"`
 	Stream    []ConfigStream  `xml:"Streams>Stream"`
 }
 
@@ -21,10 +21,10 @@ type ConfigKafka struct {
 }
 
 type ConfigStream struct {
-	TopicSrc  string   `xml:"Topic>Src"`
-	TopicDst  string   `xml:"Topic>Dst"`
-	Partition []int32  `xml:"Partitions>Partition"`
-	Function  []string `xml:"Functions>Function"`
+	TopicSrc  string  `xml:"Topic>Src"`
+	TopicDst  string  `xml:"Topic>Dst"`
+	Partition []int32 `xml:"Partitions>Partition"`
+	Function  string  `xml:"Function"`
 }
 
 func ParseConfig(filename string) (*Config, error) {
