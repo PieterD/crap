@@ -78,9 +78,12 @@ func (th *threadHandler) run() {
 		case <-th.kill.Chan():
 			return
 		case trans := <-th.kfk.Outgoing():
-			_, _, err := trans.Send(msg.Key, bytes.ToUpper(msg.Val), action.dst)
+			partition, offset, err := trans.Send(msg.Key, bytes.ToUpper(msg.Val), action.dst)
 			if err != nil {
 				logger.Panicf("Message send failed to %s: %v", action.dst, err)
+			}
+			if *fVerbose {
+				fmt.Printf("processed %s:%d(%d) -> %s:%d(%d)\n", msg.Topic, msg.Partition, msg.Offset, action.dst, partition, offset)
 			}
 		}
 	}

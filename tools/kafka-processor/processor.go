@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	fConfig = flag.String("config", "", "xml file configuring processing streams")
+	fConfig  = flag.String("config", "", "xml file configuring processing streams")
+	fVerbose = flag.Bool("verbose", false, "Be more verbose")
 
 	logger = log.New(os.Stderr, "processor", log.LstdFlags)
 )
