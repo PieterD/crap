@@ -52,6 +52,7 @@ func New(clientid string, logger *log.Logger, zkpeers []string) (*Kafka, error) 
 	k := new(Kafka)
 	k.logger = logger
 	k.zkpeers = zkpeers
+	k.incoming = make(chan Message)
 	err := k.connect(clientid)
 	if err != nil {
 		return nil, err

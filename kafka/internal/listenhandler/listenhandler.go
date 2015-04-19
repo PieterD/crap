@@ -27,8 +27,8 @@ type ListenHandler struct {
 	listenbus   chan listenRequest
 	transmitter Transmitter
 	consumer    sarama.Consumer
-	kill        killchan.Killchan
-	dead        killchan.Killchan
+	kill        *killchan.Killchan
+	dead        *killchan.Killchan
 }
 
 type listenRequest struct {
@@ -41,7 +41,7 @@ type listenRequest struct {
 type listener struct {
 	stream Stream
 	conn   sarama.PartitionConsumer
-	killed killchan.Killchan
+	killed *killchan.Killchan
 }
 
 func New(kfkConn sarama.Client, transmitter Transmitter) (*ListenHandler, error) {
@@ -54,6 +54,7 @@ func New(kfkConn sarama.Client, transmitter Transmitter) (*ListenHandler, error)
 		transmitter: transmitter,
 		consumer:    consumer,
 		kill:        killchan.New(),
+		dead:        killchan.New(),
 	}
 	go lh.run()
 	return lh, nil
@@ -65,6 +66,8 @@ func (lh *ListenHandler) Close() {
 }
 
 func (lh *ListenHandler) run() {
+	//TODO: We need to close listenbus.
+	// This may cause problems with Listen and Unlisten.
 	defer lh.transmitter.Close()
 	defer lh.dead.Kill()
 	defer lh.consumer.Close()
@@ -73,10 +76,16 @@ func (lh *ListenHandler) run() {
 		for stream := range consumers {
 			lh.unlisten(consumers, stream)
 		}
-		for req := range lh.listenbus {
-			if req.response != nil {
-				req.response <- ErrListenHandlerClosed
-				close(req.response)
+		stop := false
+		for !stop {
+			select {
+			case req := <-lh.listenbus:
+				if req.response != nil {
+					req.response <- ErrListenHandlerClosed
+					close(req.response)
+				}
+			default:
+				stop = true
 			}
 		}
 	}()
@@ -139,7 +148,7 @@ func (lh *ListenHandler) listen(consumers map[Stream]listener, stream Stream, of
 			defer func() { lh.listenbus <- listenRequest{stream: stream} }()
 			defer l.killed.Kill()
 			for msg := range conn.Messages() {
-				lh.transmitter.Transmit(msg.Key, msg.Value, stream.Topic, stream.Partition, offset)
+				lh.transmitter.Transmit(msg.Key, msg.Value, stream.Topic, stream.Partition, msg.Offset)
 			}
 		}()
 	}
