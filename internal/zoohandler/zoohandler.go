@@ -22,9 +22,10 @@ func New(peers []string, logger *log.Logger) (*ZooHandler, error) {
 		return nil, fmt.Errorf("Failed to connect to zookeeper: %v", err)
 	}
 	zh := &ZooHandler{
-		kill: killchan.New(),
-		dead: killchan.New(),
-		conn: conn,
+		kill:   killchan.New(),
+		dead:   killchan.New(),
+		conn:   conn,
+		logger: logger,
 	}
 	go zh.run()
 	return zh, nil

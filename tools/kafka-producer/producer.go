@@ -38,7 +38,7 @@ func main() {
 
 	kfk, err := kafka.New("kafka-producer", logger, strings.Split(*fPeers, ","))
 	if err != nil {
-		logger.Panicf("Failed to start kafka")
+		logger.Panicf("Failed to start kafka: %v", err)
 	}
 	defer kfk.Close()
 

@@ -1,39 +1,38 @@
 package zoohandler
 
-import (
-	"encoding/json"
-	"fmt"
-	"strconv"
-)
+import "fmt"
 
 func (zh *ZooHandler) GetKafkaBrokers() (BrokerList, error) {
-	brokerids, _, err := zh.conn.Children("/brokers/ids")
+	node, err := zh.NewNode("/brokers/ids")
 	if err != nil {
-		return nil, fmt.Errorf("Failed to fetch Kafka brokers: %v", err)
+		return nil, err
+	}
+
+	result := node.GetChildren(false)
+	if result.Err != nil {
+		return nil, result
 	}
 
 	var brokers BrokerList
-
-	for _, brokerid := range brokerids {
-		data, _, err := zh.conn.Get("/brokers/ids/" + brokerid)
-		if err != nil {
-			zh.logger.Printf("Failed to get Kafka broker: %v", err)
+	for _, childnode := range result.Children {
+		brokerid, ok := childnode.NumberName()
+		if !ok {
+			continue
+		}
+		child := childnode.Get(false)
+		if child.Err != nil {
+			zh.logger.Printf("Failed to get Kafka broker (%s): %v", child.name, child)
 			continue
 		}
 		var broker BrokerInfo
-		broker.Id, err = strconv.Atoi(brokerid)
+		broker.Id = int(brokerid)
+		err = child.Json(&broker)
 		if err != nil {
-			zh.logger.Printf("Failed to parse brokerid: %v", err)
-			continue
-		}
-		err = json.Unmarshal(data, &broker)
-		if err != nil {
-			zh.logger.Printf("Failed to parse Kafka broker json: %v", err)
+			zh.logger.Printf("Failed to parse Kafka broker (%s) json: %v", child.name, err)
 			continue
 		}
 		brokers = append(brokers, broker)
 	}
-
 	return brokers, nil
 }
 
