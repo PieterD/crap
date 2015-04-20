@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"log"
 	"sync/atomic"
-	"time"
 
 	"github.com/PieterD/kafka/internal/listenhandler"
 	"github.com/PieterD/kafka/internal/transmithandler"
+	"github.com/PieterD/kafka/internal/zoohandler"
 	"github.com/Shopify/sarama"
-	"github.com/samuel/go-zookeeper/zk"
 )
 
 var ErrNoBrokers = errors.New("No kafka brokers found")
@@ -28,7 +27,7 @@ type Kafka struct {
 	isclosed int32
 	logger   *log.Logger
 	zkpeers  []string
-	zooConn  *zk.Conn
+	zh       *zoohandler.ZooHandler
 	kfkConn  sarama.Client
 	lh       *listenhandler.ListenHandler
 	incoming chan Message
@@ -68,16 +67,16 @@ func (k *Kafka) Incoming() <-chan Message {
 }
 
 func (k *Kafka) connect(clientid string) error {
-	zooConn, _, err := zk.Connect(k.zkpeers, time.Second)
+	zh, err := zoohandler.New(k.zkpeers, k.logger)
 	if err != nil {
 		return fmt.Errorf("Failed to connect to zookeeper: %v", err)
 	}
-	k.zooConn = zooConn
+	k.zh = zh
 
-	kafkaBrokers, err := k.GetKafkaBrokersFromZookeeper()
+	kafkaBrokers, err := k.zh.GetKafkaBrokers()
 	if err != nil {
 		k.Close()
-		return fmt.Errorf("Failed to feth brokers from zookeeper: %v", err)
+		return fmt.Errorf("Failed to fetch brokers from zookeeper: %v", err)
 	}
 	if len(kafkaBrokers) == 0 {
 		k.Close()
@@ -89,7 +88,7 @@ func (k *Kafka) connect(clientid string) error {
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.ClientID = clientid
 
-	kfkConn, err := sarama.NewClient(brokerStrings(kafkaBrokers), config)
+	kfkConn, err := sarama.NewClient(kafkaBrokers.Strings(), config)
 	if err != nil {
 		k.Close()
 		return fmt.Errorf("Failed to connect to Kafka: %v", err)
@@ -122,8 +121,8 @@ func (k *Kafka) Close() {
 		if k.kfkConn != nil {
 			k.kfkConn.Close()
 		}
-		if k.zooConn != nil {
-			k.zooConn.Close()
+		if k.zh != nil {
+			k.zh.Close()
 		}
 	}
 }

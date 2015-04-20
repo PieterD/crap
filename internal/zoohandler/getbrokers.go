@@ -1,4 +1,4 @@
-package kafka
+package zoohandler
 
 import (
 	"encoding/json"
@@ -6,29 +6,29 @@ import (
 	"strconv"
 )
 
-func (k *Kafka) GetKafkaBrokersFromZookeeper() ([]BrokerInfo, error) {
-	brokerids, _, err := k.zooConn.Children("/brokers/ids")
+func (zh *ZooHandler) GetKafkaBrokers() (BrokerList, error) {
+	brokerids, _, err := zh.conn.Children("/brokers/ids")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to fetch Kafka brokers: %v", err)
 	}
 
-	var brokers []BrokerInfo
+	var brokers BrokerList
 
 	for _, brokerid := range brokerids {
-		data, _, err := k.zooConn.Get("/brokers/ids/" + brokerid)
+		data, _, err := zh.conn.Get("/brokers/ids/" + brokerid)
 		if err != nil {
-			k.logger.Printf("Failed to get Kafka broker: %v", err)
+			zh.logger.Printf("Failed to get Kafka broker: %v", err)
 			continue
 		}
 		var broker BrokerInfo
 		broker.Id, err = strconv.Atoi(brokerid)
 		if err != nil {
-			k.logger.Printf("Failed to parse brokerid: %v", err)
+			zh.logger.Printf("Failed to parse brokerid: %v", err)
 			continue
 		}
 		err = json.Unmarshal(data, &broker)
 		if err != nil {
-			k.logger.Printf("Failed to parse Kafka broker json: %v", err)
+			zh.logger.Printf("Failed to parse Kafka broker json: %v", err)
 			continue
 		}
 		brokers = append(brokers, broker)
@@ -36,6 +36,8 @@ func (k *Kafka) GetKafkaBrokersFromZookeeper() ([]BrokerInfo, error) {
 
 	return brokers, nil
 }
+
+type BrokerList []BrokerInfo
 
 type BrokerInfo struct {
 	Id      int    `xml:"-"`
@@ -49,10 +51,10 @@ func (bi BrokerInfo) Addr() string {
 	return fmt.Sprintf("%s:%d", bi.Host, bi.Port)
 }
 
-func brokerStrings(brokers []BrokerInfo) []string {
-	strs := make([]string, len(brokers))
+func (bl BrokerList) Strings() []string {
+	strs := make([]string, len(bl))
 	for i := range strs {
-		strs[i] = brokers[i].Addr()
+		strs[i] = bl[i].Addr()
 	}
 	return strs
 }
