@@ -62,10 +62,6 @@ func New(clientid string, logger *log.Logger, zkpeers []string) (*Kafka, error) 
 	return k, nil
 }
 
-func (k *Kafka) Incoming() <-chan Message {
-	return k.incoming
-}
-
 func (k *Kafka) connect(clientid string) error {
 	zh, err := zoohandler.New(k.zkpeers, k.logger)
 	if err != nil {
@@ -141,6 +137,10 @@ func (k *Kafka) Listen(topic string, partition int32, offset int64) error {
 
 func (k *Kafka) Unlisten(topic string, partition int32) error {
 	return k.lh.Unlisten(topic, partition)
+}
+
+func (k *Kafka) Incoming() <-chan Message {
+	return k.incoming
 }
 
 func (k *Kafka) Outgoing() <-chan transmithandler.Transmit {
