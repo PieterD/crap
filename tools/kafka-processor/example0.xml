@@ -14,7 +14,6 @@
 			</Topic>
 			<Partitions>
 				<Partition>0</Partition>
-				<Partition>1</Partition>
 			</Partitions>
 			<Function>ToUpper</Function>
 		</Stream>
