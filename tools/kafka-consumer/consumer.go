@@ -65,7 +65,7 @@ func main() {
 
 	err = kfk.Listen(*fTopic, int32(*fPartition), offset)
 	if err != nil {
-		logger.Panicf("Listen to partition %s:%d", *fTopic, *fPartition)
+		logger.Panicf("Failed to listen to partition %s:%d: %v", *fTopic, *fPartition, err)
 	}
 
 	sigchan := make(chan os.Signal)
