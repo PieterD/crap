@@ -51,6 +51,8 @@ func main() {
 	go func() {
 		<-sigchan
 		th.close()
+		<-sigchan
+		panic("second SIGINT")
 	}()
 	th.wait()
 }
