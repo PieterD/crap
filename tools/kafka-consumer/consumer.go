@@ -59,7 +59,7 @@ func main() {
 
 	kfk, err := kafka.New("kafka-consumer", logger, strings.Split(*fPeers, ","))
 	if err != nil {
-		logger.Panicf("Creating kafka client: %v", err)
+		logger.Panicf("Failed to create kafka client: %v", err)
 	}
 	defer kfk.Close()
 
