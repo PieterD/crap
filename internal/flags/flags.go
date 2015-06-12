@@ -36,6 +36,7 @@ func (e *Env) setEnv() {
 }
 
 func SetCommand(name string, c Command) {
+	c.setEnv()
 	mp, ok := flagmap[name]
 	fs := mp.fs
 	if !ok {
