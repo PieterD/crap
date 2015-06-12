@@ -1,0 +1,2 @@
+# agoge
+A Go Generator
