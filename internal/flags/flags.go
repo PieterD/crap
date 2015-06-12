@@ -16,7 +16,7 @@ type mainPair struct {
 
 type Command interface {
 	Flags(*flag.FlagSet)
-	Check() string
+	Check(args []string) string
 	Main()
 	setEnv()
 }
@@ -108,7 +108,7 @@ func Run() {
 	if mp.fs.Parse(arg) == flag.ErrHelp {
 		helpCmd(cmd)
 	}
-	str := mp.c.Check()
+	str := mp.c.Check(mp.fs.Args())
 	if str != "" {
 		fmt.Fprintf(os.Stderr, "\n%s\n\n", str)
 		helpCmd(cmd)
