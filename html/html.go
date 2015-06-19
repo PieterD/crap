@@ -27,9 +27,7 @@ func Incorporate(pkg string, outfile string, infile ...string) error {
 				},
 			},
 			Body: &ast.BlockStmt{
-				List: []ast.Stmt{
-					buildInit(infile),
-				},
+				List: buildInit(infile),
 			},
 		},
 	)
@@ -38,6 +36,13 @@ func Incorporate(pkg string, outfile string, infile ...string) error {
 }
 
 func buildInit(infiles []string) []ast.Stmt {
-	parser.ParseExpr("tmpl.New(\"style.css\")")
-	return nil
+	expr, err := parser.ParseExpr("tmpl.New(\"style.css\").Parse(``)")
+	if err != nil {
+		panic(err)
+	}
+	return []ast.Stmt{
+		&ast.ExprStmt{
+			X: expr,
+		},
+	}
 }
