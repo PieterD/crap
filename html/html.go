@@ -45,7 +45,7 @@ func buildInit(infiles []string) []ast.Stmt {
 		if err != nil {
 			panic(err)
 		}
-		str := strings.Replace(string(bstr), "`", "\\`", -1)
+		str := strings.Replace(string(bstr), "`", "`+\"`\"+`", -1)
 		expr, err := parser.ParseExpr("tmpl.New(\"style.css\").Parse(`" + str + "`)")
 		if err != nil {
 			panic(err)
@@ -54,12 +54,5 @@ func buildInit(infiles []string) []ast.Stmt {
 			X: expr,
 		})
 	}
-	/*
-		return []ast.Stmt{
-			&ast.ExprStmt{
-				X: expr,
-			},
-		}
-	*/
 	return list
 }
