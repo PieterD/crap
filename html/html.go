@@ -5,7 +5,9 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/PieterD/agoge/internal/build"
 )
@@ -36,13 +38,28 @@ func Incorporate(pkg string, outfile string, infile ...string) error {
 }
 
 func buildInit(infiles []string) []ast.Stmt {
-	expr, err := parser.ParseExpr("tmpl.New(\"style.css\").Parse(``)")
-	if err != nil {
-		panic(err)
-	}
-	return []ast.Stmt{
-		&ast.ExprStmt{
+	var list []ast.Stmt
+
+	for _, filename := range infiles {
+		bstr, err := ioutil.ReadFile(filename)
+		if err != nil {
+			panic(err)
+		}
+		str := strings.Replace(string(bstr), "`", "\\`", -1)
+		expr, err := parser.ParseExpr("tmpl.New(\"style.css\").Parse(`" + str + "`)")
+		if err != nil {
+			panic(err)
+		}
+		list = append(list, &ast.ExprStmt{
 			X: expr,
-		},
+		})
 	}
+	/*
+		return []ast.Stmt{
+			&ast.ExprStmt{
+				X: expr,
+			},
+		}
+	*/
+	return list
 }
