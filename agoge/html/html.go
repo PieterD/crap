@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/PieterD/agoge/internal/build"
+	"github.com/PieterD/crap/agoge/internal/build"
 )
 
 func Incorporate(pkg string, outfile string, infile ...string) error {

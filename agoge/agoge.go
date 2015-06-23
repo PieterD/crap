@@ -1,8 +1,8 @@
 package main
 
-import "github.com/PieterD/agoge/internal/flags"
+import "github.com/PieterD/crap/agoge/internal/flags"
 
-import _ "github.com/PieterD/agoge/internal/commands"
+import _ "github.com/PieterD/crap/agoge/internal/commands"
 
 func main() {
 	flags.Run()

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/PieterD/agoge/html"
-	"github.com/PieterD/agoge/internal/flags"
+	"github.com/PieterD/crap/agoge/html"
+	"github.com/PieterD/crap/agoge/internal/flags"
 )
 
 func init() {
