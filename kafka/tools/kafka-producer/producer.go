@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/PieterD/kafka"
+	"github.com/PieterD/crap/kafka"
 )
 
 var (

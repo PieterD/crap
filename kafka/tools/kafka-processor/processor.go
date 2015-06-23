@@ -10,8 +10,8 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/PieterD/kafka"
-	"github.com/PieterD/kafka/internal/killchan"
+	"github.com/PieterD/crap/kafka"
+	"github.com/PieterD/crap/kafka/internal/killchan"
 )
 
 var (

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/PieterD/kafka/internal/killchan"
+	"github.com/PieterD/crap/kafka/internal/killchan"
 	"github.com/samuel/go-zookeeper/zk"
 )
 

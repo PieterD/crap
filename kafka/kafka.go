@@ -6,9 +6,9 @@ import (
 	"log"
 	"sync/atomic"
 
-	"github.com/PieterD/kafka/internal/listenhandler"
-	"github.com/PieterD/kafka/internal/transmithandler"
-	"github.com/PieterD/kafka/internal/zoohandler"
+	"github.com/PieterD/crap/kafka/internal/listenhandler"
+	"github.com/PieterD/crap/kafka/internal/transmithandler"
+	"github.com/PieterD/crap/kafka/internal/zoohandler"
 	"github.com/Shopify/sarama"
 )
 
