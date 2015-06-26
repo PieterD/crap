@@ -1,13 +1,8 @@
 package config
 
-import (
-	"time"
-
-	"github.com/PieterD/crap/moogle/input"
-)
+import "time"
 
 type Config struct {
 	DatabasePath string
 	Timeout      time.Duration
-	Inputs       []input.Input
 }
