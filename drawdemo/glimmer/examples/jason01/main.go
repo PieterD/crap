@@ -1,7 +1,7 @@
 package main
 
-import "github.com/PieterD/crap/drawdemo/glimmer/examples/window"
+import "github.com/PieterD/crap/drawdemo/glimmer"
 
 func main() {
-	window.Run(window.DefaultProfile{})
+	glimmer.Run(glimmer.DefaultProfile{})
 }
