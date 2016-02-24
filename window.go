@@ -1,9 +1,15 @@
 package glimmer
 
 import (
+	"runtime"
+
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
+
+func init() {
+	runtime.LockOSThread()
+}
 
 type Profile interface {
 	InitialSize() (width int, height int)
