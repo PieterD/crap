@@ -1,6 +1,6 @@
 package main
 
-import "github.com/PieterD/crap/drawdemo/glimmer"
+import "github.com/PieterD/crap/glimmer"
 
 func main() {
 	glimmer.Run(glimmer.DefaultProfile{})
