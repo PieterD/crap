@@ -10,9 +10,12 @@ type Shader struct {
 type ShaderType uint32
 
 const (
-	VertexShader   ShaderType = gl.VERTEX_SHADER
-	GeometryShader ShaderType = gl.GEOMETRY_SHADER
-	FragmentShader ShaderType = gl.FRAGMENT_SHADER
+	VertexShader         ShaderType = gl.VERTEX_SHADER
+	GeometryShader       ShaderType = gl.GEOMETRY_SHADER
+	FragmentShader       ShaderType = gl.FRAGMENT_SHADER
+	ComputeShader        ShaderType = gl.COMPUTE_SHADER
+	TessControlShader    ShaderType = gl.TESS_CONTROL_SHADER
+	TessEvaluationShader ShaderType = gl.TESS_EVALUATION_SHADER
 )
 
 func CreateShader(shaderType ShaderType, source ...string) (*Shader, error) {
