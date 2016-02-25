@@ -15,15 +15,15 @@ const (
 	FragmentShader ShaderType = gl.FRAGMENT_SHADER
 )
 
-func CreateShader(shaderType ShaderType, source []byte) (*Shader, error) {
+func CreateShader(shaderType ShaderType, source ...string) (*Shader, error) {
 	shader := new(Shader)
 	shader.id = gl.CreateShader(uint32(shaderType))
 	if shader.id == 0 {
 		return nil, GetError()
 	}
-	var ptr *uint8 = &source[0]
-	var length int32 = int32(len(source))
-	gl.ShaderSource(shader.id, 1, &ptr, &length)
+	ptr, free := gl.Strs(source...)
+	defer free()
+	gl.ShaderSource(shader.id, 1, ptr, nil)
 	gl.CompileShader(shader.id)
 	var status int32
 	gl.GetShaderiv(shader.id, gl.INFO_LOG_LENGTH, &status)
