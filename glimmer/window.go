@@ -77,6 +77,11 @@ func Run(p Profile) error {
 
 	w.MakeContextCurrent()
 
+	err = gl.Init()
+	if err != nil {
+		return err
+	}
+
 	p.PostCreation(w)
 
 	w.SetFocusCallback(p.EventFocus)
@@ -85,11 +90,6 @@ func Run(p Profile) error {
 	w.SetMouseButtonCallback(p.EventMouseKey)
 	w.SetKeyCallback(p.EventKey)
 	w.SetCharCallback(p.EventRune)
-
-	err = gl.Init()
-	if err != nil {
-		return err
-	}
 
 	for !w.ShouldClose() {
 		p.Cycle(w)
