@@ -16,16 +16,13 @@ func (p Profile) PostCreation(w *glfw.Window) {
 	shader, err := glimmer.CreateShader(glimmer.VertexShader, `
 	#version 330
 	layout(location = 0) in vec4 position;
-	ajepgoaejg
 	void main() {
 		gl_Position = position;
-	}
-	`, `
-	void function() {
 	}
 	`)
 	if err != nil {
 		fmt.Printf("Error compiling shader: %v\n", err)
+		return
 	}
 	shader.Delete()
 	fmt.Printf("shader: %v\n", glimmer.GetError())
