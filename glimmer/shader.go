@@ -1,6 +1,11 @@
 package glimmer
 
-import "github.com/go-gl/gl/v3.3-core/gl"
+import (
+	"fmt"
+
+	"github.com/PieterD/crap/glimmer/convc"
+	"github.com/go-gl/gl/v3.3-core/gl"
+)
 
 type Shader struct {
 	id         uint32
@@ -24,12 +29,14 @@ func CreateShader(shaderType ShaderType, source ...string) (*Shader, error) {
 	if shader.id == 0 {
 		return nil, GetError()
 	}
-	ptr, free := gl.Strs(source...)
+	// ptr, free := gl.Strs(source...)
+	ptr, free := convc.MultiStringToC(source...)
 	defer free()
 	gl.ShaderSource(shader.id, 1, ptr, nil)
 	gl.CompileShader(shader.id)
 	var status int32
-	gl.GetShaderiv(shader.id, gl.INFO_LOG_LENGTH, &status)
+	gl.GetShaderiv(shader.id, gl.COMPILE_STATUS, &status)
+	fmt.Printf("status: %v\n", status)
 	if status == gl.FALSE {
 		var loglength int32
 		gl.GetShaderiv(shader.id, gl.INFO_LOG_LENGTH, &loglength)
