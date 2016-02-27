@@ -13,7 +13,7 @@ type Profile struct {
 
 func (p Profile) PostCreation(w *glfw.Window) {
 	p.DefaultProfile.PostCreation(w)
-	shader, err := glimmer.CreateShader(glimmer.VertexShader, `
+	vertexShader, err := glimmer.CreateShader(glimmer.VertexShader, `
 	#version 330
 	layout(location = 0) in vec4 position;
 	void main() {
@@ -21,10 +21,31 @@ func (p Profile) PostCreation(w *glfw.Window) {
 	}
 	`)
 	if err != nil {
-		fmt.Printf("Error compiling shader: %v\n", err)
+		fmt.Printf("Error compiling vertex shader: %v\n", err)
 		return
 	}
-	shader.Delete()
+	defer vertexShader.Delete()
+
+	fragmentShader, err := glimmer.CreateShader(glimmer.FragmentShader, `
+	#version 330
+	out vec4 outputColor;
+	void main() {
+		outputColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	`)
+	if err != nil {
+		fmt.Printf("Error compiling fragment shader: %v\n", err)
+		return
+	}
+	defer fragmentShader.Delete()
+
+	program, err := glimmer.CreateProgram(vertexShader, fragmentShader)
+	if err != nil {
+		fmt.Printf("Error linking program: %v\n", err)
+		return
+	}
+	defer program.Delete()
+
 	fmt.Printf("shader: %v\n", glimmer.GetError())
 }
 
