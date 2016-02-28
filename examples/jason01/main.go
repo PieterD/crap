@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/PieterD/crap/glimmer"
+	. "github.com/PieterD/crap/glimmer/pan"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
@@ -27,11 +28,11 @@ void main() {
 `
 
 var fragmentShaderText = `
-	#version 330
-	out vec4 outputColor;
-	void main() {
-		outputColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	}
+#version 330
+out vec4 outputColor;
+void main() {
+	outputColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+}
 `
 
 var vertexData = []float32{
@@ -41,21 +42,17 @@ var vertexData = []float32{
 }
 
 func (p *Profile) PostCreation(w *glfw.Window) (err error) {
-	p.DefaultProfile.PostCreation(w)
+	defer Recover(&err)
+
+	glfw.SwapInterval(1)
 	p.vertexShader, err = glimmer.CreateShader(glimmer.VertexShader, vertexShaderText)
-	if err != nil {
-		return fmt.Errorf("Error compiling vertex shader: %v", err)
-	}
+	Panicf(err, "Error compiling vertex shader: %v", err)
 
 	p.fragmentShader, err = glimmer.CreateShader(glimmer.FragmentShader, fragmentShaderText)
-	if err != nil {
-		return fmt.Errorf("Error compiling fragment shader: %v\n", err)
-	}
+	Panicf(err, "Error compiling fragment shader: %v", err)
 
 	p.program, err = glimmer.CreateProgram(p.vertexShader, p.fragmentShader)
-	if err != nil {
-		return fmt.Errorf("Error linking program: %v\n", err)
-	}
+	Panicf(err, "Error linking program: %v", err)
 
 	p.vertexArray = glimmer.CreateVertexArray()
 	p.buffer = glimmer.CreateBuffer()
