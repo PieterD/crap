@@ -1,6 +1,10 @@
 package glimmer
 
-import "github.com/go-gl/gl/v3.3-core/gl"
+import (
+	"unsafe"
+
+	"github.com/go-gl/gl/v3.3-core/gl"
+)
 
 type VertexArray struct {
 	id uint32
@@ -21,9 +25,10 @@ func (va *VertexArray) Delete() {
 }
 
 // TODO: Specify pointer (perhaps from ArrayBuffer?)
-func (va *VertexArray) Enable(index uint32, ab *ArrayBuffer) {
-	ab.Bind()
+func (va *VertexArray) Enable(index uint32, pointer *ArrayPointer) {
+	pointer.buffer.Bind()
 	va.Bind()
 	gl.EnableVertexAttribArray(index)
-	gl.VertexAttribPointer(0, 4, gl.FLOAT, false, 0, nil)
+	// gl.VertexAttribPointer(0, 4, gl.FLOAT, false, 0, nil)
+	gl.VertexAttribPointer(index, int32(pointer.datasize), pointer.buffer.datatype, pointer.normalize, int32(pointer.stride), unsafe.Pointer(uintptr(pointer.start)))
 }
