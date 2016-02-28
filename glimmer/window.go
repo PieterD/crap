@@ -23,7 +23,6 @@ type Profile interface {
 	EventKey(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey)
 	EventRune(w *glfw.Window, char rune)
 	Draw(w *glfw.Window)
-	Cycle(w *glfw.Window)
 	End()
 }
 
@@ -53,12 +52,7 @@ func (p DefaultProfile) EventKey(w *glfw.Window, key glfw.Key, scancode int, act
 }
 func (p DefaultProfile) EventRune(w *glfw.Window, char rune) {}
 func (p DefaultProfile) Draw(w *glfw.Window)                 {}
-func (p DefaultProfile) Cycle(w *glfw.Window) {
-	p.Draw(w)
-	w.SwapBuffers()
-	glfw.PollEvents()
-}
-func (p DefaultProfile) End() {}
+func (p DefaultProfile) End()                                {}
 
 func Run(p Profile) error {
 	defer p.End()
@@ -95,7 +89,9 @@ func Run(p Profile) error {
 	w.SetCharCallback(p.EventRune)
 
 	for !w.ShouldClose() {
-		p.Cycle(w)
+		p.Draw(w)
+		w.SwapBuffers()
+		glfw.PollEvents()
 	}
 	return nil
 }
