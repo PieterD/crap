@@ -13,6 +13,8 @@ type Profile struct {
 	vertexShader   *glimmer.Shader
 	fragmentShader *glimmer.Shader
 	program        *glimmer.Program
+	vertexArray    *glimmer.VertexArray
+	arrayBuffer    *glimmer.ArrayBuffer
 }
 
 func (p *Profile) PostCreation(w *glfw.Window) {
@@ -48,7 +50,15 @@ func (p *Profile) PostCreation(w *glfw.Window) {
 		return
 	}
 
-	fmt.Printf("shader: %v\n", glimmer.GetError())
+	p.vertexArray = glimmer.CreateVertexArray()
+	p.arrayBuffer = glimmer.CreateBuffer().Array()
+	p.arrayBuffer.Data([]float32{
+		0.75, 0.75, 0.0, 1.0,
+		0.75, -0.75, 0.0, 1.0,
+		-0.75, -0.75, 0.0, 1.0,
+	})
+
+	fmt.Printf("initialization: %v\n", glimmer.GetError())
 }
 
 func (p *Profile) End() {
@@ -61,6 +71,8 @@ func (p *Profile) Draw(w *glfw.Window) {
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 	p.program.Use()
+	p.vertexArray.Enable(0, p.arrayBuffer)
+	gl.DrawArrays(gl.TRIANGLES, 0, 3)
 }
 
 func main() {
