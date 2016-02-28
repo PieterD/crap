@@ -81,3 +81,7 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 func (program *Program) Delete() {
 	gl.DeleteProgram(program.id)
 }
+
+func (program *Program) Use() {
+	gl.UseProgram(program.id)
+}

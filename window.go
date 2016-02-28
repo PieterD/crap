@@ -24,6 +24,7 @@ type Profile interface {
 	EventRune(w *glfw.Window, char rune)
 	Draw(w *glfw.Window)
 	Cycle(w *glfw.Window)
+	End()
 }
 
 type DefaultProfile struct {
@@ -57,8 +58,10 @@ func (p DefaultProfile) Cycle(w *glfw.Window) {
 	w.SwapBuffers()
 	glfw.PollEvents()
 }
+func (p DefaultProfile) End() {}
 
 func Run(p Profile) error {
+	defer p.End()
 	err := glfw.Init()
 	if err != nil {
 		return err
