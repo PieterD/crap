@@ -14,15 +14,16 @@ func init() {
 type Profile interface {
 	InitialSize() (width int, height int)
 	InitialTitle() string
-	PreCreation()
-	PostCreation(w *glfw.Window)
+	PreCreation() error
+	PostCreation(w *glfw.Window) error
 	EventFocus(w *glfw.Window, focused bool)
 	EventResize(w *glfw.Window, width int, height int)
 	EventMousePos(w *glfw.Window, x float64, y float64)
 	EventMouseKey(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey)
 	EventKey(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey)
 	EventRune(w *glfw.Window, char rune)
-	Draw(w *glfw.Window)
+	Draw(w *glfw.Window) error
+	Swap(w *glfw.Window) error
 	End()
 }
 
@@ -35,13 +36,15 @@ func (p DefaultProfile) InitialSize() (int, int) {
 func (p DefaultProfile) InitialTitle() string {
 	return "Default Title"
 }
-func (p DefaultProfile) PreCreation() {
+func (p DefaultProfile) PreCreation() error {
 	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)
+	return nil
 }
-func (p DefaultProfile) PostCreation(w *glfw.Window) {
+func (p DefaultProfile) PostCreation(w *glfw.Window) error {
 	glfw.SwapInterval(1)
+	return nil
 }
 func (p DefaultProfile) EventFocus(w *glfw.Window, focused bool)            {}
 func (p DefaultProfile) EventResize(w *glfw.Window, width int, height int)  {}
@@ -51,8 +54,15 @@ func (p DefaultProfile) EventMouseKey(w *glfw.Window, key glfw.MouseButton, act 
 func (p DefaultProfile) EventKey(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 }
 func (p DefaultProfile) EventRune(w *glfw.Window, char rune) {}
-func (p DefaultProfile) Draw(w *glfw.Window)                 {}
-func (p DefaultProfile) End()                                {}
+func (p DefaultProfile) Draw(w *glfw.Window) error {
+	return nil
+}
+func (p DefaultProfile) Swap(w *glfw.Window) error {
+	w.SwapBuffers()
+	glfw.PollEvents()
+	return nil
+}
+func (p DefaultProfile) End() {}
 
 func Run(p Profile) error {
 	defer p.End()
@@ -62,7 +72,10 @@ func Run(p Profile) error {
 	}
 	defer glfw.Terminate()
 
-	p.PreCreation()
+	err = p.PreCreation()
+	if err != nil {
+		return err
+	}
 
 	width, height := p.InitialSize()
 	title := p.InitialTitle()
@@ -79,7 +92,10 @@ func Run(p Profile) error {
 		return err
 	}
 
-	p.PostCreation(w)
+	err = p.PostCreation(w)
+	if err != nil {
+		return err
+	}
 
 	w.SetFocusCallback(p.EventFocus)
 	w.SetSizeCallback(p.EventResize)
@@ -89,9 +105,14 @@ func Run(p Profile) error {
 	w.SetCharCallback(p.EventRune)
 
 	for !w.ShouldClose() {
-		p.Draw(w)
-		w.SwapBuffers()
-		glfw.PollEvents()
+		err = p.Draw(w)
+		if err != nil {
+			return err
+		}
+		err = p.Swap(w)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
