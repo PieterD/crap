@@ -43,6 +43,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	defer Recover(&err)
 
 	glfw.SwapInterval(1)
+
 	p.vertexShader, err = glimmer.CreateVertexShader(vertexShaderText)
 	Panicf(err, "Error compiling vertex shader: %v", err)
 
@@ -55,10 +56,6 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.pointer = glimmer.CreateBuffer().FloatData(vertexData).Pointer(4, false, 0, 0)
 
 	return glimmer.GetError()
-}
-
-func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
-	gl.Viewport(0, 0, int32(width), int32(height))
 }
 
 func (p *Profile) End() {
