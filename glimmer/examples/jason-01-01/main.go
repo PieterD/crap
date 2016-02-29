@@ -11,10 +11,10 @@ import (
 
 type Profile struct {
 	glimmer.DefaultProfile
-	vertexShader   *glimmer.Shader
-	fragmentShader *glimmer.Shader
-	program        *glimmer.Program
-	pointer        *glimmer.ArrayPointer
+	vertex   *glimmer.Shader
+	fragment *glimmer.Shader
+	program  *glimmer.Program
+	pointer  *glimmer.ArrayPointer
 }
 
 var vertexShaderText = `
@@ -44,13 +44,13 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 
 	glfw.SwapInterval(1)
 
-	p.vertexShader, err = glimmer.CreateVertexShader(vertexShaderText)
+	p.vertex, err = glimmer.CreateVertexShader(vertexShaderText)
 	Panicf(err, "Error compiling vertex shader: %v", err)
 
-	p.fragmentShader, err = glimmer.CreateFragmentShader(fragmentShaderText)
+	p.fragment, err = glimmer.CreateFragmentShader(fragmentShaderText)
 	Panicf(err, "Error compiling fragment shader: %v", err)
 
-	p.program, err = glimmer.CreateProgram(p.vertexShader, p.fragmentShader)
+	p.program, err = glimmer.CreateProgram(p.vertex, p.fragment)
 	Panicf(err, "Error linking program: %v", err)
 
 	p.pointer = glimmer.CreateBuffer().FloatData(vertexData).Pointer(4, false, 0, 0)
@@ -60,8 +60,8 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 
 func (p *Profile) End() {
 	p.program.Delete()
-	p.fragmentShader.Delete()
-	p.vertexShader.Delete()
+	p.fragment.Delete()
+	p.vertex.Delete()
 	p.pointer.Buffer().Delete()
 }
 
