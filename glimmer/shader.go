@@ -70,5 +70,8 @@ func CreateShader(shaderType ShaderType, source ...string) (*Shader, error) {
 }
 
 func (shader *Shader) Delete() {
+	if shader == nil {
+		return
+	}
 	gl.DeleteShader(shader.id)
 }
