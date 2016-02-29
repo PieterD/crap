@@ -14,7 +14,6 @@ type Profile struct {
 	vertexShader   *glimmer.Shader
 	fragmentShader *glimmer.Shader
 	program        *glimmer.Program
-	vertexArray    *glimmer.VertexArray
 	buffer         *glimmer.Buffer
 	arrayPointer   *glimmer.ArrayPointer
 }
@@ -54,7 +53,6 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.program, err = glimmer.CreateProgram(p.vertexShader, p.fragmentShader)
 	Panicf(err, "Error linking program: %v", err)
 
-	p.vertexArray = glimmer.CreateVertexArray()
 	p.buffer = glimmer.CreateBuffer()
 	p.buffer.UseAsArrayBuffer()
 	p.buffer.FloatData(vertexData)
@@ -63,11 +61,14 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	return glimmer.GetError()
 }
 
+func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
+	gl.Viewport(0, 0, int32(width), int32(height))
+}
+
 func (p *Profile) End() {
 	p.program.Delete()
 	p.fragmentShader.Delete()
 	p.vertexShader.Delete()
-	p.vertexArray.Delete()
 	p.buffer.Delete()
 }
 
@@ -75,7 +76,7 @@ func (p *Profile) Draw(w *glfw.Window) error {
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 	p.program.Use()
-	p.vertexArray.Enable(0, p.arrayPointer)
+	p.program.AttributeByName("position", p.arrayPointer)
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
 	return nil
 }
