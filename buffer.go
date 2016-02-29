@@ -11,7 +11,6 @@ type Buffer struct {
 	access   BufferAccessType
 	nature   BufferNatureType
 	datatype uint32
-	bound    uint32
 }
 
 type BufferAccessType uint32
@@ -48,32 +47,30 @@ func (buffer *Buffer) Delete() {
 	gl.DeleteBuffers(1, &buffer.id)
 }
 
-func (buffer *Buffer) UseAsArrayBuffer() {
-	buffer.bound = gl.ARRAY_BUFFER
-}
-
-func (buffer *Buffer) AccessNature(access BufferAccessType, nature BufferNatureType) {
+func (buffer *Buffer) AccessNature(access BufferAccessType, nature BufferNatureType) *Buffer {
 	buffer.access = access
 	buffer.nature = nature
+	return buffer
 }
 
-func (buffer *Buffer) Bind() {
-	gl.BindBuffer(buffer.bound, buffer.id)
+func (buffer *Buffer) Bind(target uint32) {
+	gl.BindBuffer(target, buffer.id)
 }
 
 func (buffer *Buffer) Unbind() {
-	buffer.bound = 0
 	gl.BindBuffer(0, buffer.id)
 }
 
-func (buffer *Buffer) Data(ptr unsafe.Pointer, size int, datatype uint32) {
-	buffer.Bind()
+func (buffer *Buffer) Data(ptr unsafe.Pointer, size int, datatype uint32) *Buffer {
+	buffer.Bind(gl.ARRAY_BUFFER)
 	buffer.datatype = datatype
 	gl.BufferData(gl.ARRAY_BUFFER, size, ptr, usage(buffer.access, buffer.nature))
+	return buffer
 }
 
-func (buffer *Buffer) FloatData(vertices []float32) {
+func (buffer *Buffer) FloatData(vertices []float32) *Buffer {
 	buffer.Data(unsafe.Pointer(&vertices[0]), 4*len(vertices), gl.FLOAT)
+	return buffer
 }
 
 func (buffer *Buffer) Pointer(datasize int, normalize bool, stride int, start int) *ArrayPointer {
@@ -86,6 +83,10 @@ type ArrayPointer struct {
 	normalize bool
 	stride    int
 	start     int
+}
+
+func (pointer *ArrayPointer) Buffer() *Buffer {
+	return pointer.buffer
 }
 
 func usage(access BufferAccessType, nature BufferNatureType) uint32 {
