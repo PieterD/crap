@@ -43,10 +43,10 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	defer Recover(&err)
 
 	glfw.SwapInterval(1)
-	p.vertexShader, err = glimmer.CreateShader(glimmer.VertexShader, vertexShaderText)
+	p.vertexShader, err = glimmer.CreateVertexShader(vertexShaderText)
 	Panicf(err, "Error compiling vertex shader: %v", err)
 
-	p.fragmentShader, err = glimmer.CreateShader(glimmer.FragmentShader, fragmentShaderText)
+	p.fragmentShader, err = glimmer.CreateFragmentShader(fragmentShaderText)
 	Panicf(err, "Error compiling fragment shader: %v", err)
 
 	p.program, err = glimmer.CreateProgram(p.vertexShader, p.fragmentShader)

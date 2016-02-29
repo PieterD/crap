@@ -21,6 +21,30 @@ const (
 	TessEvaluationShader ShaderType = gl.TESS_EVALUATION_SHADER
 )
 
+func CreateVertexShader(source ...string) (*Shader, error) {
+	return CreateShader(VertexShader, source...)
+}
+
+func CreateGeometryShader(source ...string) (*Shader, error) {
+	return CreateShader(GeometryShader, source...)
+}
+
+func CreateFragmentShader(source ...string) (*Shader, error) {
+	return CreateShader(FragmentShader, source...)
+}
+
+func CreateComputeShader(source ...string) (*Shader, error) {
+	return CreateShader(ComputeShader, source...)
+}
+
+func CreateTessControlShader(source ...string) (*Shader, error) {
+	return CreateShader(TessControlShader, source...)
+}
+
+func CreateTessEvaluationShader(source ...string) (*Shader, error) {
+	return CreateShader(TessEvaluationShader, source...)
+}
+
 func CreateShader(shaderType ShaderType, source ...string) (*Shader, error) {
 	shader := new(Shader)
 	shader.id = gl.CreateShader(uint32(shaderType))
