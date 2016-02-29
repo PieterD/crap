@@ -11,6 +11,7 @@ import (
 
 type Profile struct {
 	glimmer.DefaultProfile
+	height   float32
 	vertex   *glimmer.Shader
 	fragment *glimmer.Shader
 	program  *glimmer.Program
@@ -28,8 +29,9 @@ void main() {
 var fragmentShaderText = `
 #version 330
 out vec4 outputColor;
+uniform float height;
 void main() {
-	float lerpValue = gl_FragCoord.y / 500.0f;
+	float lerpValue = gl_FragCoord.y / height;
 	outputColor = mix(vec4(1.0f, 1.0f, 1.0f, 1.0f), vec4(0.2f, 0.2f, 0.2f, 1.0f), lerpValue);
 }
 `
@@ -71,12 +73,18 @@ func (p *Profile) Draw(w *glfw.Window) error {
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 	p.program.Use()
 	p.program.AttributeByName("position", p.pointer)
+	p.program.UniformFloat("height", p.height)
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
 	return nil
 }
 
+func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
+	p.DefaultProfile.EventResize(w, width, height)
+	p.height = float32(height)
+}
+
 func main() {
-	err := glimmer.Run(&Profile{})
+	err := glimmer.Run(&Profile{height: 640.0})
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
