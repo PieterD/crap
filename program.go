@@ -10,7 +10,7 @@ type Program struct {
 	id          uint32
 	attributes  []programAttribute
 	indexByName map[string]uint32
-	vaoByIndex  map[uint32]*vertexArray
+	vao         *vertexArray
 
 	uniformIndexByName map[string]uint32
 	uniformByIndex     map[uint32]programUniform
@@ -19,7 +19,6 @@ type Program struct {
 type programAttribute struct {
 	name  string
 	index uint32
-	vao   *vertexArray
 }
 
 type programUniform struct {
@@ -56,7 +55,7 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 	gl.GetProgramiv(program.id, gl.ACTIVE_ATTRIBUTES, &attributes)
 	program.attributes = make([]programAttribute, attributes)
 	program.indexByName = make(map[string]uint32)
-	program.vaoByIndex = make(map[uint32]*vertexArray)
+	program.vao = createVertexArray()
 	for i := 0; i < int(attributes); i++ {
 		var buf [gl.ACTIVE_ATTRIBUTE_MAX_LENGTH]byte
 		var length int32
@@ -67,18 +66,13 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 		name := string(buf[:length])
 		if location == -1 {
 			gl.DeleteProgram(program.id)
-			for j := 0; j < i; j++ {
-				program.attributes[j].vao.delete()
-			}
+			program.vao.delete()
 			return nil, &ShaderError{Desc: fmt.Sprintf("Attribute location for '%s' not found", name)}
 		}
 		index := uint32(location)
-		vao := createVertexArray()
 		program.attributes[i].name = name
 		program.attributes[i].index = index
-		program.attributes[i].vao = vao
 		program.indexByName[name] = index
-		program.vaoByIndex[index] = vao
 	}
 
 	var uniforms int32
@@ -93,9 +87,7 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 		location := gl.GetUniformLocation(program.id, &buf[0])
 		if location == -1 {
 			gl.DeleteProgram(program.id)
-			for j := int32(0); j < i; j++ {
-				program.attributes[j].vao.delete()
-			}
+			program.vao.delete()
 			return nil, &ShaderError{Desc: fmt.Sprintf("Uniform location for '%s' not found", name)}
 		}
 		index := uint32(location)
@@ -128,11 +120,8 @@ func (program *Program) AttributeByName(name string, pointer *ArrayPointer) bool
 }
 
 func (program *Program) AttributeByIndex(index uint32, pointer *ArrayPointer) bool {
-	va, ok := program.vaoByIndex[index]
-	if !ok {
-		return false
-	}
-	va.enable(index, pointer)
+	program.vao.bind()
+	program.vao.enable(index, pointer)
 	return true
 }
 
@@ -146,10 +135,11 @@ func (program *Program) UniformFloat(name string, value float32) bool {
 }
 
 func (program *Program) Delete() {
-	gl.DeleteProgram(program.id)
-	for _, vao := range program.vaoByIndex {
-		vao.delete()
+	if program == nil {
+		return
 	}
+	gl.DeleteProgram(program.id)
+	program.vao.delete()
 }
 
 func (program *Program) Use() {

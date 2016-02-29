@@ -25,8 +25,8 @@ func (va *vertexArray) delete() {
 }
 
 func (va *vertexArray) enable(index uint32, pointer *ArrayPointer) {
-	pointer.buffer.Bind(gl.ARRAY_BUFFER)
 	va.bind()
+	pointer.buffer.Bind(gl.ARRAY_BUFFER)
 	gl.EnableVertexAttribArray(index)
 	gl.VertexAttribPointer(index, int32(pointer.datasize), pointer.buffer.datatype, pointer.normalize, int32(pointer.stride), unsafe.Pointer(uintptr(pointer.start)))
 	pointer.buffer.Unbind()

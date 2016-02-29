@@ -44,6 +44,9 @@ func CreateBuffer() *Buffer {
 }
 
 func (buffer *Buffer) Delete() {
+	if buffer == nil {
+		return
+	}
 	gl.DeleteBuffers(1, &buffer.id)
 }
 
