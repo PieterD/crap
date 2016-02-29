@@ -46,8 +46,10 @@ func (p DefaultProfile) PostCreation(w *glfw.Window) error {
 	glfw.SwapInterval(1)
 	return nil
 }
-func (p DefaultProfile) EventFocus(w *glfw.Window, focused bool)            {}
-func (p DefaultProfile) EventResize(w *glfw.Window, width int, height int)  {}
+func (p DefaultProfile) EventFocus(w *glfw.Window, focused bool) {}
+func (p DefaultProfile) EventResize(w *glfw.Window, width int, height int) {
+	gl.Viewport(0, 0, int32(width), int32(height))
+}
 func (p DefaultProfile) EventMousePos(w *glfw.Window, x float64, y float64) {}
 func (p DefaultProfile) EventMouseKey(w *glfw.Window, key glfw.MouseButton, act glfw.Action, mod glfw.ModifierKey) {
 }
