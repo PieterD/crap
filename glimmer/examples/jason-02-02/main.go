@@ -15,8 +15,6 @@ type Profile struct {
 	fragment *glimmer.Shader
 	program  *glimmer.Program
 	buffer   *glimmer.Buffer
-	vPointer *glimmer.ArrayPointer
-	cPointer *glimmer.ArrayPointer
 }
 
 var vertexShaderText = `
@@ -64,8 +62,8 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	Panicf(err, "Error linking program: %v", err)
 
 	p.buffer = glimmer.CreateBuffer().FloatData(vertexData)
-	p.vPointer = p.buffer.Pointer(4, false, 0, 0)
-	p.cPointer = p.buffer.Pointer(4, false, 0, 48)
+	p.program.AttributeByName("position", p.buffer.Pointer(4, false, 0, 0))
+	p.program.AttributeByName("color", p.buffer.Pointer(4, false, 0, 48))
 
 	return glimmer.GetError()
 }
@@ -80,11 +78,10 @@ func (p *Profile) End() {
 func (p *Profile) Draw(w *glfw.Window) error {
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
-	p.program.Use()
-	p.program.AttributeByName("position", p.vPointer)
-	p.program.AttributeByName("color", p.cPointer)
+	p.program.Bind()
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
-	return nil
+	p.program.Unbind()
+	return glimmer.GetError()
 }
 
 func main() {

@@ -10,7 +10,8 @@ type Buffer struct {
 	id       uint32
 	access   BufferAccessType
 	nature   BufferNatureType
-	datatype uint32
+	datatype DataType
+	target   BindTarget
 }
 
 type BufferAccessType uint32
@@ -35,11 +36,18 @@ const (
 	Float DataType = gl.FLOAT
 )
 
+type BindTarget uint32
+
+const (
+	ArrayBuffer BindTarget = gl.ARRAY_BUFFER
+)
+
 func CreateBuffer() *Buffer {
 	buffer := new(Buffer)
 	gl.GenBuffers(1, &buffer.id)
 	buffer.access = StaticAccess
 	buffer.nature = DrawNature
+	buffer.target = ArrayBuffer
 	return buffer
 }
 
@@ -50,24 +58,29 @@ func (buffer *Buffer) Delete() {
 	gl.DeleteBuffers(1, &buffer.id)
 }
 
+func (buffer *Buffer) Target(target BindTarget) {
+	buffer.target = target
+}
+
 func (buffer *Buffer) AccessNature(access BufferAccessType, nature BufferNatureType) *Buffer {
 	buffer.access = access
 	buffer.nature = nature
 	return buffer
 }
 
-func (buffer *Buffer) Bind(target uint32) {
-	gl.BindBuffer(target, buffer.id)
+func (buffer *Buffer) bind() {
+	gl.BindBuffer(uint32(buffer.target), buffer.id)
 }
 
-func (buffer *Buffer) Unbind() {
-	gl.BindBuffer(0, buffer.id)
+func (buffer *Buffer) unbind() {
+	gl.BindBuffer(uint32(buffer.target), buffer.id)
 }
 
-func (buffer *Buffer) Data(ptr unsafe.Pointer, size int, datatype uint32) *Buffer {
-	buffer.Bind(gl.ARRAY_BUFFER)
+func (buffer *Buffer) Data(ptr unsafe.Pointer, size int, datatype DataType) *Buffer {
+	buffer.bind()
 	buffer.datatype = datatype
-	gl.BufferData(gl.ARRAY_BUFFER, size, ptr, usage(buffer.access, buffer.nature))
+	gl.BufferData(uint32(buffer.target), size, ptr, usage(buffer.access, buffer.nature))
+	buffer.unbind()
 	return buffer
 }
 

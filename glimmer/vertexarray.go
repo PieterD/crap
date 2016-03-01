@@ -16,18 +16,26 @@ func createVertexArray() *vertexArray {
 	return va
 }
 
-func (va *vertexArray) bind() {
+func (va *vertexArray) Bind() {
 	gl.BindVertexArray(va.id)
 }
 
-func (va *vertexArray) delete() {
+func (va *vertexArray) Unbind() {
+	gl.BindVertexArray(0)
+}
+
+func (va *vertexArray) Delete() {
 	gl.DeleteVertexArrays(1, &va.id)
 }
 
-func (va *vertexArray) enable(index uint32, pointer *ArrayPointer) {
-	va.bind()
-	pointer.buffer.Bind(gl.ARRAY_BUFFER)
+func (va *vertexArray) Enable(index uint32, pointer *ArrayPointer) {
+	if pointer.buffer.target != ArrayBuffer {
+		return
+	}
+	va.Bind()
+	pointer.buffer.bind()
 	gl.EnableVertexAttribArray(index)
-	gl.VertexAttribPointer(index, int32(pointer.datasize), pointer.buffer.datatype, pointer.normalize, int32(pointer.stride), unsafe.Pointer(uintptr(pointer.start)))
-	pointer.buffer.Unbind()
+	gl.VertexAttribPointer(index, int32(pointer.datasize), uint32(pointer.buffer.datatype), pointer.normalize, int32(pointer.stride), unsafe.Pointer(uintptr(pointer.start)))
+	pointer.buffer.unbind()
+	va.Unbind()
 }
