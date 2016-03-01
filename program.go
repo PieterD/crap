@@ -7,13 +7,13 @@ import (
 )
 
 type Program struct {
-	id          uint32
-	attributes  []programAttribute
-	indexByName map[string]uint32
-	vao         *vertexArray
+	id         uint32
+	attributes []programAttribute
+	vao        *vertexArray
 
-	uniformIndexByName map[string]uint32
-	uniformByIndex     map[uint32]programUniform
+	attributeIndexByName map[string]uint32
+	uniformIndexByName   map[string]uint32
+	uniformByIndex       map[uint32]programUniform
 }
 
 type programAttribute struct {
@@ -54,7 +54,7 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 	var attributes int32
 	gl.GetProgramiv(program.id, gl.ACTIVE_ATTRIBUTES, &attributes)
 	program.attributes = make([]programAttribute, attributes)
-	program.indexByName = make(map[string]uint32)
+	program.attributeIndexByName = make(map[string]uint32)
 	program.vao = createVertexArray()
 	for i := 0; i < int(attributes); i++ {
 		var buf [gl.ACTIVE_ATTRIBUTE_MAX_LENGTH]byte
@@ -66,13 +66,13 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 		name := string(buf[:length])
 		if location == -1 {
 			gl.DeleteProgram(program.id)
-			program.vao.delete()
+			program.vao.Delete()
 			return nil, &ShaderError{Desc: fmt.Sprintf("Attribute location for '%s' not found", name)}
 		}
 		index := uint32(location)
 		program.attributes[i].name = name
 		program.attributes[i].index = index
-		program.indexByName[name] = index
+		program.attributeIndexByName[name] = index
 	}
 
 	var uniforms int32
@@ -87,17 +87,15 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 		location := gl.GetUniformLocation(program.id, &buf[0])
 		if location == -1 {
 			gl.DeleteProgram(program.id)
-			program.vao.delete()
+			program.vao.Delete()
 			return nil, &ShaderError{Desc: fmt.Sprintf("Uniform location for '%s' not found", name)}
 		}
 		index := uint32(location)
-		fmt.Printf("name: '%s' %d\n", name, index)
 
 		var datatype int32
 		gl.GetActiveUniformsiv(program.id, 1, &index, gl.UNIFORM_TYPE, &datatype)
 		var arraysize int32
 		gl.GetActiveUniformsiv(program.id, 1, &index, gl.UNIFORM_SIZE, &arraysize)
-		fmt.Printf("datatype: %d size: %d\n", datatype, arraysize)
 		uni := programUniform{
 			name:      name,
 			index:     uint32(location),
@@ -112,7 +110,7 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 }
 
 func (program *Program) AttributeByName(name string, pointer *ArrayPointer) bool {
-	index, ok := program.indexByName[name]
+	index, ok := program.attributeIndexByName[name]
 	if !ok {
 		return false
 	}
@@ -120,8 +118,7 @@ func (program *Program) AttributeByName(name string, pointer *ArrayPointer) bool
 }
 
 func (program *Program) AttributeByIndex(index uint32, pointer *ArrayPointer) bool {
-	program.vao.bind()
-	program.vao.enable(index, pointer)
+	program.vao.Enable(index, pointer)
 	return true
 }
 
@@ -139,9 +136,15 @@ func (program *Program) Delete() {
 		return
 	}
 	gl.DeleteProgram(program.id)
-	program.vao.delete()
+	program.vao.Delete()
 }
 
-func (program *Program) Use() {
+func (program *Program) Bind() {
+	program.vao.Bind()
 	gl.UseProgram(program.id)
+}
+
+func (program *Program) Unbind() {
+	gl.UseProgram(0)
+	program.vao.Unbind()
 }
