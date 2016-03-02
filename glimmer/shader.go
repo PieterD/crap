@@ -1,77 +1,59 @@
 package glimmer
 
 import (
-	"github.com/PieterD/crap/glimmer/convc"
+	"github.com/PieterD/crap/glimmer/gli"
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type Shader struct {
-	id         uint32
-	shaderType ShaderType
+	gli.Shader
+	shaderType gli.ShaderType
 }
 
-type ShaderType uint32
-
-const (
-	VertexShader         ShaderType = gl.VERTEX_SHADER
-	GeometryShader       ShaderType = gl.GEOMETRY_SHADER
-	FragmentShader       ShaderType = gl.FRAGMENT_SHADER
-	ComputeShader        ShaderType = gl.COMPUTE_SHADER
-	TessControlShader    ShaderType = gl.TESS_CONTROL_SHADER
-	TessEvaluationShader ShaderType = gl.TESS_EVALUATION_SHADER
-)
-
 func CreateVertexShader(source ...string) (*Shader, error) {
-	return CreateShader(VertexShader, source...)
+	return createShader(gli.VertexShader, source...)
 }
 
 func CreateGeometryShader(source ...string) (*Shader, error) {
-	return CreateShader(GeometryShader, source...)
+	return createShader(gli.GeometryShader, source...)
 }
 
 func CreateFragmentShader(source ...string) (*Shader, error) {
-	return CreateShader(FragmentShader, source...)
+	return createShader(gli.FragmentShader, source...)
 }
 
 func CreateComputeShader(source ...string) (*Shader, error) {
-	return CreateShader(ComputeShader, source...)
+	return createShader(gli.ComputeShader, source...)
 }
 
 func CreateTessControlShader(source ...string) (*Shader, error) {
-	return CreateShader(TessControlShader, source...)
+	return createShader(gli.TessControlShader, source...)
 }
 
 func CreateTessEvaluationShader(source ...string) (*Shader, error) {
-	return CreateShader(TessEvaluationShader, source...)
+	return createShader(gli.TessEvaluationShader, source...)
 }
 
-func CreateShader(shaderType ShaderType, source ...string) (*Shader, error) {
-	shader := new(Shader)
-	shader.id = gl.CreateShader(uint32(shaderType))
-	if shader.id == 0 {
+func createShader(shaderType gli.ShaderType, source ...string) (*Shader, error) {
+	shader := gli.CreateContext().CreateShader(shaderType)
+	if !shader.Valid() {
 		return nil, GetError()
 	}
-	ptr, free := convc.MultiStringToC(source...)
-	defer free()
-	gl.ShaderSource(shader.id, 1, ptr, nil)
-	gl.CompileShader(shader.id)
-	var status int32
-	gl.GetShaderiv(shader.id, gl.COMPILE_STATUS, &status)
-	if status == gl.FALSE {
-		var loglength int32
-		gl.GetShaderiv(shader.id, gl.INFO_LOG_LENGTH, &loglength)
+	shader.Source(source)
+	shader.Compile()
+	if !shader.GetCompileSuccess() {
+		loglength := shader.GetIV(gl.INFO_LOG_LENGTH)
 		log := make([]byte, loglength)
-		var logptr *uint8 = &log[0]
-		gl.GetShaderInfoLog(shader.id, loglength, nil, logptr)
-		gl.DeleteShader(shader.id)
-		return nil, &ShaderError{Desc: string(log[:len(log)-1])}
+		log = shader.GetInfoLog(log)
+		shader.Delete()
+		return nil, &ShaderError{Desc: string(log)}
 	}
-	return shader, nil
+	return &Shader{Shader: shader, shaderType: shaderType}, nil
 }
 
 func (shader *Shader) Delete() {
 	if shader == nil {
 		return
 	}
-	gl.DeleteShader(shader.id)
+	shader.Shader.Delete()
 }
