@@ -45,6 +45,7 @@ type Shader interface {
 	Compile()
 	GetIV(param ShaderParameter) int32
 	GetCompileSuccess() bool
+	GetInfoLogLength() int32
 	GetInfoLog(log []byte) []byte
 }
 
@@ -87,6 +88,10 @@ func (shader iShader) GetCompileSuccess() bool {
 		return false
 	}
 	return true
+}
+
+func (shader iShader) GetInfoLogLength() int32 {
+	return shader.GetIV(INFO_LOG_LENGTH)
 }
 
 func (shader iShader) GetInfoLog(buf []byte) []byte {
