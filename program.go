@@ -35,7 +35,7 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 		return nil, GetError()
 	}
 	for _, shader := range shaders {
-		gl.AttachShader(program.id, shader.Id())
+		gl.AttachShader(program.id, shader.shader.Id())
 	}
 	gl.LinkProgram(program.id)
 

@@ -1,12 +1,9 @@
 package glimmer
 
-import (
-	"github.com/PieterD/crap/glimmer/gli"
-	"github.com/go-gl/gl/v3.3-core/gl"
-)
+import "github.com/PieterD/crap/glimmer/gli"
 
 type Shader struct {
-	gli.Shader
+	shader     gli.Shader
 	shaderType gli.ShaderType
 }
 
@@ -42,18 +39,18 @@ func createShader(shaderType gli.ShaderType, source ...string) (*Shader, error) 
 	shader.Source(source)
 	shader.Compile()
 	if !shader.GetCompileSuccess() {
-		loglength := shader.GetIV(gl.INFO_LOG_LENGTH)
+		loglength := shader.GetInfoLogLength()
 		log := make([]byte, loglength)
 		log = shader.GetInfoLog(log)
 		shader.Delete()
 		return nil, &ShaderError{Desc: string(log)}
 	}
-	return &Shader{Shader: shader, shaderType: shaderType}, nil
+	return &Shader{shader: shader, shaderType: shaderType}, nil
 }
 
 func (shader *Shader) Delete() {
 	if shader == nil {
 		return
 	}
-	shader.Shader.Delete()
+	shader.shader.Delete()
 }
