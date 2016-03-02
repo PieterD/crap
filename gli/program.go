@@ -41,18 +41,21 @@ type iProgram struct {
 
 type Program interface {
 	Id() uint32
+	Valid() bool
 	Delete()
 	AttachShader(shader Shader)
 	Link()
 	GetIV(param ProgramParameter) int32
 	GetLinkSuccess() bool
+	GetInfoLogLength() int32
 	GetInfoLog(buf []byte) []byte
 	GetActiveAttrib(index uint32, buf []byte) (name []byte, datatype DataType, size int)
 	GetAttribLocationBytes(name []byte) int32
 	GetAttribLocation(name string) int32
+	GetActiveUniformName(index uint32, buf []byte) []byte
 	GetUniformLocationBytes(name []byte) int32
 	GetUniformLocation(name string) int32
-	GetActiveUniformiv(param UniformParameter, index uint32) int32
+	GetActiveUniformIV(param UniformParameter, index uint32) int32
 }
 
 func (context iContext) CreateProgram() Program {
@@ -62,6 +65,10 @@ func (context iContext) CreateProgram() Program {
 
 func (program iProgram) Id() uint32 {
 	return program.id
+}
+
+func (program iProgram) Valid() bool {
+	return program.id != 0
 }
 
 func (program iProgram) Delete() {
@@ -88,6 +95,10 @@ func (program iProgram) GetLinkSuccess() bool {
 		return false
 	}
 	return true
+}
+
+func (program iProgram) GetInfoLogLength() int32 {
+	return program.GetIV(PROGRAM_INFO_LOG_LENGTH)
 }
 
 func (program iProgram) GetInfoLog(buf []byte) []byte {
@@ -132,7 +143,7 @@ func (program iProgram) GetUniformLocation(name string) int32 {
 	return gl.GetUniformLocation(program.id, ptr)
 }
 
-func (program iProgram) GetActiveUniformiv(param UniformParameter, index uint32) int32 {
+func (program iProgram) GetActiveUniformIV(param UniformParameter, index uint32) int32 {
 	var pi int32
 	gl.GetActiveUniformsiv(program.id, 1, &index, uint32(param), &pi)
 	return pi
