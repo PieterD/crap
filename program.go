@@ -3,11 +3,12 @@ package glimmer
 import (
 	"fmt"
 
+	"github.com/PieterD/crap/glimmer/gli"
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type Program struct {
-	id         uint32
+	program    gli.Program
 	attributes []programAttribute
 	vao        *vertexArray
 
@@ -30,42 +31,34 @@ type programUniform struct {
 
 func CreateProgram(shaders ...*Shader) (*Program, error) {
 	program := new(Program)
-	program.id = gl.CreateProgram()
-	if program.id == 0 {
+	p := gli.CreateContext().CreateProgram()
+	program.program = p
+	if !p.Valid() {
 		return nil, GetError()
 	}
 	for _, shader := range shaders {
-		gl.AttachShader(program.id, shader.shader.Id())
+		p.AttachShader(shader.shader)
 	}
-	gl.LinkProgram(program.id)
+	p.Link()
 
-	var status int32
-	gl.GetProgramiv(program.id, gl.LINK_STATUS, &status)
-	if status == gl.FALSE {
-		var loglength int32
-		gl.GetProgramiv(program.id, gl.INFO_LOG_LENGTH, &loglength)
+	if !p.GetLinkSuccess() {
+		loglength := p.GetInfoLogLength()
 		log := make([]byte, loglength)
-		var logptr *uint8 = &log[0]
-		gl.GetProgramInfoLog(program.id, loglength, nil, logptr)
-		gl.DeleteProgram(program.id)
-		return nil, &ShaderError{Desc: string(log[:len(log)-1])}
+		log = p.GetInfoLog(log)
+		return nil, &ShaderError{Desc: string(log)}
 	}
 
-	var attributes int32
-	gl.GetProgramiv(program.id, gl.ACTIVE_ATTRIBUTES, &attributes)
+	attributes := p.GetIV(gli.ACTIVE_ATTRIBUTES)
 	program.attributes = make([]programAttribute, attributes)
 	program.attributeIndexByName = make(map[string]uint32)
 	program.vao = createVertexArray()
 	for i := 0; i < int(attributes); i++ {
-		var buf [gl.ACTIVE_ATTRIBUTE_MAX_LENGTH]byte
-		var length int32
-		var size int32
-		var xtype uint32
-		gl.GetActiveAttrib(program.id, uint32(i), int32(len(buf)), &length, &size, &xtype, &buf[0])
-		location := gl.GetAttribLocation(program.id, &buf[0])
-		name := string(buf[:length])
+		buf := make([]byte, p.GetIV(gli.ACTIVE_ATTRIBUTE_MAX_LENGTH))
+		namebytes, _, _ := p.GetActiveAttrib(uint32(i), buf)
+		location := p.GetAttribLocationBytes(namebytes)
+		name := string(namebytes)
 		if location == -1 {
-			gl.DeleteProgram(program.id)
+			p.Delete()
 			program.vao.Delete()
 			return nil, &ShaderError{Desc: fmt.Sprintf("Attribute location for '%s' not found", name)}
 		}
@@ -75,27 +68,23 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 		program.attributeIndexByName[name] = index
 	}
 
-	var uniforms int32
-	gl.GetProgramiv(program.id, gl.ACTIVE_UNIFORMS, &uniforms)
+	uniforms := p.GetIV(gli.ACTIVE_UNIFORMS)
 	program.uniformIndexByName = make(map[string]uint32)
 	program.uniformByIndex = make(map[uint32]programUniform)
+	buf := make([]byte, p.GetIV(gli.ACTIVE_UNIFORM_MAX_LENGTH))
 	for i := int32(0); i < uniforms; i++ {
-		var buf [gl.ACTIVE_UNIFORM_MAX_LENGTH]byte
-		var length int32
-		gl.GetActiveUniformName(program.id, uint32(i), int32(len(buf)), &length, &buf[0])
-		name := string(buf[:length])
-		location := gl.GetUniformLocation(program.id, &buf[0])
+		namebytes := p.GetActiveUniformName(uint32(i), buf)
+		location := p.GetUniformLocationBytes(namebytes)
+		name := string(namebytes)
 		if location == -1 {
-			gl.DeleteProgram(program.id)
+			p.Delete()
 			program.vao.Delete()
 			return nil, &ShaderError{Desc: fmt.Sprintf("Uniform location for '%s' not found", name)}
 		}
 		index := uint32(location)
 
-		var datatype int32
-		gl.GetActiveUniformsiv(program.id, 1, &index, gl.UNIFORM_TYPE, &datatype)
-		var arraysize int32
-		gl.GetActiveUniformsiv(program.id, 1, &index, gl.UNIFORM_SIZE, &arraysize)
+		datatype := p.GetActiveUniformIV(gli.UNIFORM_TYPE, uint32(i))
+		arraysize := p.GetActiveUniformIV(gli.UNIFORM_SIZE, uint32(i))
 		uni := programUniform{
 			name:      name,
 			index:     uint32(location),
@@ -127,7 +116,7 @@ func (program *Program) UniformFloat(name string, value float32) bool {
 	if !ok {
 		return false
 	}
-	gl.ProgramUniform1f(program.id, int32(index), value)
+	gl.ProgramUniform1f(program.program.Id(), int32(index), value)
 	return true
 }
 
@@ -135,16 +124,18 @@ func (program *Program) Delete() {
 	if program == nil {
 		return
 	}
-	gl.DeleteProgram(program.id)
+	program.program.Delete()
 	program.vao.Delete()
 }
 
 func (program *Program) Bind() {
 	program.vao.Bind()
-	gl.UseProgram(program.id)
+	//gl.UseProgram(program.program.Id())
+	gli.CreateContext().UseProgram(program.program)
 }
 
 func (program *Program) Unbind() {
-	gl.UseProgram(0)
+	//gl.UseProgram(0)
+	gli.CreateContext().UseNoProgram()
 	program.vao.Unbind()
 }

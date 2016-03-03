@@ -63,6 +63,14 @@ func (context iContext) CreateProgram() Program {
 	return iProgram{id}
 }
 
+func (context iContext) UseProgram(program Program) {
+	gl.UseProgram(program.Id())
+}
+
+func (context iContext) UseNoProgram() {
+	gl.UseProgram(0)
+}
+
 func (program iProgram) Id() uint32 {
 	return program.id
 }
