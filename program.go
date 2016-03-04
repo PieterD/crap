@@ -10,7 +10,7 @@ import (
 type Program struct {
 	program    gli.Program
 	attributes []programAttribute
-	vao        *vertexArray
+	vao        gli.VertexArrayObject
 
 	attributeIndexByName map[string]uint32
 	uniformIndexByName   map[string]uint32
@@ -51,7 +51,7 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 	attributes := p.GetIV(gli.ACTIVE_ATTRIBUTES)
 	program.attributes = make([]programAttribute, attributes)
 	program.attributeIndexByName = make(map[string]uint32)
-	program.vao = createVertexArray()
+	program.vao = gli.CreateContext().CreateVertexArrayObject()
 	for i := 0; i < int(attributes); i++ {
 		buf := make([]byte, p.GetIV(gli.ACTIVE_ATTRIBUTE_MAX_LENGTH))
 		namebytes, _, _ := p.GetActiveAttrib(uint32(i), buf)
@@ -107,7 +107,10 @@ func (program *Program) AttributeByName(name string, pointer *ArrayPointer) bool
 }
 
 func (program *Program) AttributeByIndex(index uint32, pointer *ArrayPointer) bool {
-	program.vao.Enable(index, pointer)
+	pointer.buffer.bind()
+	program.vao.EnableAttrib(index)
+	program.vao.AttribPointer(index, int32(pointer.datasize), gli.DataType(pointer.buffer.datatype), pointer.normalize, int32(pointer.stride), int32(pointer.start))
+	pointer.buffer.unbind()
 	return true
 }
 
@@ -129,13 +132,11 @@ func (program *Program) Delete() {
 }
 
 func (program *Program) Bind() {
-	program.vao.Bind()
-	//gl.UseProgram(program.program.Id())
+	gli.CreateContext().BindVertexArrayObject(program.vao)
 	gli.CreateContext().UseProgram(program.program)
 }
 
 func (program *Program) Unbind() {
-	//gl.UseProgram(0)
 	gli.CreateContext().UseNoProgram()
-	program.vao.Unbind()
+	gli.CreateContext().UnbindVertexArrayObject()
 }
