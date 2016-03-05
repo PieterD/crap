@@ -29,7 +29,7 @@ type programUniform struct {
 	arraysize uint32
 }
 
-func CreateProgram(shaders ...*Shader) (*Program, error) {
+func CreateProgram(shaders ...gli.Shader) (*Program, error) {
 	program := new(Program)
 	p := gli.CreateProgram()
 	program.program = p
@@ -37,7 +37,7 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 		return nil, GetError()
 	}
 	for _, shader := range shaders {
-		p.AttachShader(shader.shader)
+		p.AttachShader(shader)
 	}
 	p.Link()
 
