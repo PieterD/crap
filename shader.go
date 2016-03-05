@@ -32,7 +32,7 @@ func CreateTessEvaluationShader(source ...string) (*Shader, error) {
 }
 
 func createShader(shaderType gli.ShaderType, source ...string) (*Shader, error) {
-	shader := gli.CreateContext().CreateShader(shaderType)
+	shader := gli.CreateShader(shaderType)
 	if !shader.Valid() {
 		return nil, GetError()
 	}
