@@ -31,7 +31,7 @@ type programUniform struct {
 
 func CreateProgram(shaders ...*Shader) (*Program, error) {
 	program := new(Program)
-	p := gli.CreateContext().CreateProgram()
+	p := gli.CreateProgram()
 	program.program = p
 	if !p.Valid() {
 		return nil, GetError()
@@ -51,7 +51,7 @@ func CreateProgram(shaders ...*Shader) (*Program, error) {
 	attributes := p.GetIV(gli.ACTIVE_ATTRIBUTES)
 	program.attributes = make([]programAttribute, attributes)
 	program.attributeIndexByName = make(map[string]uint32)
-	program.vao = gli.CreateContext().CreateVertexArrayObject()
+	program.vao = gli.CreateVertexArrayObject()
 	for i := 0; i < int(attributes); i++ {
 		buf := make([]byte, p.GetIV(gli.ACTIVE_ATTRIBUTE_MAX_LENGTH))
 		namebytes, _, _ := p.GetActiveAttrib(uint32(i), buf)
@@ -132,11 +132,11 @@ func (program *Program) Delete() {
 }
 
 func (program *Program) Bind() {
-	gli.CreateContext().BindVertexArrayObject(program.vao)
-	gli.CreateContext().UseProgram(program.program)
+	gli.BindVertexArrayObject(program.vao)
+	gli.UseProgram(program.program)
 }
 
 func (program *Program) Unbind() {
-	gli.CreateContext().UseNoProgram()
-	gli.CreateContext().UnbindVertexArrayObject()
+	gli.UseNoProgram()
+	gli.UnbindVertexArrayObject()
 }
