@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/PieterD/crap/glimmer"
+	"github.com/PieterD/crap/glimmer/gli"
 	. "github.com/PieterD/crap/glimmer/pan"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
@@ -11,8 +12,8 @@ import (
 
 type Profile struct {
 	glimmer.DefaultProfile
-	vertex   *glimmer.Shader
-	fragment *glimmer.Shader
+	vertex   gli.Shader
+	fragment gli.Shader
 	program  *glimmer.Program
 	buffer   *glimmer.Buffer
 }
@@ -44,10 +45,10 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 
 	glfw.SwapInterval(1)
 
-	p.vertex, err = glimmer.CreateVertexShader(vertexShaderText)
+	p.vertex, err = gli.CreateShader(gli.VertexShader, vertexShaderText)
 	Panicf(err, "Error compiling vertex shader: %v", err)
 
-	p.fragment, err = glimmer.CreateFragmentShader(fragmentShaderText)
+	p.fragment, err = gli.CreateShader(gli.FragmentShader, fragmentShaderText)
 	Panicf(err, "Error compiling fragment shader: %v", err)
 
 	p.program, err = glimmer.CreateProgram(p.vertex, p.fragment)
