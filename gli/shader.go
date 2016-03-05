@@ -34,7 +34,8 @@ const (
 )
 
 type iShader struct {
-	id uint32
+	id         uint32
+	shadertype ShaderType
 }
 
 type Shader interface {
@@ -51,7 +52,11 @@ type Shader interface {
 
 func (context iContext) CreateShader(shaderType ShaderType) Shader {
 	id := gl.CreateShader(uint32(shaderType))
-	return iShader{id}
+	return iShader{id: id, shadertype: shaderType}
+}
+
+func (shader iShader) Delete() {
+	gl.DeleteShader(shader.id)
 }
 
 func (shader iShader) Id() uint32 {
@@ -60,10 +65,6 @@ func (shader iShader) Id() uint32 {
 
 func (shader iShader) Valid() bool {
 	return shader.id != 0
-}
-
-func (shader iShader) Delete() {
-	gl.DeleteShader(shader.id)
 }
 
 func (shader iShader) Source(sources []string) {
