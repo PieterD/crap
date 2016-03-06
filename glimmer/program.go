@@ -13,14 +13,6 @@ type Program struct {
 
 	attributeIndexByName map[string]uint32
 	uniformIndexByName   map[string]uint32
-	uniformByIndex       map[uint32]programUniform
-}
-
-type programUniform struct {
-	name      string
-	index     uint32
-	datatype  uint32
-	arraysize uint32
 }
 
 func CreateProgram(shaders ...gli.Shader) (*Program, error) {

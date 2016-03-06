@@ -124,7 +124,7 @@ func (program iProgram) Attributes() ([]ProgramAttribute, error) {
 	for i := range attributes {
 		namebytes, datatype, size := program.getActiveAttrib(uint32(i), buf)
 		name := string(namebytes)
-		location := gl.GetAttribLocation(program.Id(), &namebytes[0])
+		location := gl.GetAttribLocation(program.id, &namebytes[0])
 		if location == -1 {
 			//TODO: ShaderError
 			return nil, fmt.Errorf("Attribute location for '%s' not found", name)
@@ -160,7 +160,7 @@ func (program iProgram) Uniforms() ([]ProgramUniform, error) {
 	for i := range uniforms {
 		namebytes, datatype, arraysize := program.getActiveUniform(uint32(i), buf)
 		name := string(namebytes)
-		location := gl.GetUniformLocation(program.Id(), &namebytes[0])
+		location := gl.GetUniformLocation(program.id, &namebytes[0])
 		if location == -1 {
 			//TODO: ShaderError
 			return nil, fmt.Errorf("Uniform location for '%s' not found", name)
