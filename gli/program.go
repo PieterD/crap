@@ -1,6 +1,8 @@
 package gli
 
 import (
+	"fmt"
+
 	"github.com/PieterD/crap/glimmer/convc"
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
@@ -41,14 +43,8 @@ type iProgram struct {
 
 type Program interface {
 	Id() uint32
-	Valid() bool
 	Delete()
-	AttachShader(shader Shader)
-	Link()
 	GetIV(param ProgramParameter) int32
-	GetLinkSuccess() bool
-	GetInfoLogLength() int32
-	GetInfoLog(buf []byte) []byte
 	GetActiveAttrib(index uint32, buf []byte) (name []byte, datatype DataType, size int)
 	GetAttribLocationBytes(name []byte) int32
 	GetAttribLocation(name string) int32
@@ -58,9 +54,30 @@ type Program interface {
 	GetActiveUniformIV(param UniformParameter, index uint32) int32
 }
 
-func (context iContext) CreateProgram() Program {
+func (context iContext) CreateProgram(shaders ...Shader) (Program, error) {
 	id := gl.CreateProgram()
-	return iProgram{id}
+	var program iProgram
+	program.id = id
+	if id == 0 {
+		// TODO: GetError
+		return nil, fmt.Errorf("Unable to create program")
+	}
+	for _, shader := range shaders {
+		gl.AttachShader(program.Id(), shader.Id())
+	}
+	gl.LinkProgram(program.Id())
+	status := program.GetIV(LINK_STATUS)
+	if status == int32(FALSE) {
+		loglength := program.GetIV(PROGRAM_INFO_LOG_LENGTH)
+		log := make([]byte, loglength)
+		var length int32
+		gl.GetProgramInfoLog(program.Id(), loglength, &length, &log[0])
+		program.Delete()
+		// TODO: ShaderError
+		return nil, fmt.Errorf("Unable to link program: %s", log[:length])
+	}
+
+	return program, nil
 }
 
 func (context iContext) UseProgram(program Program) {
@@ -75,46 +92,14 @@ func (program iProgram) Id() uint32 {
 	return program.id
 }
 
-func (program iProgram) Valid() bool {
-	return program.id != 0
-}
-
 func (program iProgram) Delete() {
 	gl.DeleteProgram(program.id)
-}
-
-func (program iProgram) AttachShader(shader Shader) {
-	gl.AttachShader(program.id, shader.Id())
-}
-
-func (program iProgram) Link() {
-	gl.LinkProgram(program.id)
 }
 
 func (program iProgram) GetIV(param ProgramParameter) int32 {
 	var pi int32
 	gl.GetProgramiv(program.id, uint32(param), &pi)
 	return pi
-}
-
-func (program iProgram) GetLinkSuccess() bool {
-	status := program.GetIV(LINK_STATUS)
-	if status == int32(FALSE) {
-		return false
-	}
-	return true
-}
-
-func (program iProgram) GetInfoLogLength() int32 {
-	return program.GetIV(PROGRAM_INFO_LOG_LENGTH)
-}
-
-func (program iProgram) GetInfoLog(buf []byte) []byte {
-	bufsize := int32(len(buf))
-	logptr := &buf[0]
-	var length int32
-	gl.GetProgramInfoLog(program.id, bufsize, &length, logptr)
-	return buf[:length : length+1]
 }
 
 func (program iProgram) GetActiveAttrib(index uint32, buf []byte) (name []byte, datatype DataType, size int) {
