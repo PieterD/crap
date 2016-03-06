@@ -3,7 +3,6 @@ package gli
 import (
 	"fmt"
 
-	"github.com/PieterD/crap/glimmer/convc"
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
@@ -45,13 +44,9 @@ type Program interface {
 	Id() uint32
 	Delete()
 	GetIV(param ProgramParameter) int32
-	GetActiveAttrib(index uint32, buf []byte) (name []byte, datatype DataType, size int)
-	GetAttribLocationBytes(name []byte) int32
-	GetAttribLocation(name string) int32
-	GetActiveUniformName(index uint32, buf []byte) []byte
-	GetUniformLocationBytes(name []byte) int32
-	GetUniformLocation(name string) int32
 	GetActiveUniformIV(param UniformParameter, index uint32) int32
+	Attributes() ([]ProgramAttribute, error)
+	Uniforms() ([]ProgramUniform, error)
 }
 
 func (context iContext) CreateProgram(shaders ...Shader) (Program, error) {
@@ -102,7 +97,13 @@ func (program iProgram) GetIV(param ProgramParameter) int32 {
 	return pi
 }
 
-func (program iProgram) GetActiveAttrib(index uint32, buf []byte) (name []byte, datatype DataType, size int) {
+func (program iProgram) GetActiveUniformIV(param UniformParameter, index uint32) int32 {
+	var pi int32
+	gl.GetActiveUniformsiv(program.id, 1, &index, uint32(param), &pi)
+	return pi
+}
+
+func (program iProgram) getActiveAttrib(index uint32, buf []byte) (name []byte, datatype DataType, size int) {
 	var length int32
 	var isize int32
 	var idatatype uint32
@@ -110,34 +111,66 @@ func (program iProgram) GetActiveAttrib(index uint32, buf []byte) (name []byte, 
 	return buf[:length : length+1], DataType(idatatype), int(isize)
 }
 
-func (program iProgram) GetAttribLocationBytes(name []byte) int32 {
-	return gl.GetAttribLocation(program.id, &name[0])
+type ProgramAttribute struct {
+	Name  string
+	Index uint32
+	Type  DataType
+	Size  uint32
 }
 
-func (program iProgram) GetAttribLocation(name string) int32 {
-	ptr, free := convc.StringToC(name)
-	defer free()
-	return gl.GetAttribLocation(program.id, ptr)
+func (program iProgram) Attributes() ([]ProgramAttribute, error) {
+	attributes := make([]ProgramAttribute, program.GetIV(ACTIVE_ATTRIBUTES))
+	buf := make([]byte, program.GetIV(ACTIVE_ATTRIBUTE_MAX_LENGTH))
+	for i := range attributes {
+		namebytes, datatype, size := program.getActiveAttrib(uint32(i), buf)
+		name := string(namebytes)
+		location := gl.GetAttribLocation(program.Id(), &namebytes[0])
+		if location == -1 {
+			//TODO: ShaderError
+			return nil, fmt.Errorf("Attribute location for '%s' not found", name)
+		}
+		attributes[i] = ProgramAttribute{
+			Name:  name,
+			Index: uint32(location),
+			Type:  datatype,
+			Size:  uint32(size),
+		}
+	}
+	return attributes, nil
 }
 
-func (program iProgram) GetActiveUniformName(index uint32, buf []byte) []byte {
+type ProgramUniform struct {
+	Name  string
+	Index uint32
+	Type  DataType
+	Size  uint32
+}
+
+func (program iProgram) getActiveUniform(index uint32, buf []byte) (name []byte, datatype DataType, size int) {
 	var length int32
-	gl.GetActiveUniformName(program.id, index, int32(len(buf)), &length, &buf[0])
-	return buf[:length : length+1]
+	var isize int32
+	var idatatype uint32
+	gl.GetActiveUniform(program.id, index, int32(len(buf)), &length, &isize, &idatatype, &buf[0])
+	return buf[:length : length+1], DataType(idatatype), int(isize)
 }
 
-func (program iProgram) GetUniformLocationBytes(name []byte) int32 {
-	return gl.GetUniformLocation(program.id, &name[0])
-}
-
-func (program iProgram) GetUniformLocation(name string) int32 {
-	ptr, free := convc.StringToC(name)
-	defer free()
-	return gl.GetUniformLocation(program.id, ptr)
-}
-
-func (program iProgram) GetActiveUniformIV(param UniformParameter, index uint32) int32 {
-	var pi int32
-	gl.GetActiveUniformsiv(program.id, 1, &index, uint32(param), &pi)
-	return pi
+func (program iProgram) Uniforms() ([]ProgramUniform, error) {
+	uniforms := make([]ProgramUniform, program.GetIV(ACTIVE_UNIFORMS))
+	buf := make([]byte, program.GetIV(ACTIVE_UNIFORM_MAX_LENGTH))
+	for i := range uniforms {
+		namebytes, datatype, arraysize := program.getActiveUniform(uint32(i), buf)
+		name := string(namebytes)
+		location := gl.GetUniformLocation(program.Id(), &namebytes[0])
+		if location == -1 {
+			//TODO: ShaderError
+			return nil, fmt.Errorf("Uniform location for '%s' not found", name)
+		}
+		uniforms[i] = ProgramUniform{
+			Name:  name,
+			Index: uint32(location),
+			Type:  DataType(datatype),
+			Size:  uint32(arraysize),
+		}
+	}
+	return uniforms, nil
 }
