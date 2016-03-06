@@ -1,25 +1,19 @@
 package glimmer
 
 import (
-	"fmt"
-
 	"github.com/PieterD/crap/glimmer/gli"
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type Program struct {
 	program    gli.Program
-	attributes []programAttribute
+	attributes []gli.ProgramAttribute
+	uniforms   []gli.ProgramUniform
 	vao        gli.VertexArrayObject
 
 	attributeIndexByName map[string]uint32
 	uniformIndexByName   map[string]uint32
 	uniformByIndex       map[uint32]programUniform
-}
-
-type programAttribute struct {
-	name  string
-	index uint32
 }
 
 type programUniform struct {
@@ -34,54 +28,29 @@ func CreateProgram(shaders ...gli.Shader) (*Program, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	program := &Program{program: p}
-
-	attributes := p.GetIV(gli.ACTIVE_ATTRIBUTES)
-	program.attributes = make([]programAttribute, attributes)
+	program.attributes, err = p.Attributes()
+	if err != nil {
+		p.Delete()
+		return nil, err
+	}
 	program.attributeIndexByName = make(map[string]uint32)
-	program.vao = gli.CreateVertexArrayObject()
-	for i := 0; i < int(attributes); i++ {
-		buf := make([]byte, p.GetIV(gli.ACTIVE_ATTRIBUTE_MAX_LENGTH))
-		namebytes, _, _ := p.GetActiveAttrib(uint32(i), buf)
-		location := p.GetAttribLocationBytes(namebytes)
-		name := string(namebytes)
-		if location == -1 {
-			p.Delete()
-			program.vao.Delete()
-			return nil, &ShaderError{Desc: fmt.Sprintf("Attribute location for '%s' not found", name)}
-		}
-		index := uint32(location)
-		program.attributes[i].name = name
-		program.attributes[i].index = index
-		program.attributeIndexByName[name] = index
+	for _, attribute := range program.attributes {
+		program.attributeIndexByName[attribute.Name] = attribute.Index
 	}
 
-	uniforms := p.GetIV(gli.ACTIVE_UNIFORMS)
+	program.uniforms, err = p.Uniforms()
+	if err != nil {
+		p.Delete()
+		return nil, err
+	}
 	program.uniformIndexByName = make(map[string]uint32)
-	program.uniformByIndex = make(map[uint32]programUniform)
-	buf := make([]byte, p.GetIV(gli.ACTIVE_UNIFORM_MAX_LENGTH))
-	for i := int32(0); i < uniforms; i++ {
-		namebytes := p.GetActiveUniformName(uint32(i), buf)
-		location := p.GetUniformLocationBytes(namebytes)
-		name := string(namebytes)
-		if location == -1 {
-			p.Delete()
-			program.vao.Delete()
-			return nil, &ShaderError{Desc: fmt.Sprintf("Uniform location for '%s' not found", name)}
-		}
-		index := uint32(location)
-
-		datatype := p.GetActiveUniformIV(gli.UNIFORM_TYPE, uint32(i))
-		arraysize := p.GetActiveUniformIV(gli.UNIFORM_SIZE, uint32(i))
-		uni := programUniform{
-			name:      name,
-			index:     uint32(location),
-			datatype:  uint32(datatype),
-			arraysize: uint32(arraysize),
-		}
-		program.uniformIndexByName[name] = index
-		program.uniformByIndex[index] = uni
+	for _, uniform := range program.uniforms {
+		program.uniformIndexByName[uniform.Name] = uniform.Index
 	}
+
+	program.vao = gli.CreateVertexArrayObject()
 
 	return program, nil
 }
