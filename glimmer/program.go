@@ -121,10 +121,10 @@ func (program *Program) Delete() {
 
 func (program *Program) Bind() {
 	gli.BindVertexArrayObject(program.vao)
-	gli.UseProgram(program.program)
+	gli.BindProgram(program.program)
 }
 
 func (program *Program) Unbind() {
-	gli.UseNoProgram()
+	gli.UnbindProgram()
 	gli.UnbindVertexArrayObject()
 }

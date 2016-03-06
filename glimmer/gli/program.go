@@ -80,11 +80,11 @@ func (context iContext) CreateProgram(shaders ...Shader) (Program, error) {
 	return program, nil
 }
 
-func (context iContext) UseProgram(program Program) {
+func (context iContext) BindProgram(program Program) {
 	gl.UseProgram(program.Id())
 }
 
-func (context iContext) UseNoProgram() {
+func (context iContext) UnbindProgram() {
 	gl.UseProgram(0)
 }
 
