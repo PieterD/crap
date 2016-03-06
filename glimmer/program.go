@@ -30,23 +30,11 @@ type programUniform struct {
 }
 
 func CreateProgram(shaders ...gli.Shader) (*Program, error) {
-	program := new(Program)
-	p := gli.CreateProgram()
-	program.program = p
-	if !p.Valid() {
-		return nil, GetError()
+	p, err := gli.CreateProgram(shaders...)
+	if err != nil {
+		return nil, err
 	}
-	for _, shader := range shaders {
-		p.AttachShader(shader)
-	}
-	p.Link()
-
-	if !p.GetLinkSuccess() {
-		loglength := p.GetInfoLogLength()
-		log := make([]byte, loglength)
-		log = p.GetInfoLog(log)
-		return nil, &ShaderError{Desc: string(log)}
-	}
+	program := &Program{program: p}
 
 	attributes := p.GetIV(gli.ACTIVE_ATTRIBUTES)
 	program.attributes = make([]programAttribute, attributes)

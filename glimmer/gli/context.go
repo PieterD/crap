@@ -17,7 +17,7 @@ func CreateContext() Context {
 
 type Context interface {
 	CreateShader(shaderType ShaderType, source ...string) (Shader, error)
-	CreateProgram() Program
+	CreateProgram(shaders ...Shader) (Program, error)
 	CreateVertexArrayObject() VertexArrayObject
 	UseProgram(program Program)
 	UseNoProgram()
@@ -28,8 +28,8 @@ type Context interface {
 func CreateShader(shaderType ShaderType, source ...string) (Shader, error) {
 	return Current.CreateShader(shaderType, source...)
 }
-func CreateProgram() Program {
-	return Current.CreateProgram()
+func CreateProgram(shaders ...Shader) (Program, error) {
+	return Current.CreateProgram(shaders...)
 }
 func CreateVertexArrayObject() VertexArrayObject {
 	return Current.CreateVertexArrayObject()

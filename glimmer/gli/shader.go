@@ -65,7 +65,7 @@ func (context iContext) CreateShader(shaderType ShaderType, source ...string) (S
 		gl.GetShaderInfoLog(id, loglength, &length, &log[0])
 		shader.Delete()
 		// TODO: ShaderError
-		return nil, fmt.Errorf("Unsable to compile shader: %s", log[:length])
+		return nil, fmt.Errorf("Unable to compile shader: %s", log[:length])
 	}
 
 	return shader, nil
