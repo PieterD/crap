@@ -19,10 +19,13 @@ type Context interface {
 	CreateShader(shaderType ShaderType, source ...string) (Shader, error)
 	CreateProgram(shaders ...Shader) (Program, error)
 	CreateVertexArrayObject() VertexArrayObject
+	CreateBuffer(accesshint BufferAccessTypeHint, targethint BufferTarget) Buffer
 	BindProgram(program Program)
 	UnbindProgram()
 	BindVertexArrayObject(vao VertexArrayObject)
 	UnbindVertexArrayObject()
+	BindBuffer(target BufferTarget, buffer Buffer)
+	UnbindBuffer(target BufferTarget)
 }
 
 func CreateShader(shaderType ShaderType, source ...string) (Shader, error) {
@@ -33,6 +36,9 @@ func CreateProgram(shaders ...Shader) (Program, error) {
 }
 func CreateVertexArrayObject() VertexArrayObject {
 	return Current.CreateVertexArrayObject()
+}
+func CreateBuffer(accesshint BufferAccessTypeHint, targethint BufferTarget) Buffer {
+	return Current.CreateBuffer(accesshint, targethint)
 }
 func BindProgram(program Program) {
 	Current.BindProgram(program)
@@ -45,4 +51,10 @@ func BindVertexArrayObject(vao VertexArrayObject) {
 }
 func UnbindVertexArrayObject() {
 	Current.UnbindVertexArrayObject()
+}
+func BindBuffer(target BufferTarget, buffer Buffer) {
+	Current.BindBuffer(target, buffer)
+}
+func UnbindBuffer(target BufferTarget) {
+	Current.UnbindBuffer(target)
 }
