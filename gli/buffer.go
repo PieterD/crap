@@ -1,6 +1,12 @@
 package gli
 
-import "github.com/go-gl/gl/v3.3-core/gl"
+import (
+	"fmt"
+	"reflect"
+	"unsafe"
+
+	"github.com/go-gl/gl/v3.3-core/gl"
+)
 
 type Buffer interface {
 	Id() uint32
@@ -10,6 +16,7 @@ type Buffer interface {
 type iBuffer struct {
 	id         uint32
 	targethint BufferTarget
+	accesshint BufferAccessTypeHint
 }
 
 type BufferAccessTypeHint uint32
@@ -56,7 +63,7 @@ func (context iContext) UnbindBuffer(target BufferTarget) {
 func (context iContext) CreateBuffer(accesshint BufferAccessTypeHint, targethint BufferTarget) Buffer {
 	var id uint32
 	gl.GenBuffers(1, &id)
-	return iBuffer{id: id, targethint: targethint}
+	return iBuffer{id: id, targethint: targethint, accesshint: accesshint}
 }
 
 func (buffer iBuffer) Id() uint32 {
@@ -68,4 +75,31 @@ func (buffer iBuffer) Delete() {
 }
 
 func (buffer iBuffer) DataSlice(iface interface{}) {
+	size := checkSlice(iface)
+	val := reflect.ValueOf(iface)
+	num := val.Len()
+	ptr := unsafe.Pointer(val.Pointer())
+	BindBuffer(buffer.targethint, buffer)
+	gl.BufferData(uint32(buffer.targethint), size*num, ptr, uint32(buffer.accesshint))
+	UnbindBuffer(buffer.targethint)
+}
+
+func checkSlice(iface interface{}) (size int) {
+	typ := reflect.TypeOf(iface)
+	if typ.Kind() != reflect.Slice && typ.Kind() != reflect.Array {
+		panic(fmt.Errorf("DataSlice expected a slice or array type, got %v", typ.String()))
+	}
+	typ = typ.Elem()
+	size = int(typ.Size())
+	for {
+		switch typ.Kind() {
+		case reflect.Array:
+			continue
+		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:
+			return
+		default:
+			panic(fmt.Errorf("DataSlice expected slice or array of (arrays of) fixed int, uint or float, got slice of %v", typ.String()))
+		}
+		typ = typ.Elem()
+	}
 }
