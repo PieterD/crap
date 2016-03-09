@@ -36,6 +36,22 @@ const (
 
 type DataType uint32
 
+const (
+	GlByte                 DataType = gl.BYTE
+	GlUByte                DataType = gl.UNSIGNED_BYTE
+	GlShort                DataType = gl.SHORT
+	GlUShort               DataType = gl.UNSIGNED_SHORT
+	GlInt                  DataType = gl.INT
+	GlUInt                 DataType = gl.UNSIGNED_INT
+	GlFloat                DataType = gl.FLOAT
+	GlHalfFloat            DataType = gl.HALF_FLOAT
+	GlFixed                DataType = gl.FIXED
+	GlInt_2_10_10_10_REV   DataType = gl.INT_2_10_10_10_REV
+	GlUInt_2_10_10_10_REV  DataType = gl.UNSIGNED_INT_2_10_10_10_REV
+	GlUInt_10F_11F_11F_REV DataType = gl.UNSIGNED_INT_10F_11F_11F_REV
+	GlDouble               DataType = gl.DOUBLE
+)
+
 type iProgram struct {
 	id uint32
 }

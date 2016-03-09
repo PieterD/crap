@@ -52,6 +52,15 @@ const (
 	UniformBuffer           BufferTarget = gl.UNIFORM_BUFFER
 )
 
+type VertexDimension uint32
+
+const (
+	Vertex1d VertexDimension = 1
+	Vertex2d VertexDimension = 2
+	Vertex3d VertexDimension = 3
+	Vertex4d VertexDimension = 4
+)
+
 func (context iContext) BindBuffer(target BufferTarget, buffer Buffer) {
 	gl.BindBuffer(uint32(target), buffer.Id())
 }
@@ -74,32 +83,93 @@ func (buffer iBuffer) Delete() {
 	gl.DeleteBuffers(1, &buffer.id)
 }
 
-func (buffer iBuffer) DataSlice(iface interface{}) {
-	size := checkSlice(iface)
-	val := reflect.ValueOf(iface)
-	num := val.Len()
-	ptr := unsafe.Pointer(val.Pointer())
+func (buffer iBuffer) DataSlice(iface interface{}) SliceData {
+	ptr, size, length, typ := checkSlice(iface)
 	BindBuffer(buffer.targethint, buffer)
-	gl.BufferData(uint32(buffer.targethint), size*num, ptr, uint32(buffer.accesshint))
+	gl.BufferData(uint32(buffer.targethint), size*length, ptr, uint32(buffer.accesshint))
 	UnbindBuffer(buffer.targethint)
+	return SliceData{
+		Buffer: buffer,
+		Type:   convertBasicType(typ),
+		Size:   size,
+		Length: length,
+	}
 }
 
-func checkSlice(iface interface{}) (size int) {
-	typ := reflect.TypeOf(iface)
+func checkSlice(iface interface{}) (ptr unsafe.Pointer, size int, length int, typ reflect.Type) {
+	val := reflect.ValueOf(iface)
+	typ = val.Type()
 	if typ.Kind() != reflect.Slice && typ.Kind() != reflect.Array {
-		panic(fmt.Errorf("DataSlice expected a slice or array type, got %v", typ.String()))
+		panic(fmt.Errorf("DataSlice expected a slice or array type, got %v", typ))
 	}
 	typ = typ.Elem()
-	size = int(typ.Size())
+	ptr = unsafe.Pointer(val.Pointer())
+	length = val.Len()
 	for {
 		switch typ.Kind() {
 		case reflect.Array:
+			length *= typ.Len()
 			continue
-		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:
+		case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Float32, reflect.Float64:
+			size = int(typ.Size())
 			return
 		default:
-			panic(fmt.Errorf("DataSlice expected slice or array of (arrays of) fixed int, uint or float, got slice of %v", typ.String()))
+			panic(fmt.Errorf("DataSlice expected slice or array of (arrays of) fixed int, uint or float, got slice of %v", typ))
 		}
 		typ = typ.Elem()
+	}
+}
+
+func convertBasicType(typ reflect.Type) DataType {
+	switch typ.Kind() {
+	case reflect.Int8:
+		return GlByte
+	case reflect.Uint8:
+		return GlUByte
+	case reflect.Int16:
+		return GlShort
+	case reflect.Uint16:
+		return GlUShort
+	case reflect.Int32:
+		return GlInt
+	case reflect.Uint32:
+		return GlUInt
+	case reflect.Float32:
+		return GlFloat
+	case reflect.Float64:
+		return GlDouble
+	default:
+		panic(fmt.Errorf("Unable to convert '%v' to opengl type", typ))
+	}
+}
+
+type SliceData struct {
+	Buffer Buffer
+	Type   DataType
+	Size   int
+	Length int
+}
+
+type DataPointer struct {
+	Buffer     Buffer
+	Type       DataType
+	Size       int
+	Length     int
+	Components VertexDimension
+	Normalize  bool
+	Stride     int
+	Start      int
+}
+
+func (data SliceData) DataPointer(components VertexDimension, normalize bool, stride int, start int) DataPointer {
+	return DataPointer{
+		Buffer:     data.Buffer,
+		Type:       data.Type,
+		Size:       data.Size,
+		Length:     data.Length,
+		Components: components,
+		Normalize:  normalize,
+		Stride:     stride * data.Size,
+		Start:      start * data.Size,
 	}
 }
