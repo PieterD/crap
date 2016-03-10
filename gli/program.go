@@ -61,8 +61,8 @@ type Program interface {
 	Delete()
 	GetIV(param ProgramParameter) int32
 	GetActiveUniformIV(param UniformParameter, index uint32) int32
-	Attributes() ([]ProgramAttribute, error)
-	Uniforms() ([]ProgramUniform, error)
+	Attributes() AttributeCollection
+	Uniforms() UniformCollection
 }
 
 func (context iContext) CreateProgram(shaders ...Shader) (Program, error) {
@@ -127,39 +127,86 @@ func (program iProgram) getActiveAttrib(index uint32, buf []byte) (name []byte, 
 	return buf[:length : length+1], DataType(idatatype), int(isize)
 }
 
-type ProgramAttribute struct {
-	Name  string
-	Index uint32
-	Type  DataType
-	Size  uint32
+type AttributeCollection struct {
+	program Program
+	byName  map[string]int
+	byIndex map[uint32]int
+	list    []ProgramAttribute
 }
 
-func (program iProgram) Attributes() ([]ProgramAttribute, error) {
-	attributes := make([]ProgramAttribute, program.GetIV(ACTIVE_ATTRIBUTES))
+type ProgramAttribute struct {
+	Program Program
+	Name    string
+	Index   uint32
+	Type    DataType
+	Size    uint32
+}
+
+func (program iProgram) Attributes() AttributeCollection {
+	max := int(program.GetIV(ACTIVE_ATTRIBUTES))
+	byname := make(map[string]int, max)
+	byindex := make(map[uint32]int, max)
+	attributes := make([]ProgramAttribute, 0, max)
 	buf := make([]byte, program.GetIV(ACTIVE_ATTRIBUTE_MAX_LENGTH))
-	for i := range attributes {
+	for i := 0; i < max; i++ {
 		namebytes, datatype, size := program.getActiveAttrib(uint32(i), buf)
 		name := string(namebytes)
 		location := gl.GetAttribLocation(program.id, &namebytes[0])
-		if location == -1 {
-			//TODO: ShaderError
-			return nil, fmt.Errorf("Attribute location for '%s' not found", name)
+		if location <= -1 {
+			continue
 		}
-		attributes[i] = ProgramAttribute{
-			Name:  name,
-			Index: uint32(location),
-			Type:  datatype,
-			Size:  uint32(size),
-		}
+		index := uint32(location)
+		byname[name] = len(attributes)
+		byindex[index] = len(attributes)
+		attributes = append(attributes, ProgramAttribute{
+			Program: program,
+			Name:    name,
+			Index:   index,
+			Type:    datatype,
+			Size:    uint32(size),
+		})
 	}
-	return attributes, nil
+	return AttributeCollection{
+		program: program,
+		list:    attributes,
+		byName:  byname,
+		byIndex: byindex,
+	}
+}
+
+func (coll AttributeCollection) List() []ProgramAttribute {
+	return coll.list
+}
+
+func (coll AttributeCollection) ByIndex(index uint32) (ProgramAttribute, bool) {
+	i, ok := coll.byIndex[index]
+	if ok {
+		return coll.list[i], true
+	}
+	return ProgramAttribute{}, false
+}
+
+func (coll AttributeCollection) ByName(name string) (ProgramAttribute, bool) {
+	i, ok := coll.byName[name]
+	if ok {
+		return coll.list[i], true
+	}
+	return ProgramAttribute{}, false
+}
+
+type UniformCollection struct {
+	program Program
+	byName  map[string]int
+	byIndex map[uint32]int
+	list    []ProgramUniform
 }
 
 type ProgramUniform struct {
-	Name  string
-	Index uint32
-	Type  DataType
-	Size  uint32
+	Program Program
+	Name    string
+	Index   uint32
+	Type    DataType
+	Size    uint32
 }
 
 func (program iProgram) getActiveUniform(index uint32, buf []byte) (name []byte, datatype DataType, size int) {
@@ -170,23 +217,49 @@ func (program iProgram) getActiveUniform(index uint32, buf []byte) (name []byte,
 	return buf[:length : length+1], DataType(idatatype), int(isize)
 }
 
-func (program iProgram) Uniforms() ([]ProgramUniform, error) {
-	uniforms := make([]ProgramUniform, program.GetIV(ACTIVE_UNIFORMS))
+func (program iProgram) Uniforms() UniformCollection {
+	max := int(program.GetIV(ACTIVE_UNIFORMS))
+	byname := make(map[string]int, max)
+	byindex := make(map[uint32]int, max)
+	uniforms := make([]ProgramUniform, 0, max)
 	buf := make([]byte, program.GetIV(ACTIVE_UNIFORM_MAX_LENGTH))
-	for i := range uniforms {
+	for i := 0; i < max; i++ {
 		namebytes, datatype, arraysize := program.getActiveUniform(uint32(i), buf)
 		name := string(namebytes)
 		location := gl.GetUniformLocation(program.id, &namebytes[0])
-		if location == -1 {
-			//TODO: ShaderError
-			return nil, fmt.Errorf("Uniform location for '%s' not found", name)
+		if location <= -1 {
+			continue
 		}
-		uniforms[i] = ProgramUniform{
-			Name:  name,
-			Index: uint32(location),
-			Type:  DataType(datatype),
-			Size:  uint32(arraysize),
-		}
+		index := uint32(location)
+		byname[name] = len(uniforms)
+		byindex[index] = len(uniforms)
+		uniforms = append(uniforms, ProgramUniform{
+			Program: program,
+			Name:    name,
+			Index:   index,
+			Type:    DataType(datatype),
+			Size:    uint32(arraysize),
+		})
 	}
-	return uniforms, nil
+	return UniformCollection{program: program, byName: byname, byIndex: byindex, list: uniforms}
+}
+
+func (coll UniformCollection) List() []ProgramUniform {
+	return coll.list
+}
+
+func (coll UniformCollection) ByIndex(index uint32) (ProgramUniform, bool) {
+	i, ok := coll.byIndex[index]
+	if ok {
+		return coll.list[i], true
+	}
+	return ProgramUniform{}, false
+}
+
+func (coll UniformCollection) ByName(name string) (ProgramUniform, bool) {
+	i, ok := coll.byName[name]
+	if ok {
+		return coll.list[i], true
+	}
+	return ProgramUniform{}, false
 }

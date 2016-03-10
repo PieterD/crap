@@ -7,12 +7,9 @@ import (
 
 type Program struct {
 	program    gli.Program
-	attributes []gli.ProgramAttribute
-	uniforms   []gli.ProgramUniform
+	attributes gli.AttributeCollection
+	uniforms   gli.UniformCollection
 	vao        gli.VertexArrayObject
-
-	attributeIndexByName map[string]uint32
-	uniformIndexByName   map[string]uint32
 }
 
 func CreateProgram(shaders ...gli.Shader) (*Program, error) {
@@ -22,37 +19,19 @@ func CreateProgram(shaders ...gli.Shader) (*Program, error) {
 	}
 
 	program := &Program{program: p}
-	program.attributes, err = p.Attributes()
-	if err != nil {
-		p.Delete()
-		return nil, err
-	}
-	program.attributeIndexByName = make(map[string]uint32)
-	for _, attribute := range program.attributes {
-		program.attributeIndexByName[attribute.Name] = attribute.Index
-	}
-
-	program.uniforms, err = p.Uniforms()
-	if err != nil {
-		p.Delete()
-		return nil, err
-	}
-	program.uniformIndexByName = make(map[string]uint32)
-	for _, uniform := range program.uniforms {
-		program.uniformIndexByName[uniform.Name] = uniform.Index
-	}
-
+	program.attributes = p.Attributes()
+	program.uniforms = p.Uniforms()
 	program.vao = gli.CreateVertexArrayObject()
 
 	return program, nil
 }
 
 func (program *Program) AttributeByName(name string, pointer gli.DataPointer) bool {
-	index, ok := program.attributeIndexByName[name]
+	attr, ok := program.attributes.ByName(name)
 	if !ok {
 		return false
 	}
-	return program.AttributeByIndex(index, pointer)
+	return program.AttributeByIndex(attr.Index, pointer)
 }
 
 func (program *Program) AttributeByIndex(index uint32, pointer gli.DataPointer) bool {
@@ -64,20 +43,20 @@ func (program *Program) AttributeByIndex(index uint32, pointer gli.DataPointer) 
 }
 
 func (program *Program) UniformFloat(name string, value float32) bool {
-	index, ok := program.uniformIndexByName[name]
+	attr, ok := program.uniforms.ByName(name)
 	if !ok {
 		return false
 	}
-	gl.ProgramUniform1f(program.program.Id(), int32(index), value)
+	gl.ProgramUniform1f(program.program.Id(), int32(attr.Index), value)
 	return true
 }
 
 func (program *Program) UniformFloat2(name string, x float32, y float32) bool {
-	index, ok := program.uniformIndexByName[name]
+	attr, ok := program.uniforms.ByName(name)
 	if !ok {
 		return false
 	}
-	gl.ProgramUniform2f(program.program.Id(), int32(index), x, y)
+	gl.ProgramUniform2f(program.program.Id(), int32(attr.Index), x, y)
 	return true
 }
 
