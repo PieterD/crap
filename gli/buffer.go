@@ -11,6 +11,7 @@ import (
 type Buffer interface {
 	Id() uint32
 	Delete()
+	DataSlice(iface interface{}) SliceData
 }
 
 type iBuffer struct {
@@ -161,7 +162,7 @@ type DataPointer struct {
 	Start      int
 }
 
-func (data SliceData) DataPointer(components VertexDimension, normalize bool, stride int, start int) DataPointer {
+func (data SliceData) Pointer(components VertexDimension, normalize bool, stride int, start int) DataPointer {
 	return DataPointer{
 		Buffer:     data.Buffer,
 		Type:       data.Type,
