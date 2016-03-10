@@ -72,26 +72,3 @@ func (program iProgram) GetActiveUniformIV(param UniformParameter, index uint32)
 	gl.GetActiveUniformsiv(program.id, 1, &index, uint32(param), &pi)
 	return pi
 }
-
-func (program iProgram) getActiveAttrib(index uint32, buf []byte) (name []byte, datatype DataType, size int) {
-	var length int32
-	var isize int32
-	var idatatype uint32
-	gl.GetActiveAttrib(program.id, index, int32(len(buf)), &length, &isize, &idatatype, &buf[0])
-	return buf[:length : length+1], DataType(idatatype), int(isize)
-}
-
-type AttributeCollection struct {
-	program Program
-	byName  map[string]int
-	byIndex map[uint32]int
-	list    []ProgramAttribute
-}
-
-type ProgramAttribute struct {
-	Program Program
-	Name    string
-	Index   uint32
-	Type    DataType
-	Size    uint32
-}
