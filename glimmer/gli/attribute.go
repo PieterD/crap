@@ -63,18 +63,22 @@ func (coll AttributeCollection) List() []ProgramAttribute {
 	return coll.list
 }
 
-func (coll AttributeCollection) ByIndex(index uint32) (ProgramAttribute, bool) {
+func (coll AttributeCollection) ByIndex(index uint32) ProgramAttribute {
 	i, ok := coll.byIndex[index]
 	if ok {
-		return coll.list[i], true
+		return coll.list[i]
 	}
-	return ProgramAttribute{}, false
+	return ProgramAttribute{}
 }
 
-func (coll AttributeCollection) ByName(name string) (ProgramAttribute, bool) {
+func (coll AttributeCollection) ByName(name string) ProgramAttribute {
 	i, ok := coll.byName[name]
 	if ok {
-		return coll.list[i], true
+		return coll.list[i]
 	}
-	return ProgramAttribute{}, false
+	return ProgramAttribute{}
+}
+
+func (attr ProgramAttribute) Valid() bool {
+	return attr.Size > 0
 }

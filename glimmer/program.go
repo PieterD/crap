@@ -27,24 +27,22 @@ func CreateProgram(shaders ...gli.Shader) (*Program, error) {
 }
 
 func (program *Program) AttributeByName(name string, pointer gli.DataPointer) bool {
-	attr, ok := program.attributes.ByName(name)
-	if !ok {
+	attr := program.attributes.ByName(name)
+	if !attr.Valid() {
 		return false
 	}
 	return program.AttributeByIndex(attr.Index, pointer)
 }
 
 func (program *Program) AttributeByIndex(index uint32, pointer gli.DataPointer) bool {
-	gli.BindBuffer(gli.ArrayBuffer, pointer.Buffer)
-	program.vao.EnableAttrib(index)
-	program.vao.AttribPointer(index, int32(pointer.Components), gli.DataType(pointer.Type), pointer.Normalize, int32(pointer.Stride), int32(pointer.Start))
-	gli.UnbindBuffer(gli.ArrayBuffer)
+	attr := program.attributes.ByIndex(index)
+	program.vao.Enable(attr, pointer)
 	return true
 }
 
 func (program *Program) UniformFloat(name string, value float32) bool {
-	attr, ok := program.uniforms.ByName(name)
-	if !ok {
+	attr := program.uniforms.ByName(name)
+	if !attr.Valid() {
 		return false
 	}
 	gl.ProgramUniform1f(program.program.Id(), int32(attr.Index), value)
@@ -52,8 +50,8 @@ func (program *Program) UniformFloat(name string, value float32) bool {
 }
 
 func (program *Program) UniformFloat2(name string, x float32, y float32) bool {
-	attr, ok := program.uniforms.ByName(name)
-	if !ok {
+	attr := program.uniforms.ByName(name)
+	if !attr.Valid() {
 		return false
 	}
 	gl.ProgramUniform2f(program.program.Id(), int32(attr.Index), x, y)

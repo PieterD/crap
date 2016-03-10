@@ -1,6 +1,8 @@
 package gli
 
 import (
+	"fmt"
+
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
@@ -63,18 +65,37 @@ func (coll UniformCollection) List() []ProgramUniform {
 	return coll.list
 }
 
-func (coll UniformCollection) ByIndex(index uint32) (ProgramUniform, bool) {
+func (coll UniformCollection) ByIndex(index uint32) ProgramUniform {
 	i, ok := coll.byIndex[index]
 	if ok {
-		return coll.list[i], true
+		return coll.list[i]
 	}
-	return ProgramUniform{}, false
+	return ProgramUniform{}
 }
 
-func (coll UniformCollection) ByName(name string) (ProgramUniform, bool) {
+func (coll UniformCollection) ByName(name string) ProgramUniform {
 	i, ok := coll.byName[name]
 	if ok {
-		return coll.list[i], true
+		return coll.list[i]
 	}
-	return ProgramUniform{}, false
+	return ProgramUniform{}
+}
+
+func (uni ProgramUniform) Valid() bool {
+	return uni.Size > 0
+}
+
+func (uni ProgramUniform) Float(f ...float32) {
+	switch len(f) {
+	case 1:
+		gl.ProgramUniform1f(uni.Program.Id(), int32(uni.Index), f[0])
+	case 2:
+		gl.ProgramUniform2f(uni.Program.Id(), int32(uni.Index), f[0], f[1])
+	case 3:
+		gl.ProgramUniform3f(uni.Program.Id(), int32(uni.Index), f[0], f[1], f[2])
+	case 4:
+		gl.ProgramUniform4f(uni.Program.Id(), int32(uni.Index), f[0], f[1], f[2], f[3])
+	default:
+		panic(fmt.Errorf("ProgramUniform.Float must be passed between 1 to 4 floats inclusive"))
+	}
 }
