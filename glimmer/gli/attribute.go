@@ -1,8 +1,6 @@
 package gli
 
-import (
-	"github.com/go-gl/gl/v3.3-core/gl"
-)
+import "github.com/go-gl/gl/v3.3-core/gl"
 
 type AttributeCollection struct {
 	program Program
