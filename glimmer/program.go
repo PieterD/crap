@@ -72,6 +72,15 @@ func (program *Program) UniformFloat(name string, value float32) bool {
 	return true
 }
 
+func (program *Program) UniformFloat2(name string, x float32, y float32) bool {
+	index, ok := program.uniformIndexByName[name]
+	if !ok {
+		return false
+	}
+	gl.ProgramUniform2f(program.program.Id(), int32(index), x, y)
+	return true
+}
+
 func (program *Program) Delete() {
 	if program == nil {
 		return
