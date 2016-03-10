@@ -14,8 +14,9 @@ type Profile struct {
 	glimmer.DefaultProfile
 	vertex   gli.Shader
 	fragment gli.Shader
-	program  *glimmer.Program
+	program  gli.Program
 	buffer   gli.Buffer
+	vao      gli.VertexArrayObject
 }
 
 var vertexShaderText = `
@@ -25,7 +26,6 @@ layout(location = 1) in vec4 color;
 smooth out vec4 theColor;
 void main() {
 	gl_Position = position;
-	// theColor = position;
 	theColor = color;
 }
 `
@@ -59,19 +59,26 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.fragment, err = gli.CreateShader(gli.FragmentShader, fragmentShaderText)
 	Panicf(err, "Error compiling fragment shader: %v", err)
 
-	p.program, err = glimmer.CreateProgram(p.vertex, p.fragment)
+	p.program, err = gli.CreateProgram(p.vertex, p.fragment)
 	Panicf(err, "Error linking program: %v", err)
 
+	p.vao = gli.CreateVertexArrayObject()
 	p.buffer = gli.CreateBuffer(gli.StaticDraw, gli.ArrayBuffer)
+
+	attributes := p.program.Attributes()
+	position := attributes.ByName("position")
+	color := attributes.ByName("color")
+
 	data := p.buffer.DataSlice(vertexData)
-	p.program.AttributeByName("position", data.Pointer(gli.Vertex4d, false, 0, 0))
-	p.program.AttributeByName("color", data.Pointer(gli.Vertex4d, false, 0, 12))
+	p.vao.Enable(position, data.Pointer(gli.Vertex4d, false, 0, 0))
+	p.vao.Enable(color, data.Pointer(gli.Vertex4d, false, 0, 12))
 
 	return glimmer.GetError()
 }
 
 func (p *Profile) End() {
 	p.program.Delete()
+	p.vao.Delete()
 	p.fragment.Delete()
 	p.vertex.Delete()
 	p.buffer.Delete()
@@ -80,9 +87,11 @@ func (p *Profile) End() {
 func (p *Profile) Draw(w *glfw.Window) error {
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
-	p.program.Bind()
+	gli.BindVertexArrayObject(p.vao)
+	gli.BindProgram(p.program)
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
-	p.program.Unbind()
+	gli.UnbindProgram()
+	gli.UnbindVertexArrayObject()
 	return glimmer.GetError()
 }
 

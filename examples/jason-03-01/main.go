@@ -15,9 +15,11 @@ type Profile struct {
 	glimmer.DefaultProfile
 	vertex   gli.Shader
 	fragment gli.Shader
-	program  *glimmer.Program
+	program  gli.Program
 	buffer   gli.Buffer
+	vao      gli.VertexArrayObject
 	data     gli.SliceData
+	position gli.ProgramAttribute
 }
 
 var vertexShaderText = `
@@ -53,12 +55,16 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.fragment, err = gli.CreateShader(gli.FragmentShader, fragmentShaderText)
 	Panicf(err, "Error compiling fragment shader: %v", err)
 
-	p.program, err = glimmer.CreateProgram(p.vertex, p.fragment)
+	p.program, err = gli.CreateProgram(p.vertex, p.fragment)
 	Panicf(err, "Error linking program: %v", err)
 
+	p.vao = gli.CreateVertexArrayObject()
 	p.buffer = gli.CreateBuffer(gli.StreamDraw, gli.ArrayBuffer)
+
+	p.position = p.program.Attributes().ByName("position")
 	p.data = p.buffer.DataSlice(vertexData)
-	p.program.AttributeByName("position", p.data.Pointer(gli.Vertex4d, false, 0, 0))
+
+	p.vao.Enable(p.position, p.data.Pointer(gli.Vertex4d, false, 0, 0))
 
 	return glimmer.GetError()
 }
@@ -74,9 +80,11 @@ func (p *Profile) Draw(w *glfw.Window) error {
 	p.computePositionOffsets()
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
-	p.program.Bind()
+	gli.BindVertexArrayObject(p.vao)
+	gli.BindProgram(p.program)
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
-	p.program.Unbind()
+	gli.UnbindProgram()
+	gli.UnbindVertexArrayObject()
 	return glimmer.GetError()
 }
 

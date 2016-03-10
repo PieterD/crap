@@ -15,9 +15,10 @@ type Profile struct {
 	glimmer.DefaultProfile
 	vertex   gli.Shader
 	fragment gli.Shader
-	program  *glimmer.Program
+	program  gli.Program
 	buffer   gli.Buffer
-	data     gli.SliceData
+	vao      gli.VertexArrayObject
+	offset   gli.ProgramUniform
 }
 
 var vertexShaderText = `
@@ -56,18 +57,24 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.fragment, err = gli.CreateShader(gli.FragmentShader, fragmentShaderText)
 	Panicf(err, "Error compiling fragment shader: %v", err)
 
-	p.program, err = glimmer.CreateProgram(p.vertex, p.fragment)
+	p.program, err = gli.CreateProgram(p.vertex, p.fragment)
 	Panicf(err, "Error linking program: %v", err)
 
+	p.vao = gli.CreateVertexArrayObject()
 	p.buffer = gli.CreateBuffer(gli.StreamDraw, gli.ArrayBuffer)
-	p.data = p.buffer.DataSlice(vertexData)
-	p.program.AttributeByName("position", p.data.Pointer(gli.Vertex4d, false, 0, 0))
+
+	position := p.program.Attributes().ByName("position")
+	p.offset = p.program.Uniforms().ByName("offset")
+
+	data := p.buffer.DataSlice(vertexData)
+	p.vao.Enable(position, data.Pointer(gli.Vertex4d, false, 0, 0))
 
 	return glimmer.GetError()
 }
 
 func (p *Profile) End() {
 	p.program.Delete()
+	p.vao.Delete()
 	p.fragment.Delete()
 	p.vertex.Delete()
 	p.buffer.Delete()
@@ -77,9 +84,11 @@ func (p *Profile) Draw(w *glfw.Window) error {
 	p.computePositionOffsets()
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
-	p.program.Bind()
+	gli.BindVertexArrayObject(p.vao)
+	gli.BindProgram(p.program)
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
-	p.program.Unbind()
+	gli.UnbindProgram()
+	gli.UnbindVertexArrayObject()
 	return glimmer.GetError()
 }
 
@@ -91,7 +100,7 @@ func (p *Profile) computePositionOffsets() {
 	frac *= 5
 	x := float32(math.Cos(frac*scale) * 0.5)
 	y := float32(math.Sin(frac*scale) * 0.5)
-	p.program.UniformFloat2("offset", x, y)
+	p.offset.Float(x, y)
 }
 
 func main() {
