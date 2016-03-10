@@ -12,6 +12,7 @@ type Buffer interface {
 	Id() uint32
 	Delete()
 	DataSlice(iface interface{}) SliceData
+	Hints() (BufferAccessTypeHint, BufferTarget)
 }
 
 type iBuffer struct {
@@ -82,6 +83,10 @@ func (buffer iBuffer) Id() uint32 {
 
 func (buffer iBuffer) Delete() {
 	gl.DeleteBuffers(1, &buffer.id)
+}
+
+func (buffer iBuffer) Hints() (BufferAccessTypeHint, BufferTarget) {
+	return buffer.accesshint, buffer.targethint
 }
 
 func (buffer iBuffer) DataSlice(iface interface{}) SliceData {
@@ -173,4 +178,16 @@ func (data SliceData) Pointer(components VertexDimension, normalize bool, stride
 		Stride:     stride * data.Size,
 		Start:      start * data.Size,
 	}
+}
+
+func (data SliceData) Sub(iface interface{}, offset int) {
+	ptr, size, length, typ := checkSlice(iface)
+	conv := convertBasicType(typ)
+	if conv != data.Type {
+		panic(fmt.Errorf("Invalid SliceData.Sub: Given type %d does not match original %d", conv, data.Type))
+	}
+	_, targethint := data.Buffer.Hints()
+	BindBuffer(targethint, data.Buffer)
+	gl.BufferSubData(uint32(targethint), offset, size*length, ptr)
+	UnbindBuffer(targethint)
 }
