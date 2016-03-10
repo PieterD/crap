@@ -1,6 +1,31 @@
 package gli
 
-import "github.com/go-gl/gl/v3.3-core/gl"
+import (
+	"github.com/go-gl/gl/v3.3-core/gl"
+)
+
+type AttributeCollection struct {
+	program Program
+	byName  map[string]int
+	byIndex map[uint32]int
+	list    []ProgramAttribute
+}
+
+type ProgramAttribute struct {
+	Program Program
+	Name    string
+	Index   uint32
+	Type    DataType
+	Size    uint32
+}
+
+func (program iProgram) getActiveAttrib(index uint32, buf []byte) (name []byte, datatype DataType, size int) {
+	var length int32
+	var isize int32
+	var idatatype uint32
+	gl.GetActiveAttrib(program.id, index, int32(len(buf)), &length, &isize, &idatatype, &buf[0])
+	return buf[:length : length+1], DataType(idatatype), int(isize)
+}
 
 func (program iProgram) Attributes() AttributeCollection {
 	max := int(program.GetIV(ACTIVE_ATTRIBUTES))

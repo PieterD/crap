@@ -51,7 +51,12 @@ func (program iProgram) Uniforms() UniformCollection {
 			Size:    uint32(arraysize),
 		})
 	}
-	return UniformCollection{program: program, byName: byname, byIndex: byindex, list: uniforms}
+	return UniformCollection{
+		program: program,
+		byName:  byname,
+		byIndex: byindex,
+		list:    uniforms,
+	}
 }
 
 func (coll UniformCollection) List() []ProgramUniform {
