@@ -47,7 +47,7 @@ func CreateProgram(shaders ...gli.Shader) (*Program, error) {
 	return program, nil
 }
 
-func (program *Program) AttributeByName(name string, pointer *ArrayPointer) bool {
+func (program *Program) AttributeByName(name string, pointer gli.DataPointer) bool {
 	index, ok := program.attributeIndexByName[name]
 	if !ok {
 		return false
@@ -55,11 +55,11 @@ func (program *Program) AttributeByName(name string, pointer *ArrayPointer) bool
 	return program.AttributeByIndex(index, pointer)
 }
 
-func (program *Program) AttributeByIndex(index uint32, pointer *ArrayPointer) bool {
-	pointer.buffer.bind()
+func (program *Program) AttributeByIndex(index uint32, pointer gli.DataPointer) bool {
+	gli.BindBuffer(gli.ArrayBuffer, pointer.Buffer)
 	program.vao.EnableAttrib(index)
-	program.vao.AttribPointer(index, int32(pointer.datasize), gli.DataType(pointer.buffer.datatype), pointer.normalize, int32(pointer.stride), int32(pointer.start))
-	pointer.buffer.unbind()
+	program.vao.AttribPointer(index, int32(pointer.Components), gli.DataType(pointer.Type), pointer.Normalize, int32(pointer.Stride), int32(pointer.Start))
+	gli.UnbindBuffer(gli.ArrayBuffer)
 	return true
 }
 

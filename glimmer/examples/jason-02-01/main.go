@@ -16,7 +16,7 @@ type Profile struct {
 	vertex   gli.Shader
 	fragment gli.Shader
 	program  *glimmer.Program
-	buffer   *glimmer.Buffer
+	buffer   gli.Buffer
 }
 
 var vertexShaderText = `
@@ -57,8 +57,9 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.program, err = glimmer.CreateProgram(p.vertex, p.fragment)
 	Panicf(err, "Error linking program: %v", err)
 
-	p.buffer = glimmer.CreateBuffer().FloatData(vertexData)
-	p.program.AttributeByName("position", p.buffer.Pointer(4, false, 0, 0))
+	p.buffer = gli.CreateBuffer(gli.StaticDraw, gli.ArrayBuffer)
+	pointer := p.buffer.DataSlice(vertexData).Pointer(gli.Vertex4d, false, 0, 0)
+	p.program.AttributeByName("position", pointer)
 
 	return glimmer.GetError()
 }
