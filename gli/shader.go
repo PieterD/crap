@@ -7,34 +7,6 @@ import (
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
-type ShaderType uint32
-
-const (
-	VertexShader         ShaderType = gl.VERTEX_SHADER
-	GeometryShader       ShaderType = gl.GEOMETRY_SHADER
-	FragmentShader       ShaderType = gl.FRAGMENT_SHADER
-	ComputeShader        ShaderType = gl.COMPUTE_SHADER
-	TessControlShader    ShaderType = gl.TESS_CONTROL_SHADER
-	TessEvaluationShader ShaderType = gl.TESS_EVALUATION_SHADER
-)
-
-type ShaderParameter uint32
-
-const (
-	SHADER_TYPE          ShaderParameter = gl.SHADER_TYPE
-	SHADER_DELETE_STATUS ShaderParameter = gl.DELETE_STATUS
-	COMPILE_STATUS       ShaderParameter = gl.COMPILE_STATUS
-	INFO_LOG_LENGTH      ShaderParameter = gl.INFO_LOG_LENGTH
-	SHADER_SOURCE_LENGTH ShaderParameter = gl.SHADER_SOURCE_LENGTH
-)
-
-type Bool uint32
-
-const (
-	TRUE  Bool = gl.TRUE
-	FALSE Bool = gl.FALSE
-)
-
 type iShader struct {
 	id         uint32
 	shadertype ShaderType

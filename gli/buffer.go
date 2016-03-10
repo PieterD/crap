@@ -21,48 +21,6 @@ type iBuffer struct {
 	accesshint BufferAccessTypeHint
 }
 
-type BufferAccessTypeHint uint32
-
-const (
-	StaticDraw  BufferAccessTypeHint = gl.STATIC_DRAW
-	StaticRead  BufferAccessTypeHint = gl.STATIC_READ
-	StaticCopy  BufferAccessTypeHint = gl.STATIC_COPY
-	StreamDraw  BufferAccessTypeHint = gl.STREAM_DRAW
-	StreamRead  BufferAccessTypeHint = gl.STREAM_READ
-	StreamCopy  BufferAccessTypeHint = gl.STREAM_COPY
-	DynamicDraw BufferAccessTypeHint = gl.DYNAMIC_DRAW
-	DynamicRead BufferAccessTypeHint = gl.DYNAMIC_READ
-	DynamicCopy BufferAccessTypeHint = gl.DYNAMIC_COPY
-)
-
-type BufferTarget uint32
-
-const (
-	ArrayBuffer             BufferTarget = gl.ARRAY_BUFFER
-	AtomicCounterBuffer     BufferTarget = gl.ATOMIC_COUNTER_BUFFER
-	CopyReadBuffer          BufferTarget = gl.COPY_READ_BUFFER
-	CopyWriteBuffer         BufferTarget = gl.COPY_WRITE_BUFFER
-	DrawIndirectBuffer      BufferTarget = gl.DRAW_INDIRECT_BUFFER
-	DispatchIndirectBuffer  BufferTarget = gl.DISPATCH_INDIRECT_BUFFER
-	ElementArrayBuffer      BufferTarget = gl.ELEMENT_ARRAY_BUFFER
-	PixelPackBuffer         BufferTarget = gl.PIXEL_PACK_BUFFER
-	PixelUnpackBuffer       BufferTarget = gl.PIXEL_UNPACK_BUFFER
-	QueryBuffer             BufferTarget = gl.QUERY_BUFFER
-	ShaderStorageBuffer     BufferTarget = gl.SHADER_STORAGE_BUFFER
-	TextureBuffer           BufferTarget = gl.TEXTURE_BUFFER
-	TransformFeedbackBuffer BufferTarget = gl.TRANSFORM_FEEDBACK_BUFFER
-	UniformBuffer           BufferTarget = gl.UNIFORM_BUFFER
-)
-
-type VertexDimension uint32
-
-const (
-	Vertex1d VertexDimension = 1
-	Vertex2d VertexDimension = 2
-	Vertex3d VertexDimension = 3
-	Vertex4d VertexDimension = 4
-)
-
 func (context iContext) BindBuffer(target BufferTarget, buffer Buffer) {
 	gl.BindBuffer(uint32(target), buffer.Id())
 }
