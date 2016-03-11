@@ -86,6 +86,9 @@ func (uni ProgramUniform) Valid() bool {
 }
 
 func (uni ProgramUniform) Float(f ...float32) {
+	if !uni.Valid() {
+		panic(fmt.Errorf("ProgramUniform.Float: invalid uniform %#v", uni))
+	}
 	switch len(f) {
 	case 1:
 		gl.ProgramUniform1f(uni.Program.Id(), int32(uni.Index), f[0])

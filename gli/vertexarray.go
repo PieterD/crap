@@ -1,6 +1,7 @@
 package gli
 
 import (
+	"fmt"
 	"unsafe"
 
 	"github.com/go-gl/gl/v3.3-core/gl"
@@ -41,6 +42,9 @@ func (vao iVertexArrayObject) Delete() {
 }
 
 func (vao iVertexArrayObject) Enable(attr ProgramAttribute, pointer DataPointer) {
+	if !attr.Valid() {
+		panic(fmt.Errorf("VertexArrayObject.Enable: invalid attribute %#v", attr))
+	}
 	BindBuffer(ArrayBuffer, pointer.Buffer)
 	BindVertexArrayObject(vao)
 	gl.EnableVertexAttribArray(uint32(attr.Index))
