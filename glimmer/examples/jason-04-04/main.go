@@ -6,6 +6,7 @@ import (
 	"github.com/PieterD/crap/glimmer"
 	"github.com/PieterD/crap/glimmer/gli"
 	. "github.com/PieterD/crap/glimmer/pan"
+	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
@@ -16,6 +17,8 @@ type Profile struct {
 	program  gli.Program
 	buffer   gli.Buffer
 	vao      gli.VertexArrayObject
+
+	perspectiveMatrix gli.ProgramUniform
 }
 
 var vertexShaderText = `
@@ -64,14 +67,15 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 
 	data := p.buffer.DataSlice(vertexData)
 
-	pm := gli.PerspectiveMatrix(0.5, 3.0, 1.0, 1, 1)
+	pm := gli.PerspectiveMatrix(0.5, 3.0, 1.0, 640, 480)
 
 	attributes := p.program.Attributes()
 	p.vao.Enable(attributes.ByName("position"), data.Pointer(gli.Vertex4d, false, 0, 0))
 	p.vao.Enable(attributes.ByName("color"), data.Pointer(gli.Vertex4d, false, 0, len(vertexData)/2))
 	uniforms := p.program.Uniforms()
 	uniforms.ByName("offset").Float(0.5, 0.5)
-	uniforms.ByName("perspectiveMatrix").Float(pm[:]...)
+	p.perspectiveMatrix = uniforms.ByName("perspectiveMatrix")
+	p.perspectiveMatrix.Float(pm[:]...)
 
 	gli.ClearColor(0, 0, 0, 0)
 	gli.EnableCulling(false, true, true)
@@ -81,6 +85,12 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 
 func (p *Profile) End() {
 	gli.SafeDelete(p.program, p.vao, p.fragment, p.vertex, p.buffer)
+}
+
+func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
+	pm := gli.PerspectiveMatrix(0.5, 3.0, 1.0, width, height)
+	p.perspectiveMatrix.Float(pm[:]...)
+	gl.Viewport(0, 0, int32(width), int32(height))
 }
 
 func (p *Profile) Draw(w *glfw.Window) error {
