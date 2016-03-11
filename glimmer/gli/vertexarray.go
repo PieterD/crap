@@ -11,6 +11,7 @@ type VertexArrayObject interface {
 	Delete()
 	Enable(attr ProgramAttribute, pointer DataPointer)
 	Disable(attr ProgramAttribute)
+	Instance(first int, count int) ArrayInstance
 }
 
 type iVertexArrayObject struct {
@@ -52,4 +53,18 @@ func (vao iVertexArrayObject) Disable(attr ProgramAttribute) {
 	BindVertexArrayObject(vao)
 	gl.DisableVertexAttribArray(uint32(attr.Index))
 	UnbindVertexArrayObject()
+}
+
+type ArrayInstance struct {
+	Vao   VertexArrayObject
+	First int
+	Count int
+}
+
+func (vao iVertexArrayObject) Instance(first int, count int) ArrayInstance {
+	return ArrayInstance{
+		Vao:   vao,
+		First: first,
+		Count: count,
+	}
 }
