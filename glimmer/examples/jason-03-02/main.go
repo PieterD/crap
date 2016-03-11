@@ -73,11 +73,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 }
 
 func (p *Profile) End() {
-	p.program.Delete()
-	p.vao.Delete()
-	p.fragment.Delete()
-	p.vertex.Delete()
-	p.buffer.Delete()
+	gli.SafeDelete(p.program, p.vao, p.fragment, p.vertex, p.buffer)
 }
 
 func (p *Profile) Draw(w *glfw.Window) error {
