@@ -35,6 +35,8 @@ type Context interface {
 	Disable(cap Capability)
 	EnableIndex(cap Capability, index uint32)
 	DisableIndex(cap Capability, index uint32)
+	EnableCulling(frontface bool, backface bool, clockwise bool)
+	DisableCulling()
 }
 
 func CreateShader(shaderType ShaderType, source ...string) (Shader, error) {
@@ -116,4 +118,28 @@ func DisableIndex(cap Capability, index uint32) {
 }
 func (context iContext) DisableIndex(cap Capability, index uint32) {
 	gl.Disablei(uint32(cap), index)
+}
+func EnableCulling(front bool, back bool, clockwise bool) {
+	Current.EnableCulling(front, back, clockwise)
+}
+func (context iContext) EnableCulling(frontface bool, backface bool, clockwise bool) {
+	context.Enable(CullFace)
+	if frontface && backface {
+		gl.CullFace(gl.FRONT_AND_BACK)
+	} else if frontface {
+		gl.CullFace(gl.FRONT)
+	} else if backface {
+		gl.CullFace(gl.BACK)
+	}
+	if clockwise {
+		gl.FrontFace(gl.CW)
+	} else {
+		gl.FrontFace(gl.CCW)
+	}
+}
+func DisableCulling() {
+	Current.DisableCulling()
+}
+func (context iContext) DisableCulling() {
+	context.Disable(CullFace)
 }
