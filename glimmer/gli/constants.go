@@ -134,3 +134,11 @@ const (
 	TrianglesAdjacency     DrawMode = gl.TRIANGLES_ADJACENCY
 	Patches                DrawMode = gl.PATCHES
 )
+
+type ClearBit uint32
+
+const (
+	ColorBufferBit   ClearBit = gl.COLOR_BUFFER_BIT
+	DepthBufferBit   ClearBit = gl.DEPTH_BUFFER_BIT
+	StencilBufferBit ClearBit = gl.STENCIL_BUFFER_BIT
+)

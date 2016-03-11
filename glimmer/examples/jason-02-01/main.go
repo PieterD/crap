@@ -6,7 +6,6 @@ import (
 	"github.com/PieterD/crap/glimmer"
 	"github.com/PieterD/crap/glimmer/gli"
 	. "github.com/PieterD/crap/glimmer/pan"
-	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
@@ -68,6 +67,8 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 
 	p.uniHeight = p.program.Uniforms().ByName("height")
 
+	gli.ClearColor(0, 0, 0, 0)
+
 	return glimmer.GetError()
 }
 
@@ -76,8 +77,7 @@ func (p *Profile) End() {
 }
 
 func (p *Profile) Draw(w *glfw.Window) error {
-	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
-	gl.Clear(gl.COLOR_BUFFER_BIT)
+	gli.Clear(gli.ColorBufferBit)
 	p.uniHeight.Float(p.height)
 	gli.DrawArrays(gli.Triangles, p.program, p.vao.Instance(0, 3))
 	return nil
