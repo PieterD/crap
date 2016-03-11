@@ -142,3 +142,50 @@ const (
 	DepthBufferBit   ClearBit = gl.DEPTH_BUFFER_BIT
 	StencilBufferBit ClearBit = gl.STENCIL_BUFFER_BIT
 )
+
+type Capability uint32
+
+const (
+	Blend                      Capability = gl.BLEND
+	ClipDistance0              Capability = gl.CLIP_DISTANCE0
+	ClipDistance1              Capability = gl.CLIP_DISTANCE1
+	ClipDistance2              Capability = gl.CLIP_DISTANCE2
+	ClipDistance3              Capability = gl.CLIP_DISTANCE3
+	ClipDistance4              Capability = gl.CLIP_DISTANCE4
+	ClipDistance5              Capability = gl.CLIP_DISTANCE5
+	ClipDistance6              Capability = gl.CLIP_DISTANCE6
+	ClipDistance7              Capability = gl.CLIP_DISTANCE7
+	ColorLogicOp               Capability = gl.COLOR_LOGIC_OP
+	CullFace                   Capability = gl.CULL_FACE
+	DebugOutput                Capability = gl.DEBUG_OUTPUT
+	DebugOutputSynchronous     Capability = gl.DEBUG_OUTPUT_SYNCHRONOUS
+	DepthClamp                 Capability = gl.DEPTH_CLAMP
+	DepthTest                  Capability = gl.DEPTH_TEST
+	Dither                     Capability = gl.DITHER
+	FramebufferSRGB            Capability = gl.FRAMEBUFFER_SRGB
+	LineSmooth                 Capability = gl.LINE_SMOOTH
+	MultiSample                Capability = gl.MULTISAMPLE
+	PolygonOffsetFill          Capability = gl.POLYGON_OFFSET_FILL
+	PolygonOffsetLine          Capability = gl.POLYGON_OFFSET_LINE
+	PolygonOffsetPoint         Capability = gl.POLYGON_OFFSET_POINT
+	PolygonSmooth              Capability = gl.POLYGON_SMOOTH
+	PrimitiveRestart           Capability = gl.PRIMITIVE_RESTART
+	PrimitiveRestartFixedIndex Capability = gl.PRIMITIVE_RESTART_FIXED_INDEX
+	RasterizerDiscard          Capability = gl.RASTERIZER_DISCARD
+	SampleAlphaToCoverage      Capability = gl.SAMPLE_ALPHA_TO_COVERAGE
+	SampleAlphaToOne           Capability = gl.SAMPLE_ALPHA_TO_ONE
+	SampleCoverage             Capability = gl.SAMPLE_COVERAGE
+	// SampleShading              Capability = gl.SAMPLE_SHADING
+	SampleMask             Capability = gl.SAMPLE_MASK
+	ScissorTest            Capability = gl.SCISSOR_TEST
+	StencilTest            Capability = gl.STENCIL_TEST
+	TextureCubeMapSeamless Capability = gl.TEXTURE_CUBE_MAP_SEAMLESS
+	ProgramPointSize       Capability = gl.PROGRAM_POINT_SIZE
+)
+
+type IndexedCapability uint32
+
+const (
+	IndexedBlend       IndexedCapability = gl.BLEND
+	IndexedScissorTest IndexedCapability = gl.SCISSOR_TEST
+)
