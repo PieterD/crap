@@ -31,6 +31,10 @@ type Context interface {
 	DrawArrays(mode DrawMode, program Program, array ArrayInstance)
 	ClearColor(r, g, b, a float32)
 	Clear(bits ...ClearBit)
+	Enable(cap Capability)
+	Disable(cap Capability)
+	EnableIndex(cap Capability, index uint32)
+	DisableIndex(cap Capability, index uint32)
 }
 
 func CreateShader(shaderType ShaderType, source ...string) (Shader, error) {
@@ -88,4 +92,28 @@ func (context iContext) Clear(bits ...ClearBit) {
 		b |= uint32(bit)
 	}
 	gl.Clear(b)
+}
+func Enable(cap Capability) {
+	Current.Enable(cap)
+}
+func (context iContext) Enable(cap Capability) {
+	gl.Enable(uint32(cap))
+}
+func Disable(cap Capability) {
+	Current.Disable(cap)
+}
+func (context iContext) Disable(cap Capability) {
+	gl.Disable(uint32(cap))
+}
+func EnableIndex(cap Capability, index uint32) {
+	Current.EnableIndex(cap, index)
+}
+func (context iContext) EnableIndex(cap Capability, index uint32) {
+	gl.Enablei(uint32(cap), index)
+}
+func DisableIndex(cap Capability, index uint32) {
+	Current.DisableIndex(cap, index)
+}
+func (context iContext) DisableIndex(cap Capability, index uint32) {
+	gl.Disablei(uint32(cap), index)
 }
