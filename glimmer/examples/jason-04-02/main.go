@@ -23,11 +23,21 @@ var vertexShaderText = `
 layout(location = 0) in vec4 position;
 layout(location = 1) in vec4 color;
 uniform vec2 offset;
+uniform float zNear;
+uniform float zFar;
+uniform float frustumScale;
 
 smooth out vec4 theColor;
 
 void main() {
-	gl_Position = position + vec4(offset.x, offset.y, 0.0, 0.0);
+	vec4 cameraPos = position + vec4(offset.x, offset.y, 0.0, 0.0);
+	vec4 clipPos;
+	clipPos.xy = cameraPos.xy * frustumScale;
+	clipPos.z = cameraPos.z * (zNear + zFar) / (zNear - zFar);
+	clipPos.z += 2.0 * zNear * zFar / (zNear - zFar);
+	clipPos.w = -cameraPos.z;
+
+	gl_Position = clipPos;
 	theColor = color;
 }
 `
@@ -66,7 +76,10 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.vao.Enable(attributes.ByName("position"), data.Pointer(gli.Vertex4d, false, 0, 0))
 	p.vao.Enable(attributes.ByName("color"), data.Pointer(gli.Vertex4d, false, 0, len(vertexData)/2))
 	uniforms := p.program.Uniforms()
-	uniforms.ByName("offset").Float(0.5, 0.25)
+	uniforms.ByName("offset").Float(0.5, 0.5)
+	uniforms.ByName("frustumScale").Float(1.0)
+	uniforms.ByName("zNear").Float(1.0)
+	uniforms.ByName("zFar").Float(3.0)
 
 	gli.ClearColor(0, 0, 0, 0)
 	gli.EnableCulling(false, true, true)
