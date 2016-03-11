@@ -73,7 +73,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	Panicf(err, "Error linking program: %v", err)
 
 	p.vao = gli.CreateVertexArrayObject()
-	p.buffer = gli.CreateBuffer(gli.StreamDraw, gli.ArrayBuffer)
+	p.buffer = gli.CreateBuffer(gli.StaticDraw, gli.ArrayBuffer)
 
 	position := p.program.Attributes().ByName("position")
 	uniforms := p.program.Uniforms()

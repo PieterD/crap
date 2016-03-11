@@ -16,40 +16,32 @@ type Profile struct {
 	program  gli.Program
 	buffer   gli.Buffer
 	vao      gli.VertexArrayObject
-	time     gli.ProgramUniform
 }
 
 var vertexShaderText = `
 #version 330
 layout(location = 0) in vec4 position;
-uniform float duration;
-uniform float time;
+layout(location = 1) in vec4 color;
+uniform vec2 offset;
+
+smooth out vec4 theColor;
 
 void main() {
-	float timeScale = 3.14159f * 2.0f / duration;
-	float currTime = mod(time, duration);
-	vec4 totalOffset = vec4(
-		cos(currTime * timeScale) * 0.5f,
-		sin(currTime * timeScale) * 0.5f,
-		0.0f,
-		0.0f);
-	gl_Position = position + totalOffset;
+	gl_Position = position + vec4(offset.x, offset.y, 0.0, 0.0);
+	theColor = color;
 }
 `
 
 var fragmentShaderText = `
 #version 330
+smooth in vec4 theColor;
+
 out vec4 outputColor;
+
 void main() {
-	outputColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	outputColor = theColor;
 }
 `
-
-var vertexData = []float32{
-	0.25, 0.25, 0.0, 1.0,
-	0.25, -0.25, 0.0, 1.0,
-	-0.25, -0.25, 0.0, 1.0,
-}
 
 func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	defer Recover(&err)
@@ -66,17 +58,18 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	Panicf(err, "Error linking program: %v", err)
 
 	p.vao = gli.CreateVertexArrayObject()
-	p.buffer = gli.CreateBuffer(gli.StaticDraw, gli.ArrayBuffer)
-
-	position := p.program.Attributes().ByName("position")
-	uniforms := p.program.Uniforms()
-	uniforms.ByName("duration").Float(5.0)
-	p.time = uniforms.ByName("time")
+	p.buffer = gli.CreateBuffer(gli.StreamDraw, gli.ArrayBuffer)
 
 	data := p.buffer.DataSlice(vertexData)
-	p.vao.Enable(position, data.Pointer(gli.Vertex4d, false, 0, 0))
+
+	attributes := p.program.Attributes()
+	p.vao.Enable(attributes.ByName("position"), data.Pointer(gli.Vertex4d, false, 0, 0))
+	p.vao.Enable(attributes.ByName("color"), data.Pointer(gli.Vertex4d, false, 0, len(vertexData)/2))
+	uniforms := p.program.Uniforms()
+	uniforms.ByName("offset").Float(0.5, 0.25)
 
 	gli.ClearColor(0, 0, 0, 0)
+	gli.EnableCulling(false, true, true)
 
 	return glimmer.GetError()
 }
@@ -86,9 +79,8 @@ func (p *Profile) End() {
 }
 
 func (p *Profile) Draw(w *glfw.Window) error {
-	p.time.Float(float32(glfw.GetTime()))
 	gli.Clear(gli.ColorBufferBit)
-	gli.DrawArrays(gli.Triangles, p.program, p.vao.Instance(0, 3))
+	gli.DrawArrays(gli.Triangles, p.program, p.vao.Instance(0, 36))
 	return glimmer.GetError()
 }
 
