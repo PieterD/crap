@@ -29,6 +29,8 @@ type Context interface {
 	BindBuffer(target BufferTarget, buffer Buffer)
 	UnbindBuffer(target BufferTarget)
 	DrawArrays(mode DrawMode, program Program, array ArrayInstance)
+	ClearColor(r, g, b, a float32)
+	Clear(bits ...ClearBit)
 }
 
 func CreateShader(shaderType ShaderType, source ...string) (Shader, error) {
@@ -70,4 +72,20 @@ func (context iContext) DrawArrays(mode DrawMode, program Program, array ArrayIn
 	gl.DrawArrays(uint32(mode), int32(array.First), int32(array.Count))
 	UnbindProgram()
 	UnbindVertexArrayObject()
+}
+func ClearColor(r, g, b, a float32) {
+	Current.ClearColor(r, g, b, a)
+}
+func (context iContext) ClearColor(r, g, b, a float32) {
+	gl.ClearColor(r, g, b, a)
+}
+func Clear(bits ...ClearBit) {
+	Current.Clear(bits...)
+}
+func (context iContext) Clear(bits ...ClearBit) {
+	var b uint32
+	for _, bit := range bits {
+		b |= uint32(bit)
+	}
+	gl.Clear(b)
 }

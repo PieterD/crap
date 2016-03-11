@@ -6,7 +6,6 @@ import (
 	"github.com/PieterD/crap/glimmer"
 	"github.com/PieterD/crap/glimmer/gli"
 	. "github.com/PieterD/crap/glimmer/pan"
-	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
@@ -77,6 +76,8 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	data := p.buffer.DataSlice(vertexData)
 	p.vao.Enable(position, data.Pointer(gli.Vertex4d, false, 0, 0))
 
+	gli.ClearColor(0, 0, 0, 0)
+
 	return glimmer.GetError()
 }
 
@@ -86,8 +87,7 @@ func (p *Profile) End() {
 
 func (p *Profile) Draw(w *glfw.Window) error {
 	p.time.Float(float32(glfw.GetTime()))
-	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
-	gl.Clear(gl.COLOR_BUFFER_BIT)
+	gli.Clear(gli.ColorBufferBit)
 	gli.DrawArrays(gli.Triangles, p.program, p.vao.Instance(0, 3))
 	return glimmer.GetError()
 }
