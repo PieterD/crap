@@ -85,20 +85,39 @@ func (uni ProgramUniform) Valid() bool {
 	return uni.Size > 0
 }
 
-func (uni ProgramUniform) Float(f ...float32) {
+func (uni ProgramUniform) Float(v ...float32) {
 	if !uni.Valid() {
 		panic(fmt.Errorf("ProgramUniform.Float: invalid uniform %#v", uni))
 	}
-	switch len(f) {
-	case 1:
-		gl.ProgramUniform1f(uni.Program.Id(), int32(uni.Index), f[0])
-	case 2:
-		gl.ProgramUniform2f(uni.Program.Id(), int32(uni.Index), f[0], f[1])
-	case 3:
-		gl.ProgramUniform3f(uni.Program.Id(), int32(uni.Index), f[0], f[1], f[2])
-	case 4:
-		gl.ProgramUniform4f(uni.Program.Id(), int32(uni.Index), f[0], f[1], f[2], f[3])
+	num := int32(len(v))
+	switch uni.Type {
+	case GlFloat:
+		gl.ProgramUniform1fv(uni.Program.Id(), int32(uni.Index), num, &v[0])
+	case GlFloatV2:
+		gl.ProgramUniform2fv(uni.Program.Id(), int32(uni.Index), num/2, &v[0])
+	case GlFloatV3:
+		gl.ProgramUniform3fv(uni.Program.Id(), int32(uni.Index), num/3, &v[0])
+	case GlFloatV4:
+		gl.ProgramUniform4fv(uni.Program.Id(), int32(uni.Index), num/4, &v[0])
+	case GlFloatMat2:
+		gl.ProgramUniformMatrix2fv(uni.Program.Id(), int32(uni.Index), num/4, false, &v[0])
+	case GlFloatMat2x3:
+		gl.ProgramUniformMatrix2x3fv(uni.Program.Id(), int32(uni.Index), num/6, false, &v[0])
+	case GlFloatMat2x4:
+		gl.ProgramUniformMatrix2x4fv(uni.Program.Id(), int32(uni.Index), num/8, false, &v[0])
+	case GlFloatMat3x2:
+		gl.ProgramUniformMatrix3x2fv(uni.Program.Id(), int32(uni.Index), num/6, false, &v[0])
+	case GlFloatMat3:
+		gl.ProgramUniformMatrix3fv(uni.Program.Id(), int32(uni.Index), num/9, false, &v[0])
+	case GlFloatMat3x4:
+		gl.ProgramUniformMatrix3x4fv(uni.Program.Id(), int32(uni.Index), num/12, false, &v[0])
+	case GlFloatMat4x2:
+		gl.ProgramUniformMatrix4x2fv(uni.Program.Id(), int32(uni.Index), num/8, false, &v[0])
+	case GlFloatMat4x3:
+		gl.ProgramUniformMatrix4x3fv(uni.Program.Id(), int32(uni.Index), num/12, false, &v[0])
+	case GlFloatMat4:
+		gl.ProgramUniformMatrix4fv(uni.Program.Id(), int32(uni.Index), num/16, false, &v[0])
 	default:
-		panic(fmt.Errorf("ProgramUniform.Float must be passed between 1 to 4 floats inclusive"))
+		panic(fmt.Errorf("ProgramUniform.Float: invalid type %v", uni.Type))
 	}
 }

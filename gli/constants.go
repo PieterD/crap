@@ -33,6 +33,7 @@ const (
 type DataType uint32
 
 const (
+	GlBool                 DataType = gl.BOOL
 	GlByte                 DataType = gl.BYTE
 	GlUByte                DataType = gl.UNSIGNED_BYTE
 	GlShort                DataType = gl.SHORT
@@ -46,6 +47,81 @@ const (
 	GlUInt_2_10_10_10_REV  DataType = gl.UNSIGNED_INT_2_10_10_10_REV
 	GlUInt_10F_11F_11F_REV DataType = gl.UNSIGNED_INT_10F_11F_11F_REV
 	GlDouble               DataType = gl.DOUBLE
+
+	GlBoolV2   DataType = gl.BOOL_VEC2
+	GlBoolV3   DataType = gl.BOOL_VEC3
+	GlBoolV4   DataType = gl.BOOL_VEC4
+	GlIntV2    DataType = gl.INT_VEC2
+	GlIntV3    DataType = gl.INT_VEC3
+	GlIntV4    DataType = gl.INT_VEC4
+	GlUIntV2   DataType = gl.UNSIGNED_INT_VEC2
+	GlUIntV3   DataType = gl.UNSIGNED_INT_VEC3
+	GlUIntV4   DataType = gl.UNSIGNED_INT_VEC4
+	GlFloatV2  DataType = gl.FLOAT_VEC2
+	GlFloatV3  DataType = gl.FLOAT_VEC3
+	GlFloatV4  DataType = gl.FLOAT_VEC4
+	GlDoubleV2 DataType = gl.DOUBLE_VEC2
+	GlDoubleV3 DataType = gl.DOUBLE_VEC3
+	GlDoubleV4 DataType = gl.DOUBLE_VEC4
+
+	GlFloatMat2    DataType = gl.FLOAT_MAT2
+	GlFloatMat2x3  DataType = gl.FLOAT_MAT2x3
+	GlFloatMat2x4  DataType = gl.FLOAT_MAT2x4
+	GlFloatMat3x2  DataType = gl.FLOAT_MAT3x2
+	GlFloatMat3    DataType = gl.FLOAT_MAT3
+	GlFloatMat3x4  DataType = gl.FLOAT_MAT3x4
+	GlFloatMat4x2  DataType = gl.FLOAT_MAT4x2
+	GlFloatMat4x3  DataType = gl.FLOAT_MAT4x3
+	GlFloatMat4    DataType = gl.FLOAT_MAT4
+	GlDoubleMat2   DataType = gl.DOUBLE_MAT2
+	GlDoubleMat2x3 DataType = gl.DOUBLE_MAT2x3
+	GlDoubleMat2x4 DataType = gl.DOUBLE_MAT2x4
+	GlDoubleMat3x2 DataType = gl.DOUBLE_MAT3x2
+	GlDoubleMat3   DataType = gl.DOUBLE_MAT3
+	GlDoubleMat3x4 DataType = gl.DOUBLE_MAT3x4
+	GlDoubleMat4x2 DataType = gl.DOUBLE_MAT4x2
+	GlDoubleMat4x3 DataType = gl.DOUBLE_MAT4x3
+	GlDoubleMat4   DataType = gl.DOUBLE_MAT4
+
+	GlSampler1dShadow      DataType = gl.SAMPLER_1D_SHADOW
+	GlSampler2dShadow      DataType = gl.SAMPLER_2D_SHADOW
+	GlSampler1dArrayShadow DataType = gl.SAMPLER_1D_ARRAY_SHADOW
+	GlSampler2dArrayShadow DataType = gl.SAMPLER_2D_ARRAY_SHADOW
+	GlSampler2dRectShadow  DataType = gl.SAMPLER_2D_RECT_SHADOW
+	GlSamplerCubeShadow    DataType = gl.SAMPLER_CUBE_SHADOW
+
+	GlSampler1d                 DataType = gl.SAMPLER_1D
+	GlSampler2d                 DataType = gl.SAMPLER_2D
+	GlSampler3d                 DataType = gl.SAMPLER_3D
+	GlSamplerCube               DataType = gl.SAMPLER_CUBE
+	GlSampler1dArray            DataType = gl.SAMPLER_1D_ARRAY
+	GlSampler2dArray            DataType = gl.SAMPLER_2D_ARRAY
+	GlSampler2dMultisample      DataType = gl.SAMPLER_2D_MULTISAMPLE
+	GlSampler2dMultisampleArray DataType = gl.SAMPLER_2D_MULTISAMPLE_ARRAY
+	GlSampler2dRect             DataType = gl.SAMPLER_2D_RECT
+	// GlSamplerBuffer             DataType = gl.SAMPLER_Buffer
+
+	GlIntSampler1d                 DataType = gl.INT_SAMPLER_1D
+	GlIntSampler2d                 DataType = gl.INT_SAMPLER_2D
+	GlIntSampler3d                 DataType = gl.INT_SAMPLER_3D
+	GlIntSamplerCube               DataType = gl.INT_SAMPLER_CUBE
+	GlIntSampler1dArray            DataType = gl.INT_SAMPLER_1D_ARRAY
+	GlIntSampler2dArray            DataType = gl.INT_SAMPLER_2D_ARRAY
+	GlIntSampler2dMultisample      DataType = gl.INT_SAMPLER_2D_MULTISAMPLE
+	GlIntSampler2dMultisampleArray DataType = gl.INT_SAMPLER_2D_MULTISAMPLE_ARRAY
+	GlIntSampler2dRect             DataType = gl.INT_SAMPLER_2D_RECT
+	// GlIntSamplerBuffer             DataType = gl.INT_SAMPLER_Buffer
+
+	GlUintSampler1d                 DataType = gl.UNSIGNED_INT_SAMPLER_1D
+	GlUintSampler2d                 DataType = gl.UNSIGNED_INT_SAMPLER_2D
+	GlUintSampler3d                 DataType = gl.UNSIGNED_INT_SAMPLER_3D
+	GlUintSamplerCube               DataType = gl.UNSIGNED_INT_SAMPLER_CUBE
+	GlUintSampler1dArray            DataType = gl.UNSIGNED_INT_SAMPLER_1D_ARRAY
+	GlUintSampler2dArray            DataType = gl.UNSIGNED_INT_SAMPLER_2D_ARRAY
+	GlUintSampler2dMultisample      DataType = gl.UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE
+	GlUintSampler2dMultisampleArray DataType = gl.UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY
+	GlUintSampler2dRect             DataType = gl.UNSIGNED_INT_SAMPLER_2D_RECT
+	// GlUintSamplerBuffer             DataType = gl.UNSIGNED_INT_SAMPLER_Buffer
 )
 
 type BufferAccessTypeHint uint32
