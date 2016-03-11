@@ -117,3 +117,20 @@ const (
 	TRUE  Bool = gl.TRUE
 	FALSE Bool = gl.FALSE
 )
+
+type DrawMode uint32
+
+const (
+	Points                 DrawMode = gl.POINTS
+	LineStrip              DrawMode = gl.LINE_STRIP
+	LineLoop               DrawMode = gl.LINE_LOOP
+	Lines                  DrawMode = gl.LINES
+	LineStripAdjacency     DrawMode = gl.LINE_STRIP_ADJACENCY
+	LinesAdjacency         DrawMode = gl.LINES_ADJACENCY
+	TriangleStrip          DrawMode = gl.TRIANGLE_STRIP
+	TriangleFan            DrawMode = gl.TRIANGLE_FAN
+	Triangles              DrawMode = gl.TRIANGLES
+	TriangleStripAdjacency DrawMode = gl.TRIANGLE_STRIP_ADJACENCY
+	TrianglesAdjacency     DrawMode = gl.TRIANGLES_ADJACENCY
+	Patches                DrawMode = gl.PATCHES
+)

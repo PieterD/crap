@@ -1,6 +1,8 @@
 package gli
 
-import "github.com/go-gl/gl/v3.3-core/gl"
+import (
+	"github.com/go-gl/gl/v3.3-core/gl"
+)
 
 func Init() {
 	gl.Init()
@@ -26,6 +28,7 @@ type Context interface {
 	UnbindVertexArrayObject()
 	BindBuffer(target BufferTarget, buffer Buffer)
 	UnbindBuffer(target BufferTarget)
+	DrawArrays(mode DrawMode, program Program, array ArrayInstance)
 }
 
 func CreateShader(shaderType ShaderType, source ...string) (Shader, error) {
@@ -57,4 +60,14 @@ func BindBuffer(target BufferTarget, buffer Buffer) {
 }
 func UnbindBuffer(target BufferTarget) {
 	Current.UnbindBuffer(target)
+}
+func DrawArrays(mode DrawMode, program Program, array ArrayInstance) {
+	Current.DrawArrays(mode, program, array)
+}
+func (context iContext) DrawArrays(mode DrawMode, program Program, array ArrayInstance) {
+	BindVertexArrayObject(array.Vao)
+	BindProgram(program)
+	gl.DrawArrays(uint32(mode), int32(array.First), int32(array.Count))
+	UnbindProgram()
+	UnbindVertexArrayObject()
 }

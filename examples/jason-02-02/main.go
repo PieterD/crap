@@ -87,11 +87,7 @@ func (p *Profile) End() {
 func (p *Profile) Draw(w *glfw.Window) error {
 	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
-	gli.BindVertexArrayObject(p.vao)
-	gli.BindProgram(p.program)
-	gl.DrawArrays(gl.TRIANGLES, 0, 3)
-	gli.UnbindProgram()
-	gli.UnbindVertexArrayObject()
+	gli.DrawArrays(gli.Triangles, p.program, p.vao.Instance(0, 3))
 	return glimmer.GetError()
 }
 
