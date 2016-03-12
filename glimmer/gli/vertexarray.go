@@ -10,9 +10,9 @@ import (
 type VertexArrayObject interface {
 	Id() uint32
 	Delete()
-	Enable(attr ProgramAttribute, pointer DataPointer)
+	Enable(attr ProgramAttribute, buffer Buffer, extent Extent)
 	Disable(attr ProgramAttribute)
-	Instance(first int, count int) ArrayInstance
+	Elements(buffer Buffer)
 }
 
 type iVertexArrayObject struct {
@@ -41,14 +41,14 @@ func (vao iVertexArrayObject) Delete() {
 	gl.DeleteVertexArrays(1, &vao.id)
 }
 
-func (vao iVertexArrayObject) Enable(attr ProgramAttribute, pointer DataPointer) {
+func (vao iVertexArrayObject) Enable(attr ProgramAttribute, buffer Buffer, extent Extent) {
 	if !attr.Valid() {
 		panic(fmt.Errorf("VertexArrayObject.Enable: invalid attribute %#v", attr))
 	}
-	BindBuffer(ArrayBuffer, pointer.Buffer)
+	BindBuffer(ArrayBuffer, buffer)
 	BindVertexArrayObject(vao)
 	gl.EnableVertexAttribArray(uint32(attr.Index))
-	gl.VertexAttribPointer(uint32(attr.Index), int32(pointer.Components), uint32(pointer.Type), pointer.Normalize, int32(pointer.Stride), unsafe.Pointer(uintptr(pointer.Start)))
+	gl.VertexAttribPointer(uint32(attr.Index), int32(extent.Components), uint32(extent.Type), extent.Normalize, int32(extent.Stride), unsafe.Pointer(uintptr(extent.Start)))
 	UnbindVertexArrayObject()
 	UnbindBuffer(ArrayBuffer)
 }
@@ -59,16 +59,13 @@ func (vao iVertexArrayObject) Disable(attr ProgramAttribute) {
 	UnbindVertexArrayObject()
 }
 
-type ArrayInstance struct {
+func (vao iVertexArrayObject) Elements(buffer Buffer) {
+	BindBuffer(ElementArrayBuffer, buffer)
+}
+
+type ElementInstance struct {
 	Vao   VertexArrayObject
 	First int
 	Count int
-}
-
-func (vao iVertexArrayObject) Instance(first int, count int) ArrayInstance {
-	return ArrayInstance{
-		Vao:   vao,
-		First: first,
-		Count: count,
-	}
+	Type  DataType
 }

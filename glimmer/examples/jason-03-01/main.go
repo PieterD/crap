@@ -17,55 +17,29 @@ type Profile struct {
 	program  gli.Program
 	buffer   gli.Buffer
 	vao      gli.VertexArrayObject
-	data     gli.SliceData
+
 	position gli.ProgramAttribute
-}
-
-var vertexShaderText = `
-#version 330
-layout(location = 0) in vec4 position;
-void main() {
-	gl_Position = position;
-}
-`
-
-var fragmentShaderText = `
-#version 330
-out vec4 outputColor;
-void main() {
-	outputColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-}
-`
-
-var vertexData = []float32{
-	0.25, 0.25, 0.0, 1.0,
-	0.25, -0.25, 0.0, 1.0,
-	-0.25, -0.25, 0.0, 1.0,
 }
 
 func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	defer Recover(&err)
-
 	glfw.SwapInterval(1)
+	gli.ClearColor(0, 0, 0, 0)
 
+	// Set up shaders
 	p.vertex, err = gli.CreateShader(gli.VertexShader, vertexShaderText)
 	Panicf(err, "Error compiling vertex shader: %v", err)
-
 	p.fragment, err = gli.CreateShader(gli.FragmentShader, fragmentShaderText)
 	Panicf(err, "Error compiling fragment shader: %v", err)
-
 	p.program, err = gli.CreateProgram(p.vertex, p.fragment)
 	Panicf(err, "Error linking program: %v", err)
 
+	// Set up vertex arrays
 	p.vao = gli.CreateVertexArrayObject()
-	p.buffer = gli.CreateBuffer(gli.StreamDraw, gli.ArrayBuffer)
-
-	p.position = p.program.Attributes().ByName("position")
-	p.data = p.buffer.DataSlice(vertexData)
-
-	p.vao.Enable(p.position, p.data.Pointer4(false, 0, 0))
-
-	gli.ClearColor(0, 0, 0, 0)
+	p.buffer = gli.CreateBuffer(gli.StreamDraw, gli.ArrayBuffer).DataSlice(vertexData)
+	attributes := p.program.Attributes()
+	p.position = attributes.ByName("position")
+	p.vao.Enable(p.position, p.buffer, vertexExtent)
 
 	return glimmer.GetError()
 }
@@ -77,7 +51,7 @@ func (p *Profile) End() {
 func (p *Profile) Draw(w *glfw.Window) error {
 	p.computePositionOffsets()
 	gli.Clear(gli.ColorBufferBit)
-	gli.DrawArrays(gli.Triangles, p.program, p.vao.Instance(0, 3))
+	gli.DrawArrays(p.program, p.vao, triangleObject)
 	return glimmer.GetError()
 }
 
@@ -95,7 +69,7 @@ func (p *Profile) computePositionOffsets() {
 		newvert[i+0] += x
 		newvert[i+1] += y
 	}
-	p.data.Sub(newvert, 0)
+	p.buffer.SubSlice(newvert, 0)
 }
 
 func main() {
