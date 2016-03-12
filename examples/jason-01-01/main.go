@@ -58,7 +58,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.buffer = gli.CreateBuffer(gli.StaticDraw, gli.ArrayBuffer)
 
 	attr := p.program.Attributes().ByName("position")
-	pointer := p.buffer.DataSlice(vertexData).Pointer(gli.Vertex4d, false, 0, 0)
+	pointer := p.buffer.DataSlice(vertexData).Pointer4(false, 0, 0)
 	p.vao.Enable(attr, pointer)
 
 	gli.ClearColor(0, 0, 0, 0)

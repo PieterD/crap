@@ -63,8 +63,8 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	data := p.buffer.DataSlice(vertexData)
 
 	attributes := p.program.Attributes()
-	p.vao.Enable(attributes.ByName("position"), data.Pointer(gli.Vertex4d, false, 0, 0))
-	p.vao.Enable(attributes.ByName("color"), data.Pointer(gli.Vertex4d, false, 0, len(vertexData)/2))
+	p.vao.Enable(attributes.ByName("position"), data.Pointer4(false, 0, 0))
+	p.vao.Enable(attributes.ByName("color"), data.Pointer4(false, 0, len(vertexData)/2))
 	uniforms := p.program.Uniforms()
 	uniforms.ByName("offset").Float(0.5, 0.25)
 

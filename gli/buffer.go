@@ -119,13 +119,13 @@ type DataPointer struct {
 	Type       DataType
 	Size       int
 	Length     int
-	Components VertexDimension
+	Components int
 	Normalize  bool
 	Stride     int
 	Start      int
 }
 
-func (data SliceData) Pointer(components VertexDimension, normalize bool, stride int, start int) DataPointer {
+func (data SliceData) Pointer(components int, normalize bool, stride int, start int) DataPointer {
 	return DataPointer{
 		Buffer:     data.Buffer,
 		Type:       data.Type,
@@ -136,6 +136,22 @@ func (data SliceData) Pointer(components VertexDimension, normalize bool, stride
 		Stride:     stride * data.Size,
 		Start:      start * data.Size,
 	}
+}
+
+func (data SliceData) Pointer1(normalize bool, stride int, start int) DataPointer {
+	return data.Pointer(1, normalize, stride, start)
+}
+
+func (data SliceData) Pointer2(normalize bool, stride int, start int) DataPointer {
+	return data.Pointer(2, normalize, stride, start)
+}
+
+func (data SliceData) Pointer3(normalize bool, stride int, start int) DataPointer {
+	return data.Pointer(3, normalize, stride, start)
+}
+
+func (data SliceData) Pointer4(normalize bool, stride int, start int) DataPointer {
+	return data.Pointer(4, normalize, stride, start)
 }
 
 func (data SliceData) Sub(iface interface{}, offset int) {

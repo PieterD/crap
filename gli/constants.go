@@ -157,15 +157,6 @@ const (
 	UniformBuffer           BufferTarget = gl.UNIFORM_BUFFER
 )
 
-type VertexDimension uint32
-
-const (
-	Vertex1d VertexDimension = 1
-	Vertex2d VertexDimension = 2
-	Vertex3d VertexDimension = 3
-	Vertex4d VertexDimension = 4
-)
-
 type ShaderType uint32
 
 const (
