@@ -74,7 +74,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.time = uniforms.ByName("time")
 
 	data := p.buffer.DataSlice(vertexData)
-	p.vao.Enable(position, data.Pointer(gli.Vertex4d, false, 0, 0))
+	p.vao.Enable(position, data.Pointer4(false, 0, 0))
 
 	gli.ClearColor(0, 0, 0, 0)
 

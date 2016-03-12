@@ -69,8 +69,8 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	color := attributes.ByName("color")
 
 	data := p.buffer.DataSlice(vertexData)
-	p.vao.Enable(position, data.Pointer(gli.Vertex4d, false, 0, 0))
-	p.vao.Enable(color, data.Pointer(gli.Vertex4d, false, 0, 12))
+	p.vao.Enable(position, data.Pointer4(false, 0, 0))
+	p.vao.Enable(color, data.Pointer4(false, 0, 12))
 
 	gli.ClearColor(0, 0, 0, 0)
 

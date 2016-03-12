@@ -70,8 +70,8 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	pm := gli.PerspectiveMatrix(0.5, 3.0, 1.0, 640, 480)
 
 	attributes := p.program.Attributes()
-	p.vao.Enable(attributes.ByName("position"), data.Pointer(gli.Vertex4d, false, 0, 0))
-	p.vao.Enable(attributes.ByName("color"), data.Pointer(gli.Vertex4d, false, 0, len(vertexData)/2))
+	p.vao.Enable(attributes.ByName("position"), data.Pointer4(false, 0, 0))
+	p.vao.Enable(attributes.ByName("color"), data.Pointer4(false, 0, len(vertexData)/2))
 	uniforms := p.program.Uniforms()
 	uniforms.ByName("offset").Float(0.5, 0.5)
 	p.perspectiveMatrix = uniforms.ByName("perspectiveMatrix")
