@@ -11,63 +11,38 @@ import (
 
 type Profile struct {
 	glimmer.DefaultProfile
-	height    float32
-	vertex    gli.Shader
-	fragment  gli.Shader
-	program   gli.Program
-	buffer    gli.Buffer
-	vao       gli.VertexArrayObject
+	height   float32
+	vertex   gli.Shader
+	fragment gli.Shader
+	program  gli.Program
+	buffer   gli.Buffer
+	vao      gli.VertexArrayObject
+
 	uniHeight gli.ProgramUniform
-}
-
-var vertexShaderText = `
-#version 330
-layout(location = 0) in vec4 position;
-void main() {
-	gl_Position = position;
-}
-`
-
-var fragmentShaderText = `
-#version 330
-out vec4 outputColor;
-uniform float height;
-void main() {
-	float lerpValue = gl_FragCoord.y / height;
-	outputColor = mix(vec4(1.0f, 1.0f, 1.0f, 1.0f), vec4(0.2f, 0.2f, 0.2f, 1.0f), lerpValue);
-}
-`
-
-var vertexData = []float32{
-	0.75, 0.75, 0.0, 1.0,
-	0.75, -0.75, 0.0, 1.0,
-	-0.75, -0.75, 0.0, 1.0,
 }
 
 func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	defer Recover(&err)
-
 	glfw.SwapInterval(1)
+	gli.ClearColor(0, 0, 0, 0)
 
+	// Set up shaders
 	p.vertex, err = gli.CreateShader(gli.VertexShader, vertexShaderText)
 	Panicf(err, "Error compiling vertex shader: %v", err)
-
 	p.fragment, err = gli.CreateShader(gli.FragmentShader, fragmentShaderText)
 	Panicf(err, "Error compiling fragment shader: %v", err)
-
 	p.program, err = gli.CreateProgram(p.vertex, p.fragment)
 	Panicf(err, "Error linking program: %v", err)
 
+	// Set up vertex arrays
 	p.vao = gli.CreateVertexArrayObject()
-	p.buffer = gli.CreateBuffer(gli.StaticDraw, gli.ArrayBuffer)
+	p.buffer = gli.CreateBuffer(gli.StaticDraw, gli.ArrayBuffer).DataSlice(vertexData)
+	attributes := p.program.Attributes()
+	p.vao.Enable(attributes.ByName("position"), p.buffer, vertexExtent)
 
-	attr := p.program.Attributes().ByName("position")
-	pointer := p.buffer.DataSlice(vertexData).Pointer4(false, 0, 0)
-	p.vao.Enable(attr, pointer)
-
-	p.uniHeight = p.program.Uniforms().ByName("height")
-
-	gli.ClearColor(0, 0, 0, 0)
+	// Set up uniforms
+	uniforms := p.program.Uniforms()
+	p.uniHeight = uniforms.ByName("height")
 
 	return glimmer.GetError()
 }
@@ -79,7 +54,7 @@ func (p *Profile) End() {
 func (p *Profile) Draw(w *glfw.Window) error {
 	gli.Clear(gli.ColorBufferBit)
 	p.uniHeight.Float(p.height)
-	gli.DrawArrays(gli.Triangles, p.program, p.vao.Instance(0, 3))
+	gli.DrawArrays(p.program, p.vao, triangleObject)
 	return nil
 }
 

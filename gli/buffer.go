@@ -11,7 +11,8 @@ import (
 type Buffer interface {
 	Id() uint32
 	Delete()
-	DataSlice(iface interface{}) SliceData
+	DataSlice(iface interface{}) Buffer
+	SubSlice(iface interface{}, offset int) Buffer
 	Hints() (BufferAccessTypeHint, BufferTarget)
 }
 
@@ -47,17 +48,21 @@ func (buffer iBuffer) Hints() (BufferAccessTypeHint, BufferTarget) {
 	return buffer.accesshint, buffer.targethint
 }
 
-func (buffer iBuffer) DataSlice(iface interface{}) SliceData {
-	ptr, size, length, typ := checkSlice(iface)
+func (buffer iBuffer) DataSlice(iface interface{}) Buffer {
+	ptr, size, length, _ := checkSlice(iface)
 	BindBuffer(buffer.targethint, buffer)
 	gl.BufferData(uint32(buffer.targethint), size*length, ptr, uint32(buffer.accesshint))
 	UnbindBuffer(buffer.targethint)
-	return SliceData{
-		Buffer: buffer,
-		Type:   convertBasicType(typ),
-		Size:   size,
-		Length: length,
-	}
+	return buffer
+}
+
+func (buffer iBuffer) SubSlice(iface interface{}, offset int) Buffer {
+	ptr, size, length, _ := checkSlice(iface)
+	_, targethint := buffer.Hints()
+	BindBuffer(targethint, buffer)
+	gl.BufferSubData(uint32(targethint), offset, size*length, ptr)
+	UnbindBuffer(targethint)
+	return buffer
 }
 
 func checkSlice(iface interface{}) (ptr unsafe.Pointer, size int, length int, typ reflect.Type) {
@@ -107,61 +112,19 @@ func convertBasicType(typ reflect.Type) DataType {
 	}
 }
 
-type SliceData struct {
-	Buffer Buffer
-	Type   DataType
-	Size   int
-	Length int
-}
-
-type DataPointer struct {
-	Buffer     Buffer
+type Extent struct {
+	Start      int
+	Stride     int
 	Type       DataType
-	Size       int
-	Length     int
 	Components int
 	Normalize  bool
-	Stride     int
-	Start      int
 }
 
-func (data SliceData) Pointer(components int, normalize bool, stride int, start int) DataPointer {
-	return DataPointer{
-		Buffer:     data.Buffer,
-		Type:       data.Type,
-		Size:       data.Size,
-		Length:     data.Length,
-		Components: components,
-		Normalize:  normalize,
-		Stride:     stride * data.Size,
-		Start:      start * data.Size,
-	}
+type Index struct {
 }
 
-func (data SliceData) Pointer1(normalize bool, stride int, start int) DataPointer {
-	return data.Pointer(1, normalize, stride, start)
-}
-
-func (data SliceData) Pointer2(normalize bool, stride int, start int) DataPointer {
-	return data.Pointer(2, normalize, stride, start)
-}
-
-func (data SliceData) Pointer3(normalize bool, stride int, start int) DataPointer {
-	return data.Pointer(3, normalize, stride, start)
-}
-
-func (data SliceData) Pointer4(normalize bool, stride int, start int) DataPointer {
-	return data.Pointer(4, normalize, stride, start)
-}
-
-func (data SliceData) Sub(iface interface{}, offset int) {
-	ptr, size, length, typ := checkSlice(iface)
-	conv := convertBasicType(typ)
-	if conv != data.Type {
-		panic(fmt.Errorf("Invalid SliceData.Sub: Given type %d does not match original %d", conv, data.Type))
-	}
-	_, targethint := data.Buffer.Hints()
-	BindBuffer(targethint, data.Buffer)
-	gl.BufferSubData(uint32(targethint), offset, size*length, ptr)
-	UnbindBuffer(targethint)
+type Object struct {
+	Mode     DrawMode
+	Start    int
+	Vertices int
 }

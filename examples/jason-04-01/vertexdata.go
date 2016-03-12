@@ -1,5 +1,29 @@
 package main
 
+import "github.com/PieterD/crap/glimmer/gli"
+
+var vertexExtent = gli.Extent{
+	Start:      0,
+	Stride:     0,
+	Type:       gli.GlFloat,
+	Components: 4,
+	Normalize:  false,
+}
+
+var colorExtent = gli.Extent{
+	Start:      12 * 3 * 4 * 4,
+	Stride:     0,
+	Type:       gli.GlFloat,
+	Components: 4,
+	Normalize:  false,
+}
+
+var prismObject = gli.Object{
+	Mode:     gli.Triangles,
+	Start:    0,
+	Vertices: 12 * 3,
+}
+
 var vertexData = []float32{
 	0.25, 0.25, 0.75, 1.0,
 	0.25, -0.25, 0.75, 1.0,

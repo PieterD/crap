@@ -1,6 +1,9 @@
 package gli
 
 import (
+	"fmt"
+	"unsafe"
+
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
@@ -28,7 +31,8 @@ type Context interface {
 	UnbindVertexArrayObject()
 	BindBuffer(target BufferTarget, buffer Buffer)
 	UnbindBuffer(target BufferTarget)
-	DrawArrays(mode DrawMode, program Program, array ArrayInstance)
+	DrawArrays(program Program, vao VertexArrayObject, object Object)
+	DrawElements(mode DrawMode, program Program, elem ElementInstance)
 	ClearColor(r, g, b, a float32)
 	Clear(bits ...ClearBit)
 	Enable(cap Capability)
@@ -69,15 +73,26 @@ func BindBuffer(target BufferTarget, buffer Buffer) {
 func UnbindBuffer(target BufferTarget) {
 	Current.UnbindBuffer(target)
 }
-func DrawArrays(mode DrawMode, program Program, array ArrayInstance) {
-	Current.DrawArrays(mode, program, array)
+func DrawArrays(program Program, vao VertexArrayObject, object Object) {
+	Current.DrawArrays(program, vao, object)
 }
-func (context iContext) DrawArrays(mode DrawMode, program Program, array ArrayInstance) {
-	BindVertexArrayObject(array.Vao)
-	BindProgram(program)
-	gl.DrawArrays(uint32(mode), int32(array.First), int32(array.Count))
-	UnbindProgram()
-	UnbindVertexArrayObject()
+func (context iContext) DrawArrays(program Program, vao VertexArrayObject, object Object) {
+	context.BindVertexArrayObject(vao)
+	context.BindProgram(program)
+	gl.DrawArrays(uint32(object.Mode), int32(object.Start), int32(object.Vertices))
+	context.UnbindProgram()
+	context.UnbindVertexArrayObject()
+}
+func DrawElements(mode DrawMode, program Program, elem ElementInstance) {
+	Current.DrawElements(mode, program, elem)
+}
+func (context iContext) DrawElements(mode DrawMode, program Program, elem ElementInstance) {
+	context.BindVertexArrayObject(elem.Vao)
+	context.BindProgram(program)
+	fmt.Printf("%#v\n", elem)
+	gl.DrawElements(uint32(mode), int32(elem.Count), uint32(elem.Type), unsafe.Pointer(uintptr(elem.First)))
+	context.UnbindProgram()
+	context.UnbindVertexArrayObject()
 }
 func ClearColor(r, g, b, a float32) {
 	Current.ClearColor(r, g, b, a)
