@@ -60,7 +60,9 @@ func (vao iVertexArrayObject) Disable(attr ProgramAttribute) {
 }
 
 func (vao iVertexArrayObject) Elements(buffer Buffer) {
+	BindVertexArrayObject(vao)
 	BindBuffer(ElementArrayBuffer, buffer)
+	UnbindVertexArrayObject()
 }
 
 type ElementInstance struct {

@@ -121,6 +121,8 @@ type Extent struct {
 }
 
 type Index struct {
+	Type     DataType
+	Vertices int
 }
 
 type Object struct {
