@@ -76,9 +76,9 @@ func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
 func (p *Profile) Draw(w *glfw.Window) error {
 	gli.Clear(gli.ColorBufferBit)
 	p.offset.Float(0.0, 0.0, 0.0)
-	gli.DrawElements(p.program, p.vao1, wedgeIndex, wedgeObject)
+	gli.Draw(p.program, p.vao1, wedgeObject)
 	p.offset.Float(0.0, 0.0, -1.0)
-	gli.DrawElements(p.program, p.vao2, wedgeIndex, wedgeObject)
+	gli.Draw(p.program, p.vao2, wedgeObject)
 	return glimmer.GetError()
 }
 

@@ -25,14 +25,10 @@ var colorExtent2 = gli.Extent{
 	Start:      2*18*3*4 + 18*4*4,
 }
 
-var wedgeIndex = gli.Index{
-	Type:     gli.GlUShort,
-	Vertices: 8 * 3,
-}
-
 var wedgeObject = gli.Object{
-	Mode:     gli.Triangles,
-	Vertices: 36,
+	Mode:      gli.Triangles,
+	Vertices:  36,
+	IndexType: gli.GlUShort,
 }
 
 const (

@@ -1,10 +1,6 @@
 package gli
 
-import (
-	"unsafe"
-
-	"github.com/go-gl/gl/v3.3-core/gl"
-)
+import "github.com/go-gl/gl/v3.3-core/gl"
 
 func Init() {
 	gl.Init()
@@ -31,7 +27,8 @@ type Context interface {
 	BindBuffer(target BufferTarget, buffer Buffer)
 	UnbindBuffer(target BufferTarget)
 	DrawArrays(program Program, vao VertexArrayObject, object Object)
-	DrawElements(program Program, vao VertexArrayObject, index Index, object Object)
+	DrawElements(program Program, vao VertexArrayObject, object Object)
+	Draw(program Program, vao VertexArrayObject, object Object)
 	ClearColor(r, g, b, a float32)
 	Clear(bits ...ClearBit)
 	Enable(cap Capability)
@@ -71,26 +68,6 @@ func BindBuffer(target BufferTarget, buffer Buffer) {
 }
 func UnbindBuffer(target BufferTarget) {
 	Current.UnbindBuffer(target)
-}
-func DrawArrays(program Program, vao VertexArrayObject, object Object) {
-	Current.DrawArrays(program, vao, object)
-}
-func (context iContext) DrawArrays(program Program, vao VertexArrayObject, object Object) {
-	context.BindVertexArrayObject(vao)
-	context.BindProgram(program)
-	gl.DrawArrays(uint32(object.Mode), int32(object.Start), int32(object.Vertices))
-	context.UnbindProgram()
-	context.UnbindVertexArrayObject()
-}
-func DrawElements(program Program, vao VertexArrayObject, index Index, object Object) {
-	Current.DrawElements(program, vao, index, object)
-}
-func (context iContext) DrawElements(program Program, vao VertexArrayObject, index Index, object Object) {
-	context.BindVertexArrayObject(vao)
-	context.BindProgram(program)
-	gl.DrawElements(uint32(object.Mode), int32(object.Vertices), uint32(index.Type), unsafe.Pointer(uintptr(object.Start)))
-	context.UnbindProgram()
-	context.UnbindVertexArrayObject()
 }
 func ClearColor(r, g, b, a float32) {
 	Current.ClearColor(r, g, b, a)

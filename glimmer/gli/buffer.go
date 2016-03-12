@@ -120,13 +120,10 @@ type Extent struct {
 	Normalize  bool
 }
 
-type Index struct {
-	Type     DataType
-	Vertices int
-}
-
 type Object struct {
-	Mode     DrawMode
-	Start    int
-	Vertices int
+	Mode      DrawMode
+	Start     int
+	Vertices  int
+	IndexType DataType
+	IndexBase int
 }
