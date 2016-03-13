@@ -70,17 +70,13 @@ func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
 }
 
 func (p *Profile) Draw(w *glfw.Window) error {
-	t := glfw.GetTime()
 	gli.Clear(gli.ColorBufferBit, gli.DepthBufferBit)
-	offset := Offset(OffsetStationary())
-	p.modelToCameraMatrix.Float(offset[:]...)
-	gli.Draw(p.program, p.vao, starObject)
-	offset = Offset(OffsetOval(t))
-	p.modelToCameraMatrix.Float(offset[:]...)
-	gli.Draw(p.program, p.vao, starObject)
-	offset = Offset(OffsetCircle(t))
-	p.modelToCameraMatrix.Float(offset[:]...)
-	gli.Draw(p.program, p.vao, starObject)
+	t := glfw.GetTime()
+	for _, f := range []TimeAnim{OffsetStationary, OffsetOval, OffsetCircle} {
+		offset := f(t)
+		p.modelToCameraMatrix.Float(offset[:]...)
+		gli.Draw(p.program, p.vao, starObject)
+	}
 	return gli.GetError()
 }
 
@@ -91,36 +87,38 @@ func main() {
 	}
 }
 
+type TimeAnim func(elapsed float64) mgl32.Mat4
+
 func Offset(vec mgl32.Vec4) mgl32.Mat4 {
 	m := mgl32.Ident4()
 	m.SetCol(3, vec)
 	return m
 }
 
-func OffsetStationary() mgl32.Vec4 {
-	return mgl32.Vec4{0, 0, -20, 1}
+func OffsetStationary(elapsed float64) mgl32.Mat4 {
+	return Offset(mgl32.Vec4{0, 0, -20, 1})
 }
 
-func OffsetOval(elapsed float64) mgl32.Vec4 {
+func OffsetOval(elapsed float64) mgl32.Mat4 {
 	const fLoopDuration = 3
 	const fScale = 3.14159 * 2 / fLoopDuration
 	fCurrTimeThroughLoop := math.Mod(elapsed, fLoopDuration)
-	return mgl32.Vec4{
+	return Offset(mgl32.Vec4{
 		float32(math.Cos(fCurrTimeThroughLoop*fScale) * 4),
 		float32(math.Sin(fCurrTimeThroughLoop*fScale) * 6),
 		-20,
 		1,
-	}
+	})
 }
 
-func OffsetCircle(elapsed float64) mgl32.Vec4 {
+func OffsetCircle(elapsed float64) mgl32.Mat4 {
 	const fLoopDuration = 12
 	const fScale = 3.14159 * 2 / fLoopDuration
 	fCurrTimeThroughLoop := math.Mod(elapsed, fLoopDuration)
-	return mgl32.Vec4{
+	return Offset(mgl32.Vec4{
 		float32(math.Cos(fCurrTimeThroughLoop*fScale) * 5),
 		-3.5,
 		float32(math.Sin(fCurrTimeThroughLoop*fScale)*5 - 20),
 		1,
-	}
+	})
 }
