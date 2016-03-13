@@ -40,6 +40,7 @@ type Context interface {
 	DisableCulling()
 	EnableDepth(depthfunc DepthFunc, mask bool, nearRange float32, farRange float32)
 	DisableDepth()
+	Viewport(x, y int32, width, height int32)
 }
 
 func CreateShader(shaderType ShaderType, source ...string) (Shader, error) {
@@ -168,4 +169,10 @@ func DisableDepth() {
 }
 func (context iContext) DisableDepth() {
 	context.Disable(DepthTest)
+}
+func Viewport(x, y int32, width, height int32) {
+	Current.Viewport(x, y, width, height)
+}
+func (context iContext) Viewport(x, y int32, width, height int32) {
+	gl.Viewport(0, 0, width, height)
 }

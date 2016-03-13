@@ -6,7 +6,6 @@ import (
 	"github.com/PieterD/glimmer/gli"
 	. "github.com/PieterD/glimmer/pan"
 	"github.com/PieterD/glimmer/window"
-	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
@@ -70,7 +69,7 @@ func (p *Profile) End() {
 func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
 	perspective := gli.PerspectiveMatrix(1.0, 3.0, 1.0, width, height)
 	p.perspectiveMatrix.Float(perspective[:]...)
-	gl.Viewport(0, 0, int32(width), int32(height))
+	gli.Viewport(0, 0, int32(width), int32(height))
 }
 
 func (p *Profile) Draw(w *glfw.Window) error {
