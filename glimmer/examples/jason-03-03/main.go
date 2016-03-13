@@ -54,7 +54,7 @@ func (p *Profile) End() {
 func (p *Profile) Draw(w *glfw.Window) error {
 	p.time.Float(float32(glfw.GetTime()))
 	gli.Clear(gli.ColorBufferBit)
-	gli.DrawArrays(p.program, p.vao, triangleObject)
+	gli.Draw(p.program, p.vao, triangleObject)
 	return glimmer.GetError()
 }
 

@@ -26,8 +26,6 @@ type Context interface {
 	UnbindVertexArrayObject()
 	BindBuffer(target BufferTarget, buffer Buffer)
 	UnbindBuffer(target BufferTarget)
-	DrawArrays(program Program, vao VertexArrayObject, object Object)
-	DrawElements(program Program, vao VertexArrayObject, object Object)
 	Draw(program Program, vao VertexArrayObject, object Object)
 	ClearColor(r, g, b, a float32)
 	ClearDepth(d float32)
