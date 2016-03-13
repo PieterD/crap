@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/PieterD/crap/glimmer"
-	"github.com/PieterD/crap/glimmer/gli"
-	. "github.com/PieterD/crap/glimmer/pan"
+	"github.com/PieterD/glimmer"
+	"github.com/PieterD/glimmer/gli"
+	. "github.com/PieterD/glimmer/pan"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/go-gl/mathgl/mgl32"

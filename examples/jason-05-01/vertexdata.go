@@ -1,6 +1,6 @@
 package main
 
-import "github.com/PieterD/crap/glimmer/gli"
+import "github.com/PieterD/glimmer/gli"
 
 var vertexExtent1 = gli.Extent{
 	Type:       gli.GlFloat,
