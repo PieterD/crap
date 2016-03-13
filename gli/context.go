@@ -36,6 +36,8 @@ type Context interface {
 	Disable(cap Capability)
 	EnableIndex(cap Capability, index uint32)
 	DisableIndex(cap Capability, index uint32)
+	IsEnabled(cap Capability) bool
+	IsEnabledIndex(cap Capability, index uint32) bool
 	EnableCulling(frontface bool, backface bool, clockwise bool)
 	DisableCulling()
 	EnableDepth(depthfunc DepthFunc, mask bool, nearRange float32, farRange float32)
@@ -117,6 +119,18 @@ func DisableIndex(cap Capability, index uint32) {
 }
 func (context iContext) DisableIndex(cap Capability, index uint32) {
 	gl.Disablei(uint32(cap), index)
+}
+func IsEnabled(cap Capability) bool {
+	return Current.IsEnabled(cap)
+}
+func (context iContext) IsEnabled(cap Capability) bool {
+	return gl.IsEnabled(uint32(cap))
+}
+func IsEnabledIndex(cap Capability, index uint32) bool {
+	return Current.IsEnabledIndex(cap, index)
+}
+func (context iContext) IsEnabledIndex(cap Capability, index uint32) bool {
+	return gl.IsEnabledi(uint32(cap), index)
 }
 func EnableCulling(front bool, back bool, clockwise bool) {
 	Current.EnableCulling(front, back, clockwise)

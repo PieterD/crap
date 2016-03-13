@@ -54,7 +54,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	uniforms := p.program.Uniforms()
 	p.offset = uniforms.ByName("offset")
 	p.perspectiveMatrix = uniforms.ByName("perspectiveMatrix")
-	pm := gli.PerspectiveMatrix(0.5, 3.0, 1.0, 640, 480)
+	pm := gli.PerspectiveMatrix(1.0, 3.0, 1.0, 640, 480)
 	p.perspectiveMatrix.Float(pm[:]...)
 
 	return glimmer.GetError()

@@ -27,7 +27,9 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	defer Recover(&err)
 	glfw.SwapInterval(1)
 	gli.ClearColor(0, 0, 0, 0)
+	gli.ClearDepth(1)
 	gli.EnableCulling(false, true, true)
+	gli.EnableDepth(gli.DepthLessEqual, true, 0, 1)
 
 	// Set up shaders
 	p.vertex, err = gli.CreateShader(gli.VertexShader, vertexShaderText)
@@ -69,12 +71,24 @@ func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
 }
 
 func (p *Profile) Draw(w *glfw.Window) error {
-	gli.Clear(gli.ColorBufferBit)
-	p.offset.Float(0.0, 0.0, 0.0)
+	gli.Clear(gli.ColorBufferBit, gli.DepthBufferBit)
+	p.offset.Float(0.0, 0.0, 0.5)
 	gli.Draw(p.program, p.vao, wedgeObject1)
 	p.offset.Float(0.0, 0.0, -1.0)
 	gli.Draw(p.program, p.vao, wedgeObject2)
 	return glimmer.GetError()
+}
+
+func (p *Profile) EventRune(w *glfw.Window, char rune) {
+	if char == ' ' {
+		if gli.IsEnabled(gli.DepthClamp) {
+			fmt.Printf("moo '%c' disable\n", char)
+			gli.Disable(gli.DepthClamp)
+		} else {
+			fmt.Printf("moo '%c' enable\n", char)
+			gli.Enable(gli.DepthClamp)
+		}
+	}
 }
 
 func main() {
