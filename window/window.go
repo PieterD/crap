@@ -1,4 +1,4 @@
-package glimmer
+package window
 
 import (
 	"runtime"

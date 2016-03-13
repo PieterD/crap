@@ -3,15 +3,15 @@ package main
 import (
 	"fmt"
 
-	"github.com/PieterD/glimmer"
 	"github.com/PieterD/glimmer/gli"
 	. "github.com/PieterD/glimmer/pan"
+	"github.com/PieterD/glimmer/window"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
 type Profile struct {
-	glimmer.DefaultProfile
+	window.DefaultProfile
 	vertex   gli.Shader
 	fragment gli.Shader
 	program  gli.Program
@@ -57,7 +57,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.perspectiveMatrix = uniforms.ByName("perspectiveMatrix")
 	p.perspectiveMatrix.Float(perspective[:]...)
 
-	return glimmer.GetError()
+	return gli.GetError()
 }
 
 func (p *Profile) End() {
@@ -76,11 +76,11 @@ func (p *Profile) Draw(w *glfw.Window) error {
 	gli.Draw(p.program, p.vao, wedgeObject1)
 	p.offset.Float(0.0, 0.0, -1.0)
 	gli.Draw(p.program, p.vao, wedgeObject2)
-	return glimmer.GetError()
+	return gli.GetError()
 }
 
 func main() {
-	err := glimmer.Run(&Profile{})
+	err := window.Run(&Profile{})
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}

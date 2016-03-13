@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/PieterD/glimmer"
 	"github.com/PieterD/glimmer/gli"
 	. "github.com/PieterD/glimmer/pan"
+	"github.com/PieterD/glimmer/window"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
 type Profile struct {
-	glimmer.DefaultProfile
+	window.DefaultProfile
 	vertex   gli.Shader
 	fragment gli.Shader
 	program  gli.Program
@@ -41,7 +41,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.position = attributes.ByName("position")
 	p.vao.Enable(p.position, p.buffer, vertexExtent)
 
-	return glimmer.GetError()
+	return gli.GetError()
 }
 
 func (p *Profile) End() {
@@ -52,7 +52,7 @@ func (p *Profile) Draw(w *glfw.Window) error {
 	p.computePositionOffsets()
 	gli.Clear(gli.ColorBufferBit)
 	gli.Draw(p.program, p.vao, triangleObject)
-	return glimmer.GetError()
+	return gli.GetError()
 }
 
 func (p *Profile) computePositionOffsets() {
@@ -73,7 +73,7 @@ func (p *Profile) computePositionOffsets() {
 }
 
 func main() {
-	err := glimmer.Run(&Profile{})
+	err := window.Run(&Profile{})
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}

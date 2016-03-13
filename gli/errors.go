@@ -1,4 +1,4 @@
-package glimmer
+package gli
 
 import (
 	"fmt"

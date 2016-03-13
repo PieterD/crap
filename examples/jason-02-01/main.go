@@ -3,14 +3,14 @@ package main
 import (
 	"fmt"
 
-	"github.com/PieterD/glimmer"
 	"github.com/PieterD/glimmer/gli"
 	. "github.com/PieterD/glimmer/pan"
+	"github.com/PieterD/glimmer/window"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
 type Profile struct {
-	glimmer.DefaultProfile
+	window.DefaultProfile
 	height   float32
 	vertex   gli.Shader
 	fragment gli.Shader
@@ -44,7 +44,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	uniforms := p.program.Uniforms()
 	p.uniHeight = uniforms.ByName("height")
 
-	return glimmer.GetError()
+	return gli.GetError()
 }
 
 func (p *Profile) End() {
@@ -64,7 +64,7 @@ func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
 }
 
 func main() {
-	err := glimmer.Run(&Profile{height: 640.0})
+	err := window.Run(&Profile{height: 640.0})
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
