@@ -26,6 +26,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	glfw.SwapInterval(1)
 	gli.ClearColor(0, 0, 0, 0)
 	gli.EnableCulling(false, true, true)
+	perspective := gli.PerspectiveMatrix(1.0, 3.0, 1.0, 640, 480)
 
 	// Set up shaders
 	p.vertex, err = gli.CreateShader(gli.VertexShader, vertexShaderText)
@@ -45,9 +46,8 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	// Set up uniforms
 	uniforms := p.program.Uniforms()
 	uniforms.ByName("offset").Float(0.5, 0.5)
-	pm := gli.PerspectiveMatrix(0.5, 3.0, 1.0, 640, 480)
 	p.perspectiveMatrix = uniforms.ByName("perspectiveMatrix")
-	p.perspectiveMatrix.Float(pm[:]...)
+	p.perspectiveMatrix.Float(perspective[:]...)
 
 	return glimmer.GetError()
 }
@@ -57,8 +57,8 @@ func (p *Profile) End() {
 }
 
 func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
-	pm := gli.PerspectiveMatrix(0.5, 3.0, 1.0, width, height)
-	p.perspectiveMatrix.Float(pm[:]...)
+	perspective := gli.PerspectiveMatrix(1.0, 3.0, 1.0, width, height)
+	p.perspectiveMatrix.Float(perspective[:]...)
 	gl.Viewport(0, 0, int32(width), int32(height))
 }
 
