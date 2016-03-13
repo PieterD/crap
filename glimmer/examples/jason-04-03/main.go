@@ -23,6 +23,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	glfw.SwapInterval(1)
 	gli.ClearColor(0, 0, 0, 0)
 	gli.EnableCulling(false, true, true)
+	perspective := gli.PerspectiveMatrix(1.0, 3.0, 1.0, 1, 1)
 
 	// Set up shaders
 	p.vertex, err = gli.CreateShader(gli.VertexShader, vertexShaderText)
@@ -42,8 +43,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	// Set up uniforms
 	uniforms := p.program.Uniforms()
 	uniforms.ByName("offset").Float(0.5, 0.5)
-	pm := gli.PerspectiveMatrix(0.5, 3.0, 1.0, 1, 1)
-	uniforms.ByName("perspectiveMatrix").Float(pm[:]...)
+	uniforms.ByName("perspectiveMatrix").Float(perspective[:]...)
 
 	return glimmer.GetError()
 }

@@ -30,6 +30,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	gli.ClearDepth(1)
 	gli.EnableCulling(false, true, true)
 	gli.EnableDepth(gli.DepthLessEqual, true, 0, 1)
+	perspective := gli.PerspectiveMatrix(1.0, 3.0, 1.0, 640, 480)
 
 	// Set up shaders
 	p.vertex, err = gli.CreateShader(gli.VertexShader, vertexShaderText)
@@ -54,8 +55,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	uniforms := p.program.Uniforms()
 	p.offset = uniforms.ByName("offset")
 	p.perspectiveMatrix = uniforms.ByName("perspectiveMatrix")
-	pm := gli.PerspectiveMatrix(1.0, 3.0, 1.0, 640, 480)
-	p.perspectiveMatrix.Float(pm[:]...)
+	p.perspectiveMatrix.Float(perspective[:]...)
 
 	return glimmer.GetError()
 }
@@ -65,8 +65,8 @@ func (p *Profile) End() {
 }
 
 func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
-	pm := gli.PerspectiveMatrix(0.5, 3.0, 1.0, width, height)
-	p.perspectiveMatrix.Float(pm[:]...)
+	perspective := gli.PerspectiveMatrix(1.0, 3.0, 1.0, width, height)
+	p.perspectiveMatrix.Float(perspective[:]...)
 	gl.Viewport(0, 0, int32(width), int32(height))
 }
 
@@ -82,10 +82,8 @@ func (p *Profile) Draw(w *glfw.Window) error {
 func (p *Profile) EventRune(w *glfw.Window, char rune) {
 	if char == ' ' {
 		if gli.IsEnabled(gli.DepthClamp) {
-			fmt.Printf("moo '%c' disable\n", char)
 			gli.Disable(gli.DepthClamp)
 		} else {
-			fmt.Printf("moo '%c' enable\n", char)
 			gli.Enable(gli.DepthClamp)
 		}
 	}
