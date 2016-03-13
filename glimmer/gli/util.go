@@ -1,5 +1,7 @@
 package gli
 
+import "math"
+
 type Deleter interface {
 	Delete()
 }
@@ -19,4 +21,10 @@ func PerspectiveMatrix(near, far, frustumScale float64, w, h int) (mat [16]float
 	mat[11] = -1.0
 	mat[14] = float32((2.0 * far * near) / (near - far))
 	return
+}
+
+func FrustumScale(fovdeg float64) float64 {
+	const degtorad = 3.14159 * 2.0 / 360.0
+	fovrad := fovdeg * degtorad
+	return 1.0 / math.Tan(fovrad/2.0)
 }
