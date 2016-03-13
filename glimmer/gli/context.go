@@ -30,6 +30,7 @@ type Context interface {
 	DrawElements(program Program, vao VertexArrayObject, object Object)
 	Draw(program Program, vao VertexArrayObject, object Object)
 	ClearColor(r, g, b, a float32)
+	ClearDepth(d float32)
 	Clear(bits ...ClearBit)
 	Enable(cap Capability)
 	Disable(cap Capability)
@@ -37,6 +38,8 @@ type Context interface {
 	DisableIndex(cap Capability, index uint32)
 	EnableCulling(frontface bool, backface bool, clockwise bool)
 	DisableCulling()
+	EnableDepth(depthfunc DepthFunc, mask bool, nearRange float32, farRange float32)
+	DisableDepth()
 }
 
 func CreateShader(shaderType ShaderType, source ...string) (Shader, error) {
@@ -74,6 +77,12 @@ func ClearColor(r, g, b, a float32) {
 }
 func (context iContext) ClearColor(r, g, b, a float32) {
 	gl.ClearColor(r, g, b, a)
+}
+func ClearDepth(d float32) {
+	Current.ClearDepth(d)
+}
+func (context iContext) ClearDepth(d float32) {
+	gl.ClearDepthf(d)
 }
 func Clear(bits ...ClearBit) {
 	Current.Clear(bits...)
@@ -132,4 +141,19 @@ func DisableCulling() {
 }
 func (context iContext) DisableCulling() {
 	context.Disable(CullFace)
+}
+func EnableDepth(depthfunc DepthFunc, mask bool, nearRange float32, farRange float32) {
+	Current.EnableDepth(depthfunc, mask, nearRange, farRange)
+}
+func (context iContext) EnableDepth(depthfunc DepthFunc, mask bool, nearRange float32, farRange float32) {
+	context.Enable(DepthTest)
+	gl.DepthMask(mask)
+	gl.DepthFunc(uint32(depthfunc))
+	gl.DepthRangef(nearRange, farRange)
+}
+func DisableDepth() {
+	Current.DisableDepth()
+}
+func (context iContext) DisableDepth() {
+	context.Disable(DepthTest)
 }

@@ -256,3 +256,15 @@ const (
 	IndexedBlend       IndexedCapability = gl.BLEND
 	IndexedScissorTest IndexedCapability = gl.SCISSOR_TEST
 )
+
+type DepthFunc uint32
+
+const (
+	DepthNever        DepthFunc = gl.NEVER
+	DepthLess         DepthFunc = gl.LESS
+	DepthLessEqual    DepthFunc = gl.LEQUAL
+	DepthEqual        DepthFunc = gl.EQUAL
+	DepthGreaterEqual DepthFunc = gl.GEQUAL
+	DepthGreater      DepthFunc = gl.GREATER
+	DepthAlways       DepthFunc = gl.ALWAYS
+)
