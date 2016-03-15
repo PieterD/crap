@@ -61,22 +61,26 @@ func main() {
 func handle(channel ssh.Channel, requests <-chan *ssh.Request) {
 	go func() {
 		for request := range requests {
-			// fmt.Printf("request: %#v\n", request)
+			respond := true
+			fmt.Printf("request: %#v\n", request)
 			ok := false
 			switch request.Type {
+			case "shell":
+				if len(request.Payload) == 0 {
+					ok = true
+				}
 			case "pty-req":
 				ok = true
-			case "shell":
-				ok = true
+				_, term, width, height := requestPtyReq(request)
+				fmt.Printf("pty-req '%s' %dx%d\n", term, width, height)
 			case "window-change":
-				b := bites.Bites(request.Payload)
-				if len(b) >= 8 {
-					var width, height uint32
-					b.GetUint32(&width).GetUint32(&height)
-					fmt.Printf("window %dx%d\n", width, height)
-				}
+				respond = false
+				_, width, height := requestWindowChange(request)
+				fmt.Printf("window %dx%d\n", width, height)
 			}
-			request.Reply(ok, nil)
+			if respond {
+				request.Reply(ok, nil)
+			}
 		}
 	}()
 	reader := bufio.NewReader(channel)
@@ -86,4 +90,33 @@ func handle(channel ssh.Channel, requests <-chan *ssh.Request) {
 		fmt.Printf("'%c'\n", r)
 		fmt.Fprintf(channel, "'%c'\r\n", r)
 	}
+}
+
+func requestWindowChange(request *ssh.Request) (ok bool, width, height uint32) {
+	b := bites.Bites(request.Payload)
+	if len(b) >= 8 {
+		ok = true
+		b.GetUint32(&width).GetUint32(&height)
+	}
+	return
+}
+
+func requestPtyReq(request *ssh.Request) (ok bool, term string, width, height uint32) {
+	b := bites.Bites(request.Payload)
+	if len(b) < 4 {
+		return
+	}
+	var length uint32
+	b = b.GetUint32(&length)
+	if len(b) < int(length) {
+		return
+	}
+	var slice []byte
+	b = b.GetSlice(&slice, int(length))
+	term = string(slice)
+	if len(b) < 8 {
+		b.GetUint32(&width).GetUint32(&height)
+	}
+	ok = true
+	return
 }
