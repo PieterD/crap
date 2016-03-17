@@ -95,8 +95,14 @@ func handle(channel ssh.Channel, requests <-chan *ssh.Request) {
 		t.Pos(10, 5)
 		fmt.Fprintf(channel, "'%c' ", r)
 		t.Fore(term.Red)
-		fmt.Fprintf(channel, "red")
+		fmt.Fprintf(channel, "red ")
 		t.Fore(term.Default)
+		fmt.Fprintf(channel, "default ")
+		t.Fore(term.Red)
+		t.Attr(term.Bright)
+		fmt.Fprintf(channel, "brightred ")
+		t.Reset()
+		fmt.Fprintf(channel, "reset ")
 		fmt.Fprintf(channel, "\r\n")
 	}
 }

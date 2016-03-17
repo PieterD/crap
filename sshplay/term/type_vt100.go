@@ -51,3 +51,17 @@ func (t *termVT100) Back(color Color) error {
 	_, err := t.w.Write(s)
 	return err
 }
+
+func (t *termVT100) Attr(attr Attribute) error {
+	s := t.b
+	s = append(s, 27, '[', byte(attr), 'm')
+	_, err := t.w.Write(s)
+	return err
+}
+
+func (t *termVT100) Reset() error {
+	s := t.b
+	s = append(s, 27, '[', '0', 'm')
+	_, err := t.w.Write(s)
+	return err
+}

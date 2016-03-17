@@ -28,6 +28,8 @@ type Term interface {
 	Pos(x, y int) error
 	Fore(color Color) error
 	Back(color Color) error
+	Attr(attr Attribute) error
+	Reset() error
 }
 
 type Color int
@@ -42,4 +44,13 @@ const (
 	Cyan    Color = '6'
 	White   Color = '7'
 	Default Color = '9'
+)
+
+type Attribute int
+
+const (
+	Bright     Attribute = '1'
+	Dim        Attribute = '2'
+	Underscore Attribute = '4'
+	Blink      Attribute = '5'
 )
