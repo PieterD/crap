@@ -93,30 +93,13 @@ func handle(channel ssh.Channel, requests <-chan *ssh.Request) {
 }
 
 func requestWindowChange(request *ssh.Request) (ok bool, width, height uint32) {
-	b := bites.Bites(request.Payload)
-	if len(b) >= 8 {
-		ok = true
-		b.GetUint32(&width).GetUint32(&height)
-	}
+	ok = !bites.Get(request.Payload).GetUint32(&width).GetUint32(&height).Error()
 	return
 }
 
 func requestPtyReq(request *ssh.Request) (ok bool, term string, width, height uint32) {
-	b := bites.Bites(request.Payload)
-	if len(b) < 4 {
-		return
-	}
 	var length uint32
-	b = b.GetUint32(&length)
-	if len(b) < int(length) {
-		return
-	}
 	var slice []byte
-	b = b.GetSlice(&slice, int(length))
-	term = string(slice)
-	if len(b) < 8 {
-		b.GetUint32(&width).GetUint32(&height)
-	}
-	ok = true
+	ok = !bites.Get(request.Payload).GetUint32(&length).GetSlice(&slice, int(length)).GetUint32(&width).GetUint32(&height).Error()
 	return
 }
