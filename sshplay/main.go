@@ -7,6 +7,7 @@ import (
 	"net"
 
 	"github.com/PieterD/bites"
+	"github.com/PieterD/crap/sshplay/term"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -84,11 +85,19 @@ func handle(channel ssh.Channel, requests <-chan *ssh.Request) {
 		}
 	}()
 	reader := bufio.NewReader(channel)
+	t := term.Get("vt100", channel)
 	for {
 		r, _, err := reader.ReadRune()
 		Panic(err)
 		fmt.Printf("'%c'\n", r)
-		fmt.Fprintf(channel, "'%c'\r\n", r)
+		// fmt.Fprintf(channel, "'%c' %sred%sgreen%sblue%snormal\r\n", r, t.Fore(term.Red), t.Fore(term.Green), t.Fore(term.Blue), t.Fore(term.Default))
+		// fmt.Fprintf(channel, "%sQ", t.Pos(5, 5))
+		t.Pos(10, 5)
+		fmt.Fprintf(channel, "'%c' ", r)
+		t.Fore(term.Red)
+		fmt.Fprintf(channel, "red")
+		t.Fore(term.Default)
+		fmt.Fprintf(channel, "\r\n")
 	}
 }
 
