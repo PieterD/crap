@@ -20,6 +20,13 @@ type termVT100 struct {
 	w io.Writer
 }
 
+func (t *termVT100) Clear() error {
+	s := t.b
+	s = append(s, 27, '[', '2', 'J')
+	_, err := t.w.Write(s)
+	return err
+}
+
 func (t *termVT100) Pos(x, y int) error {
 	s := t.b
 	s = append(s, 27, '[')

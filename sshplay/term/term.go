@@ -24,6 +24,7 @@ type Factory interface {
 }
 
 type Term interface {
+	Clear() error
 	Pos(x, y int) error
 	Fore(color Color) error
 	Back(color Color) error
