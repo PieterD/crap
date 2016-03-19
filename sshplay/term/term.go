@@ -1,56 +1,45 @@
 package term
 
-import (
-	"io"
-	"strings"
-)
+import "strings"
 
-var termMap = make(map[string]Factory)
+var termMap = make(map[string]Term)
 
-func Register(name string, factory Factory) {
-	termMap[strings.ToLower(name)] = factory
+func Register(name string, t Term) {
+	termMap[strings.ToLower(name)] = t
 }
 
-func Get(name string, w io.Writer) Term {
-	f, ok := termMap[strings.ToLower(name)]
-	if !ok {
-		return nil
-	}
-	return f.Create(w)
-}
-
-type Factory interface {
-	Create(w io.Writer) Term
+func Resolve(name string) Term {
+	return termMap[strings.ToLower(name)]
 }
 
 type Term interface {
-	Clear() error
-	Pos(x, y int) error
-	Fore(color Color) error
-	Back(color Color) error
-	Attr(attr Attribute) error
-	Reset() error
+	Clear(b []byte) []byte
+	Pos(b []byte, x, y int) []byte
+	Attr(b []byte) AttrBuilder
 }
 
 type Color int
 
 const (
-	Black   Color = '0'
-	Red     Color = '1'
-	Green   Color = '2'
-	Yellow  Color = '3'
-	Blue    Color = '4'
-	Magenta Color = '5'
-	Cyan    Color = '6'
-	White   Color = '7'
-	Default Color = '9'
+	Default Color = iota
+	Black
+	Red
+	Green
+	Yellow
+	Blue
+	Magenta
+	Cyan
+	White
 )
 
-type Attribute int
-
-const (
-	Bright     Attribute = '1'
-	Dim        Attribute = '2'
-	Underscore Attribute = '4'
-	Blink      Attribute = '5'
-)
+type AttrBuilder interface {
+	Reset() AttrBuilder
+	Fore(color Color) AttrBuilder
+	Back(color Color) AttrBuilder
+	Bright() AttrBuilder
+	Dim() AttrBuilder
+	Underscore() AttrBuilder
+	Blink() AttrBuilder
+	Reverse() AttrBuilder
+	Done() ([]byte, error)
+}

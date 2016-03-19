@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"time"
 
 	"github.com/PieterD/bites"
 	"github.com/PieterD/crap/sshplay/term"
@@ -38,7 +39,7 @@ func main() {
 	for {
 		conn, err := listener.Accept()
 		Panic(err)
-		_, channels, requests, err := ssh.NewServerConn(conn, config)
+		sconn, channels, requests, err := ssh.NewServerConn(conn, config)
 		Panic(err)
 		go func() {
 			for request := range requests {
@@ -54,13 +55,29 @@ func main() {
 			}
 			schannel, srequests, err := channel.Accept()
 			Panic(err)
-			go handle(schannel, srequests)
+			go prepHandle(sconn, schannel, srequests)
 		}
 	}
 }
 
-func handle(channel ssh.Channel, requests <-chan *ssh.Request) {
+type ptyReq struct {
+	width  uint32
+	height uint32
+	term   string
+	pty    bool
+}
+
+func prepHandle(conn ssh.Conn, channel ssh.Channel, requests <-chan *ssh.Request) {
+	defer conn.Close()
+	defer channel.Close()
+	err := handle(channel, requests)
+	fmt.Printf("Error handling connection: %v\n", err)
+}
+
+func handle(channel ssh.Channel, requests <-chan *ssh.Request) error {
+	ptychan := make(chan ptyReq)
 	go func() {
+		defer close(ptychan)
 		for request := range requests {
 			respond := true
 			fmt.Printf("request: %#v\n", request)
@@ -73,19 +90,46 @@ func handle(channel ssh.Channel, requests <-chan *ssh.Request) {
 			case "pty-req":
 				ok = true
 				_, term, width, height := requestPtyReq(request)
-				fmt.Printf("pty-req '%s' %dx%d\n", term, width, height)
+				ptychan <- ptyReq{width: width, height: height, term: term, pty: true}
 			case "window-change":
 				respond = false
 				_, width, height := requestWindowChange(request)
-				fmt.Printf("window %dx%d\n", width, height)
+				ptychan <- ptyReq{width: width, height: height}
 			}
 			if respond {
 				request.Reply(ok, nil)
 			}
 		}
 	}()
+
+	var t *term.Full = nil
+	after := time.After(time.Second * 3)
+	for t == nil {
+		select {
+		case pr, ok := <-ptychan:
+			if !ok {
+				return nil
+			}
+			if pr.pty {
+				t = term.New(term.Resolve(pr.term), channel)
+				if t == nil {
+					return fmt.Errorf("Unknown terminal type '%s'", pr.term)
+				}
+				t.SetDimensions(pr.width, pr.height)
+				fmt.Printf("set!\n")
+			}
+		case <-after:
+			return fmt.Errorf("No pty request after 3 seconds")
+		}
+	}
+
+	go func() {
+		for pr := range ptychan {
+			t.SetDimensions(pr.width, pr.height)
+		}
+	}()
+
 	reader := bufio.NewReader(channel)
-	t := term.Get("vt100", channel)
 	for {
 		r, _, err := reader.ReadRune()
 		Panic(err)
@@ -93,17 +137,16 @@ func handle(channel ssh.Channel, requests <-chan *ssh.Request) {
 
 		t.Clear()
 		t.Pos(10, 5)
-		fmt.Fprintf(channel, "'%c' ", r)
-		t.Fore(term.Red)
-		fmt.Fprintf(channel, "red ")
-		t.Fore(term.Default)
-		fmt.Fprintf(channel, "default ")
-		t.Fore(term.Red)
-		t.Attr(term.Bright)
-		fmt.Fprintf(channel, "brightred ")
-		t.Reset()
-		fmt.Fprintf(channel, "reset ")
-		fmt.Fprintf(channel, "\r\n")
+		t.Printf("'%c' ", r)
+		t.Attr().Fore(term.Red).Done()
+		t.Printf("red ")
+		t.Attr().Fore(term.Default).Done()
+		t.Printf("default ")
+		t.Attr().Fore(term.Red).Bright().Done()
+		t.Printf("brightred ")
+		t.Attr().Reset().Done()
+		t.Printf("reset ")
+		t.Printf("\r\n")
 	}
 }
 
@@ -116,5 +159,6 @@ func requestPtyReq(request *ssh.Request) (ok bool, term string, width, height ui
 	var length uint32
 	var slice []byte
 	ok = !bites.Get(request.Payload).GetUint32(&length).GetSlice(&slice, int(length)).GetUint32(&width).GetUint32(&height).Error()
+	term = string(slice)
 	return
 }
