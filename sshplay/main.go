@@ -26,6 +26,7 @@ func main() {
 	key, err := ssh.ParsePrivateKey(keybytes)
 	Panic(err)
 
+	// TODO: Authenticate client keys
 	config := &ssh.ServerConfig{
 		NoClientAuth: true,
 	}
@@ -147,6 +148,9 @@ func handle(channel ssh.Channel, requests <-chan *ssh.Request) error {
 		t.Attr().Reset().Done()
 		t.Printf("reset ")
 		t.Printf("\r\n")
+		if t.Error() != nil {
+			fmt.Printf("%v\n", t.Error())
+		}
 	}
 }
 

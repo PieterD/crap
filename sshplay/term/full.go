@@ -85,25 +85,62 @@ func (full *Full) Pos(x, y int) *Full {
 }
 
 func (full *Full) Attr() FullAttr {
-	return FullAttr{AttrBuilder: full.term.Attr(full.b[:0]), full: full}
+	return FullAttr{ab: full.term.Attr(full.b[:0]), full: full}
 }
 
 type FullAttr struct {
-	AttrBuilder
+	ab   AttrBuilder
 	full *Full
 }
 
+func (fa FullAttr) Reset() FullAttr {
+	fa.ab = fa.ab.Reset()
+	return fa
+}
+
+func (fa FullAttr) Fore(color Color) FullAttr {
+	fa.ab = fa.ab.Fore(color)
+	return fa
+}
+
+func (fa FullAttr) Back(color Color) FullAttr {
+	fa.ab = fa.ab.Back(color)
+	return fa
+}
+
+func (fa FullAttr) Bright() FullAttr {
+	fa.ab = fa.ab.Bright()
+	return fa
+}
+
+func (fa FullAttr) Dim() FullAttr {
+	fa.ab = fa.ab.Dim()
+	return fa
+}
+
+func (fa FullAttr) Underscore() FullAttr {
+	fa.ab = fa.ab.Underscore()
+	return fa
+}
+
+func (fa FullAttr) Blink() FullAttr {
+	fa.ab = fa.ab.Blink()
+	return fa
+}
+
+func (fa FullAttr) Reverse() FullAttr {
+	fa.ab = fa.ab.Reverse()
+	return fa
+}
+
 func (fa FullAttr) Done() *Full {
+	fmt.Printf("Done\n")
 	if fa.full.Error() != nil {
 		return fa.full
 	}
-	b, err := fa.AttrBuilder.Done()
-	if err != nil {
-		fa.full.err = err
-		return fa.full
-	}
-	if len(b) > 0 {
-		fa.full.b = b
+	fa.full.b, fa.full.err = fa.ab.Done()
+	fmt.Printf("%#v %#v\n", fa.full.b, fa.full.err)
+	if fa.full.err == nil && len(fa.full.b) > 0 {
 		fa.full.write()
 	}
 	return fa.full

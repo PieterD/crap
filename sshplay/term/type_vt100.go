@@ -32,8 +32,7 @@ func (t TermVT100) Pos(b []byte, x, y int) []byte {
 func (t TermVT100) Attr(b []byte) AttrBuilder {
 	b = b[:0]
 	b = append(b, 27, '[')
-	// TODO: If this allocates, use sync.Pool
-	return &attrVT100{b: b}
+	return attrVT100{b: b}
 }
 
 type attrVT100 struct {
@@ -43,7 +42,7 @@ type attrVT100 struct {
 	done bool
 }
 
-func (a *attrVT100) Reset() AttrBuilder {
+func (a attrVT100) Reset() AttrBuilder {
 	if a.done {
 		return a
 	}
@@ -58,9 +57,9 @@ func (a *attrVT100) Reset() AttrBuilder {
 	return a
 }
 
-func (a *attrVT100) color(b byte, color Color) {
+func (a attrVT100) color(b byte, color Color) AttrBuilder {
 	if a.err != nil || a.done {
-		return
+		return a
 	}
 	if a.more {
 		a.b = append(a.b, ';')
@@ -89,22 +88,21 @@ func (a *attrVT100) color(b byte, color Color) {
 		c = '9'
 	default:
 		a.err = fmt.Errorf("Unknown color value: %d", int(color))
-		return
+		return a
 	}
 	a.b = append(a.b, b, c)
-}
-
-func (a *attrVT100) Fore(color Color) AttrBuilder {
-	a.color('3', color)
 	return a
 }
 
-func (a *attrVT100) Back(color Color) AttrBuilder {
-	a.color('4', color)
-	return a
+func (a attrVT100) Fore(color Color) AttrBuilder {
+	return a.color('3', color)
 }
 
-func (a *attrVT100) Bright() AttrBuilder {
+func (a attrVT100) Back(color Color) AttrBuilder {
+	return a.color('4', color)
+}
+
+func (a attrVT100) Bright() AttrBuilder {
 	if a.err != nil || a.done {
 		return a
 	}
@@ -117,7 +115,7 @@ func (a *attrVT100) Bright() AttrBuilder {
 	return a
 }
 
-func (a *attrVT100) Dim() AttrBuilder {
+func (a attrVT100) Dim() AttrBuilder {
 	if a.err != nil || a.done {
 		return a
 	}
@@ -130,7 +128,7 @@ func (a *attrVT100) Dim() AttrBuilder {
 	return a
 }
 
-func (a *attrVT100) Underscore() AttrBuilder {
+func (a attrVT100) Underscore() AttrBuilder {
 	if a.err != nil || a.done {
 		return a
 	}
@@ -143,7 +141,7 @@ func (a *attrVT100) Underscore() AttrBuilder {
 	return a
 }
 
-func (a *attrVT100) Blink() AttrBuilder {
+func (a attrVT100) Blink() AttrBuilder {
 	if a.err != nil || a.done {
 		return a
 	}
@@ -156,7 +154,7 @@ func (a *attrVT100) Blink() AttrBuilder {
 	return a
 }
 
-func (a *attrVT100) Reverse() AttrBuilder {
+func (a attrVT100) Reverse() AttrBuilder {
 	if a.err != nil || a.done {
 		return a
 	}
@@ -169,7 +167,7 @@ func (a *attrVT100) Reverse() AttrBuilder {
 	return a
 }
 
-func (a *attrVT100) Done() ([]byte, error) {
+func (a attrVT100) Done() ([]byte, error) {
 	if a.done {
 	} else if a.err != nil {
 		a.b = a.b[:0]
