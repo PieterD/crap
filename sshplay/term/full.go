@@ -134,12 +134,10 @@ func (fa FullAttr) Reverse() FullAttr {
 }
 
 func (fa FullAttr) Done() *Full {
-	fmt.Printf("Done\n")
 	if fa.full.Error() != nil {
 		return fa.full
 	}
 	fa.full.b, fa.full.err = fa.ab.Done()
-	fmt.Printf("%#v %#v\n", fa.full.b, fa.full.err)
 	if fa.full.err == nil && len(fa.full.b) > 0 {
 		fa.full.write()
 	}
