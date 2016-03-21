@@ -16,12 +16,13 @@ func Panic(err error) {
 type myHandler struct{}
 
 func (_ myHandler) Handle(reader *bufio.Reader, t *term.Full, c <-chan WindowSize) error {
-	fmt.Printf("HANDLING!\n")
 	go func() {
 		for ws := range c {
 			t.SetDimensions(ws.Width, ws.Height)
 		}
 	}()
+
+	t.Clear()
 	for {
 		r, _, err := reader.ReadRune()
 		Panic(err)
@@ -38,7 +39,7 @@ func (_ myHandler) Handle(reader *bufio.Reader, t *term.Full, c <-chan WindowSiz
 		t.Printf("brightred ")
 		t.Attr().Reset().Done()
 		t.Printf("reset ")
-		t.Printf("\r\n")
+
 		if t.Error() != nil {
 			fmt.Printf("%v\n", t.Error())
 		}
