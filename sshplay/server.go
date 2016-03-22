@@ -12,11 +12,46 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+type PassAuth func(conn ssh.ConnMetadata, password []byte) error
+type PubkeyAuth func(conn ssh.ConnMetadata, key ssh.PublicKey) error
+type InteractiveAuth func(conn ssh.ConnMetadata, client ssh.KeyboardInteractiveChallenge) error
+
+type HandlerFactory interface {
+	Create() Handler
+}
+
 type Handler interface {
+	Auth() (noauth bool, pass PassAuth, pubkey PubkeyAuth, inter InteractiveAuth)
 	Handle(reader *bufio.Reader, t *term.Full, c <-chan WindowSize) error
 }
 
-func Run(keyfile string, addr string, handler Handler) error {
+func wrapAuth(handler Handler) (
+	noAuth bool,
+	passAuth func(conn ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error),
+	pubkeyAuth func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error),
+	interAuth func(conn ssh.ConnMetadata, client ssh.KeyboardInteractiveChallenge) (*ssh.Permissions, error),
+) {
+	iNoAuth, iPassAuth, iPubkeyAuth, iInterAuth := handler.Auth()
+	noAuth = iNoAuth
+	if iPassAuth != nil {
+		passAuth = func(conn ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
+			return nil, iPassAuth(conn, pass)
+		}
+	}
+	if iPubkeyAuth != nil {
+		pubkeyAuth = func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
+			return nil, iPubkeyAuth(conn, key)
+		}
+	}
+	if iInterAuth != nil {
+		interAuth = func(conn ssh.ConnMetadata, client ssh.KeyboardInteractiveChallenge) (*ssh.Permissions, error) {
+			return nil, iInterAuth(conn, client)
+		}
+	}
+	return
+}
+
+func Run(keyfile string, addr string, handlerfactory HandlerFactory) error {
 	keybytes, err := ioutil.ReadFile(keyfile)
 	if err != nil {
 		return err
@@ -26,13 +61,6 @@ func Run(keyfile string, addr string, handler Handler) error {
 	if err != nil {
 		return err
 	}
-
-	// TODO: Authenticate client keys
-	config := &ssh.ServerConfig{
-		NoClientAuth: true,
-	}
-	config = config
-	config.AddHostKey(key)
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -44,6 +72,18 @@ func Run(keyfile string, addr string, handler Handler) error {
 		if err != nil {
 			return err
 		}
+
+		handler := handlerfactory.Create()
+		noAuth, passAuth, pubkeyAuth, interAuth := wrapAuth(handler)
+		config := &ssh.ServerConfig{
+			NoClientAuth:                noAuth,
+			PasswordCallback:            passAuth,
+			PublicKeyCallback:           pubkeyAuth,
+			KeyboardInteractiveCallback: interAuth,
+		}
+		config = config
+		config.AddHostKey(key)
+
 		go handleConn(conn, handler, config)
 	}
 }

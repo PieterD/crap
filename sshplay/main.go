@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 
+	"golang.org/x/crypto/ssh"
+
 	"github.com/PieterD/crap/sshplay/term"
 )
 
@@ -13,7 +15,22 @@ func Panic(err error) {
 	}
 }
 
+type myHandlerFactory struct{}
+
+func (_ myHandlerFactory) Create() Handler {
+	return myHandler{}
+}
+
 type myHandler struct{}
+
+func (h myHandler) Auth() (noauth bool, pass PassAuth, pubkey PubkeyAuth, inter InteractiveAuth) {
+	return false, nil, h.PublicKeyCallback, nil
+}
+
+func (_ myHandler) PublicKeyCallback(conn ssh.ConnMetadata, key ssh.PublicKey) error {
+	fmt.Printf("key: %v\n", key)
+	return nil
+}
 
 func (_ myHandler) Handle(reader *bufio.Reader, t *term.Full, c <-chan WindowSize) error {
 	go func() {
@@ -49,6 +66,6 @@ func (_ myHandler) Handle(reader *bufio.Reader, t *term.Full, c <-chan WindowSiz
 }
 
 func main() {
-	err := Run("./id_rsa", "127.0.0.1:12345", myHandler{})
+	err := Run("./id_rsa", "127.0.0.1:12345", myHandlerFactory{})
 	fmt.Printf("Run failed: %v\n", err)
 }
