@@ -1,10 +1,13 @@
 package mat
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/go-gl/mathgl/mgl32"
 )
+
+var PopError = errors.New("Attempted to Pop an empty stack")
 
 type stackNode struct {
 	m    mgl32.Mat4
@@ -17,8 +20,10 @@ type Stack struct {
 
 var stackPool = sync.Pool{New: func() interface{} { return new(stackNode) }}
 
-func newStackNode() *stackNode {
-	return stackPool.Get().(*stackNode)
+func newStackNode(m mgl32.Mat4) *stackNode {
+	n := stackPool.Get().(*stackNode)
+	n.m = m
+	return n
 }
 
 func (n *stackNode) free() {
@@ -26,27 +31,48 @@ func (n *stackNode) free() {
 }
 
 func NewStack() *Stack {
-	n := newStackNode()
-	n.m = mgl32.Ident4()
-	return &Stack{node: n}
+	return &Stack{}
 }
 
-func (s *Stack) Push() {
-	n := newStackNode()
-	n.m = s.node.m
+func (s *Stack) Copy() {
+	s.Push(s.node.m)
+}
+
+func (s *Stack) Push(m mgl32.Mat4) {
+	n := newStackNode(m)
+	n.m = m
 	n.next = s.node
 	s.node = n
 }
 
-func (s *Stack) Pop() bool {
-	if s.node.next == nil {
-		s.node.m = mgl32.Ident4()
-		return false
+func (s *Stack) Pop() mgl32.Mat4 {
+	n := s.node
+	if n == nil {
+		panic(PopError)
 	}
-	s.node = s.node.next
-	return true
+	s.node = n.next
+	n.next = nil
+	m := n.m
+	n.free()
+	return m
 }
 
-func (s *Stack) Peek() *mgl32.Mat4 {
+func (s *Stack) Peek() mgl32.Mat4 {
+	return s.node.m
+}
+
+func (s *Stack) Ptr() *mgl32.Mat4 {
 	return &s.node.m
+}
+
+func (s *Stack) Multiply() {
+	r := s.Pop()
+	l := s.Pop()
+	p := l.Mul4(r)
+	s.Push(p)
+}
+
+func (s *Stack) Safe(f func(*Stack)) {
+	ns := &Stack{m: s.Peek()}
+	f(ns)
 }

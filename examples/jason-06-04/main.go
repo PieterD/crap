@@ -32,7 +32,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	gli.EnableCulling(false, true, true)
 	gli.EnableDepth(gli.DepthLessEqual, true, 0, 1)
 	perspective := gli.PerspectiveMatrix(1.0, 100.0, gli.FrustumScale(45.0), 640, 480)
-	p.crane = NewCrane()
+	p.crane = NewCrane(p)
 
 	// Set up shaders
 	p.vertex, err = gli.CreateShader(gli.VertexShader, vertexShaderText)
@@ -72,7 +72,7 @@ func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
 
 func (p *Profile) Draw(w *glfw.Window) error {
 	gli.Clear(gli.ColorBufferBit, gli.DepthBufferBit)
-	p.crane.Draw(p)
+	p.crane.Draw()
 	return gli.GetError()
 }
 
