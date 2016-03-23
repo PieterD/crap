@@ -34,6 +34,10 @@ func NewStack() *Stack {
 	return &Stack{}
 }
 
+func (s *Stack) Ident() {
+	s.Push(mgl32.Ident4())
+}
+
 func (s *Stack) Copy() {
 	s.Push(s.node.m)
 }
@@ -73,6 +77,12 @@ func (s *Stack) Multiply() {
 }
 
 func (s *Stack) Safe(f func(*Stack)) {
-	ns := &Stack{m: s.Peek()}
+	n := newStackNode(s.Peek())
+	ns := &Stack{node: n}
 	f(ns)
+}
+
+func (s *Stack) RightMul(m mgl32.Mat4) {
+	p := s.Ptr()
+	*p = p.Mul4(m)
 }

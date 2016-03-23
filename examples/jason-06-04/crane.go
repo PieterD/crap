@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/PieterD/glimmer/gli"
+	"github.com/PieterD/glimmer/mat"
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/go-gl/mathgl/mgl32"
-	"github.com/go-gl/mathgl/mgl32/matstack"
 )
 
 const d2r = 3.14159 * 2 / 360
@@ -66,8 +66,8 @@ func NewCrane(p *Profile) *Crane {
 }
 
 func (crane *Crane) Draw() {
-	stack := matstack.NewMatStack()
-	stack.LoadIdent()
+	stack := mat.NewStack()
+	stack.Ident()
 	stack.RightMul(translate(crane.posBase))
 	stack.RightMul(mgl32.HomogRotate3DY(crane.angBase * d2r))
 
@@ -75,9 +75,9 @@ func (crane *Crane) Draw() {
 	crane.arm(stack)
 }
 
-func (crane *Crane) base(stack *matstack.MatStack) {
+func (crane *Crane) base(stack *mat.Stack) {
 	{
-		stack.Push()
+		stack.Copy()
 		stack.RightMul(translate(crane.posBaseLeft))
 		stack.RightMul(mgl32.Scale3D(1, 1, crane.scaleBaseZ))
 		crane.put(stack)
@@ -85,7 +85,7 @@ func (crane *Crane) base(stack *matstack.MatStack) {
 	}
 
 	{
-		stack.Push()
+		stack.Copy()
 		stack.RightMul(translate(crane.posBaseRight))
 		stack.RightMul(mgl32.Scale3D(1, 1, crane.scaleBaseZ))
 		crane.put(stack)
@@ -93,11 +93,11 @@ func (crane *Crane) base(stack *matstack.MatStack) {
 	}
 }
 
-func (crane *Crane) arm(stack *matstack.MatStack) {
-	stack.Push()
+func (crane *Crane) arm(stack *mat.Stack) {
+	stack.Copy()
 	stack.RightMul(mgl32.HomogRotate3DX(crane.angUpperArm * d2r))
 	{
-		stack.Push()
+		stack.Copy()
 		stack.RightMul(mgl32.Translate3D(0, 0, crane.sizeUpperArm/2-1))
 		stack.RightMul(mgl32.Scale3D(1, 1, crane.sizeUpperArm/2))
 		crane.put(stack)
@@ -107,12 +107,12 @@ func (crane *Crane) arm(stack *matstack.MatStack) {
 	stack.Pop()
 }
 
-func (crane *Crane) lowerarm(stack *matstack.MatStack) {
-	stack.Push()
+func (crane *Crane) lowerarm(stack *mat.Stack) {
+	stack.Copy()
 	stack.RightMul(translate(crane.posLowerArm))
 	stack.RightMul(mgl32.HomogRotate3DX(crane.angLowerArm * d2r))
 	{
-		stack.Push()
+		stack.Copy()
 		stack.RightMul(mgl32.Translate3D(0, 0, crane.lenLowerArm/2))
 		stack.RightMul(mgl32.Scale3D(crane.widthLowerArm/2, crane.widthLowerArm/2, crane.lenLowerArm/2))
 		crane.put(stack)
@@ -122,13 +122,13 @@ func (crane *Crane) lowerarm(stack *matstack.MatStack) {
 	stack.Pop()
 }
 
-func (crane *Crane) wrist(stack *matstack.MatStack) {
-	stack.Push()
+func (crane *Crane) wrist(stack *mat.Stack) {
+	stack.Copy()
 	stack.RightMul(translate(crane.posWrist))
 	stack.RightMul(mgl32.HomogRotate3DZ(crane.angWristRoll * d2r))
 	stack.RightMul(mgl32.HomogRotate3DX(crane.angWristPitch * d2r))
 	{
-		stack.Push()
+		stack.Copy()
 		stack.RightMul(mgl32.Scale3D(crane.widthWrist/2, crane.widthWrist/2, crane.lenWrist/2))
 		crane.put(stack)
 		stack.Pop()
@@ -138,23 +138,23 @@ func (crane *Crane) wrist(stack *matstack.MatStack) {
 	stack.Pop()
 }
 
-func (crane *Crane) leftfinger(stack *matstack.MatStack) {
-	stack.Push()
+func (crane *Crane) leftfinger(stack *mat.Stack) {
+	stack.Copy()
 	stack.RightMul(translate(crane.posLeftFinger))
 	stack.RightMul(mgl32.HomogRotate3DY(crane.angFingerOpen * d2r))
 	{
-		stack.Push()
+		stack.Copy()
 		stack.RightMul(mgl32.Translate3D(0, 0, crane.lenFinger/2))
 		stack.RightMul(mgl32.Scale3D(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2))
 		crane.put(stack)
 		stack.Pop()
 	}
 	{
-		stack.Push()
+		stack.Copy()
 		stack.RightMul(mgl32.Translate3D(0, 0, crane.lenFinger))
 		stack.RightMul(mgl32.HomogRotate3DY(-crane.angLowerFinger * d2r))
 		{
-			stack.Push()
+			stack.Copy()
 			stack.RightMul(mgl32.Translate3D(0, 0, crane.lenFinger/2))
 			stack.RightMul(mgl32.Scale3D(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2))
 			crane.put(stack)
@@ -165,23 +165,23 @@ func (crane *Crane) leftfinger(stack *matstack.MatStack) {
 	stack.Pop()
 }
 
-func (crane *Crane) rightfinger(stack *matstack.MatStack) {
-	stack.Push()
+func (crane *Crane) rightfinger(stack *mat.Stack) {
+	stack.Copy()
 	stack.RightMul(translate(crane.posRightFinger))
 	stack.RightMul(mgl32.HomogRotate3DY(-crane.angFingerOpen * d2r))
 	{
-		stack.Push()
+		stack.Copy()
 		stack.RightMul(mgl32.Translate3D(0, 0, crane.lenFinger/2))
 		stack.RightMul(mgl32.Scale3D(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2))
 		crane.put(stack)
 		stack.Pop()
 	}
 	{
-		stack.Push()
+		stack.Copy()
 		stack.RightMul(mgl32.Translate3D(0, 0, crane.lenFinger))
 		stack.RightMul(mgl32.HomogRotate3DY(crane.angLowerFinger * d2r))
 		{
-			stack.Push()
+			stack.Copy()
 			stack.RightMul(mgl32.Translate3D(0, 0, crane.lenFinger/2))
 			stack.RightMul(mgl32.Scale3D(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2))
 			crane.put(stack)
@@ -216,7 +216,7 @@ func (crane *Crane) adjustFingerOpen(dir float32) {
 	crane.angFingerOpen += 9 * dir
 }
 
-func (crane *Crane) put(stack *matstack.MatStack) {
+func (crane *Crane) put(stack *mat.Stack) {
 	p := crane.p
 	m := stack.Peek()
 	p.modelToCameraMatrix.Float(m[:]...)
