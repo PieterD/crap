@@ -83,6 +83,8 @@ func (s *Stack) Safe(f func(*Stack)) {
 }
 
 func (s *Stack) RightMul(m mgl32.Mat4) {
-	p := s.Ptr()
-	*p = p.Mul4(m)
+	// p := s.Ptr()
+	// *p = p.Mul4(m)
+	s.Push(m)
+	s.Multiply()
 }
