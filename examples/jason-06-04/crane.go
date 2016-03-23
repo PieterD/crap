@@ -67,9 +67,10 @@ func NewCrane(p *Profile) *Crane {
 
 func (crane *Crane) Draw() {
 	stack := mat.NewStack()
-	stack.Ident()
-	stack.RightMul(translate(crane.posBase))
-	stack.RightMul(mgl32.HomogRotate3DY(crane.angBase * d2r))
+	stack.Deg()
+	stack.TranslateV(crane.posBase)
+	stack.RotateY(crane.angBase)
+	stack.Multiply()
 
 	stack.Safe(crane.base)
 	stack.Safe(crane.arm)
@@ -77,13 +78,13 @@ func (crane *Crane) Draw() {
 
 func (crane *Crane) base(stack *mat.Stack) {
 	stack.Safe(func(stack *mat.Stack) {
-		stack.RightMul(translate(crane.posBaseLeft))
-		stack.RightMul(mgl32.Scale3D(1, 1, crane.scaleBaseZ))
+		stack.TranslateV(crane.posBaseLeft).Multiply()
+		stack.Scale(1, 1, crane.scaleBaseZ).Multiply()
 		crane.put(stack)
 	})
 	stack.Safe(func(stack *mat.Stack) {
-		stack.RightMul(translate(crane.posBaseRight))
-		stack.RightMul(mgl32.Scale3D(1, 1, crane.scaleBaseZ))
+		stack.TranslateV(crane.posBaseRight).Multiply()
+		stack.Scale(1, 1, crane.scaleBaseZ).Multiply()
 		crane.put(stack)
 	})
 }
