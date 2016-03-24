@@ -90,32 +90,32 @@ func (crane *Crane) base(stack *mat.Stack) {
 }
 
 func (crane *Crane) arm(stack *mat.Stack) {
-	stack.RightMul(mgl32.HomogRotate3DX(crane.angUpperArm * d2r))
+	stack.RotateX(crane.angUpperArm).Multiply()
 	stack.Safe(func(stack *mat.Stack) {
-		stack.RightMul(mgl32.Translate3D(0, 0, crane.sizeUpperArm/2-1))
-		stack.RightMul(mgl32.Scale3D(1, 1, crane.sizeUpperArm/2))
+		stack.Translate(0, 0, crane.sizeUpperArm/2-1).Multiply()
+		stack.Scale(1, 1, crane.sizeUpperArm/2).Multiply()
 		crane.put(stack)
 	})
 	stack.Safe(crane.lowerarm)
 }
 
 func (crane *Crane) lowerarm(stack *mat.Stack) {
-	stack.RightMul(translate(crane.posLowerArm))
-	stack.RightMul(mgl32.HomogRotate3DX(crane.angLowerArm * d2r))
+	stack.TranslateV(crane.posLowerArm).Multiply()
+	stack.RotateX(crane.angLowerArm).Multiply()
 	stack.Safe(func(stack *mat.Stack) {
-		stack.RightMul(mgl32.Translate3D(0, 0, crane.lenLowerArm/2))
-		stack.RightMul(mgl32.Scale3D(crane.widthLowerArm/2, crane.widthLowerArm/2, crane.lenLowerArm/2))
+		stack.Translate(0, 0, crane.lenLowerArm/2).Multiply()
+		stack.Scale(crane.widthLowerArm/2, crane.widthLowerArm/2, crane.lenLowerArm/2).Multiply()
 		crane.put(stack)
 	})
 	stack.Safe(crane.wrist)
 }
 
 func (crane *Crane) wrist(stack *mat.Stack) {
-	stack.RightMul(translate(crane.posWrist))
-	stack.RightMul(mgl32.HomogRotate3DZ(crane.angWristRoll * d2r))
-	stack.RightMul(mgl32.HomogRotate3DX(crane.angWristPitch * d2r))
+	stack.TranslateV(crane.posWrist).Multiply()
+	stack.RotateZ(crane.angWristRoll).Multiply()
+	stack.RotateX(crane.angWristPitch).Multiply()
 	stack.Safe(func(stack *mat.Stack) {
-		stack.RightMul(mgl32.Scale3D(crane.widthWrist/2, crane.widthWrist/2, crane.lenWrist/2))
+		stack.Scale(crane.widthWrist/2, crane.widthWrist/2, crane.lenWrist/2).Multiply()
 		crane.put(stack)
 	})
 	stack.Safe(crane.leftfinger)

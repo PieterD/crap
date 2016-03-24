@@ -84,7 +84,7 @@ func (s *Stack) Multiply() *Stack {
 
 func (s *Stack) Safe(f func(*Stack)) {
 	n := newStackNode(s.Peek())
-	ns := &Stack{node: n}
+	ns := &Stack{node: n, angle: s.angle}
 	f(ns)
 }
 
