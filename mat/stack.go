@@ -74,6 +74,14 @@ func (s *Stack) Ptr() *mgl32.Mat4 {
 	return &s.node.m
 }
 
+func (s *Stack) Swap() *Stack {
+	a := s.Pop()
+	b := s.Pop()
+	s.Push(a)
+	s.Push(b)
+	return s
+}
+
 func (s *Stack) Multiply() *Stack {
 	r := s.Pop()
 	l := s.Pop()
@@ -86,11 +94,6 @@ func (s *Stack) Safe(f func(*Stack)) {
 	n := newStackNode(s.Peek())
 	ns := &Stack{node: n, angle: s.angle}
 	f(ns)
-}
-
-func (s *Stack) RightMul(m mgl32.Mat4) {
-	s.Push(m)
-	s.Multiply()
 }
 
 func (s *Stack) Translate(x, y, z float32) *Stack {
