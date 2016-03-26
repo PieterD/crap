@@ -67,10 +67,10 @@ func NewCrane(p *Profile) *Crane {
 
 func (crane *Crane) Draw() {
 	stack := mat.NewStack()
-	stack.Deg()
+	stack.AngleDeg()
+	stack.Ident()
 	stack.TranslateV(crane.posBase)
 	stack.RotateY(crane.angBase)
-	stack.Multiply()
 
 	stack.Safe(crane.base)
 	stack.Safe(crane.arm)
@@ -78,44 +78,44 @@ func (crane *Crane) Draw() {
 
 func (crane *Crane) base(stack *mat.Stack) {
 	stack.Safe(func(stack *mat.Stack) {
-		stack.TranslateV(crane.posBaseLeft).Multiply()
-		stack.Scale(1, 1, crane.scaleBaseZ).Multiply()
+		stack.TranslateV(crane.posBaseLeft)
+		stack.Scale(1, 1, crane.scaleBaseZ)
 		crane.put(stack)
 	})
 	stack.Safe(func(stack *mat.Stack) {
-		stack.TranslateV(crane.posBaseRight).Multiply()
-		stack.Scale(1, 1, crane.scaleBaseZ).Multiply()
+		stack.TranslateV(crane.posBaseRight)
+		stack.Scale(1, 1, crane.scaleBaseZ)
 		crane.put(stack)
 	})
 }
 
 func (crane *Crane) arm(stack *mat.Stack) {
-	stack.RotateX(crane.angUpperArm).Multiply()
+	stack.RotateX(crane.angUpperArm)
 	stack.Safe(func(stack *mat.Stack) {
-		stack.Translate(0, 0, crane.sizeUpperArm/2-1).Multiply()
-		stack.Scale(1, 1, crane.sizeUpperArm/2).Multiply()
+		stack.Translate(0, 0, crane.sizeUpperArm/2-1)
+		stack.Scale(1, 1, crane.sizeUpperArm/2)
 		crane.put(stack)
 	})
 	stack.Safe(crane.lowerarm)
 }
 
 func (crane *Crane) lowerarm(stack *mat.Stack) {
-	stack.TranslateV(crane.posLowerArm).Multiply()
-	stack.RotateX(crane.angLowerArm).Multiply()
+	stack.TranslateV(crane.posLowerArm)
+	stack.RotateX(crane.angLowerArm)
 	stack.Safe(func(stack *mat.Stack) {
-		stack.Translate(0, 0, crane.lenLowerArm/2).Multiply()
-		stack.Scale(crane.widthLowerArm/2, crane.widthLowerArm/2, crane.lenLowerArm/2).Multiply()
+		stack.Translate(0, 0, crane.lenLowerArm/2)
+		stack.Scale(crane.widthLowerArm/2, crane.widthLowerArm/2, crane.lenLowerArm/2)
 		crane.put(stack)
 	})
 	stack.Safe(crane.wrist)
 }
 
 func (crane *Crane) wrist(stack *mat.Stack) {
-	stack.TranslateV(crane.posWrist).Multiply()
-	stack.RotateZ(crane.angWristRoll).Multiply()
-	stack.RotateX(crane.angWristPitch).Multiply()
+	stack.TranslateV(crane.posWrist)
+	stack.RotateZ(crane.angWristRoll)
+	stack.RotateX(crane.angWristPitch)
 	stack.Safe(func(stack *mat.Stack) {
-		stack.Scale(crane.widthWrist/2, crane.widthWrist/2, crane.lenWrist/2).Multiply()
+		stack.Scale(crane.widthWrist/2, crane.widthWrist/2, crane.lenWrist/2)
 		crane.put(stack)
 	})
 	stack.Safe(crane.leftfinger)
@@ -123,38 +123,38 @@ func (crane *Crane) wrist(stack *mat.Stack) {
 }
 
 func (crane *Crane) leftfinger(stack *mat.Stack) {
-	stack.TranslateV(crane.posLeftFinger).Multiply()
-	stack.RotateY(crane.angFingerOpen).Multiply()
+	stack.TranslateV(crane.posLeftFinger)
+	stack.RotateY(crane.angFingerOpen)
 	stack.Safe(func(stack *mat.Stack) {
-		stack.Translate(0, 0, crane.lenFinger/2).Multiply()
-		stack.Scale(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2).Multiply()
+		stack.Translate(0, 0, crane.lenFinger/2)
+		stack.Scale(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2)
 		crane.put(stack)
 	})
 	stack.Safe(func(stack *mat.Stack) {
-		stack.Translate(0, 0, crane.lenFinger).Multiply()
-		stack.RotateY(-crane.angLowerFinger).Multiply()
+		stack.Translate(0, 0, crane.lenFinger)
+		stack.RotateY(-crane.angLowerFinger)
 		stack.Safe(func(stack *mat.Stack) {
-			stack.Translate(0, 0, crane.lenFinger/2).Multiply()
-			stack.Scale(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2).Multiply()
+			stack.Translate(0, 0, crane.lenFinger/2)
+			stack.Scale(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2)
 			crane.put(stack)
 		})
 	})
 }
 
 func (crane *Crane) rightfinger(stack *mat.Stack) {
-	stack.TranslateV(crane.posRightFinger).Multiply()
-	stack.RotateY(-crane.angFingerOpen).Multiply()
+	stack.TranslateV(crane.posRightFinger)
+	stack.RotateY(-crane.angFingerOpen)
 	stack.Safe(func(stack *mat.Stack) {
-		stack.Translate(0, 0, crane.lenFinger/2).Multiply()
-		stack.Scale(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2).Multiply()
+		stack.Translate(0, 0, crane.lenFinger/2)
+		stack.Scale(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2)
 		crane.put(stack)
 	})
 	stack.Safe(func(stack *mat.Stack) {
-		stack.Translate(0, 0, crane.lenFinger).Multiply()
-		stack.RotateY(crane.angLowerFinger).Multiply()
+		stack.Translate(0, 0, crane.lenFinger)
+		stack.RotateY(crane.angLowerFinger)
 		stack.Safe(func(stack *mat.Stack) {
-			stack.Translate(0, 0, crane.lenFinger/2).Multiply()
-			stack.Scale(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2).Multiply()
+			stack.Translate(0, 0, crane.lenFinger/2)
+			stack.Scale(crane.widthFinger/2, crane.widthFinger/2, crane.lenFinger/2)
 			crane.put(stack)
 		})
 	})

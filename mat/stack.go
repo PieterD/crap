@@ -15,8 +15,9 @@ type stackNode struct {
 }
 
 type Stack struct {
-	angle float32
-	node  *stackNode
+	angle   float32
+	automul bool
+	node    *stackNode
 }
 
 var stackPool = sync.Pool{New: func() interface{} { return new(stackNode) }}
@@ -32,11 +33,25 @@ func (n *stackNode) free() {
 }
 
 func NewStack() *Stack {
-	return &Stack{angle: 1.0}
+	return &Stack{angle: 1.0, automul: true}
 }
 
-func (s *Stack) Deg() {
-	s.angle = 3.14159 * 2 / 360
+func (s *Stack) AngleDeg() *Stack {
+	return s.AngleFactor(3.14159 * 2 / 360)
+}
+
+func (s *Stack) AngleRad() *Stack {
+	return s.AngleFactor(1.0)
+}
+
+func (s *Stack) AngleFactor(a float32) *Stack {
+	s.angle = a
+	return s
+}
+
+func (s *Stack) AutoMultiply(mul bool) *Stack {
+	s.automul = mul
+	return s
 }
 
 func (s *Stack) Ident() {
@@ -92,41 +107,54 @@ func (s *Stack) Multiply() *Stack {
 
 func (s *Stack) Safe(f func(*Stack)) {
 	n := newStackNode(s.Peek())
-	ns := &Stack{node: n, angle: s.angle}
+	ns := &Stack{node: n, angle: s.angle, automul: s.automul}
 	f(ns)
 }
 
 func (s *Stack) Translate(x, y, z float32) *Stack {
 	s.Push(mgl32.Translate3D(x, y, z))
+	if s.automul {
+		s.Multiply()
+	}
 	return s
 }
 
 func (s *Stack) TranslateV(v mgl32.Vec3) *Stack {
-	s.Translate(v[0], v[1], v[2])
-	return s
+	return s.Translate(v[0], v[1], v[2])
 }
 
 func (s *Stack) Scale(x, y, z float32) *Stack {
 	s.Push(mgl32.Scale3D(x, y, z))
+	if s.automul {
+		s.Multiply()
+	}
 	return s
 }
 
 func (s *Stack) ScaleV(v mgl32.Vec3) *Stack {
-	s.Scale(v[0], v[1], v[2])
-	return s
+	return s.Scale(v[0], v[1], v[2])
 }
 
 func (s *Stack) RotateX(a float32) *Stack {
 	s.Push(mgl32.HomogRotate3DX(a * s.angle))
+	if s.automul {
+		s.Multiply()
+	}
 	return s
 }
 
 func (s *Stack) RotateY(a float32) *Stack {
 	s.Push(mgl32.HomogRotate3DY(a * s.angle))
+	if s.automul {
+		s.Multiply()
+	}
 	return s
 }
 
 func (s *Stack) RotateZ(a float32) *Stack {
 	s.Push(mgl32.HomogRotate3DZ(a * s.angle))
+	if s.automul {
+		s.Multiply()
+	}
 	return s
 }
