@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/PieterD/glimmer/gli"
 	"github.com/PieterD/glimmer/mat"
 	"github.com/go-gl/glfw/v3.1/glfw"
@@ -191,11 +189,6 @@ func (crane *Crane) put(stack *mat.Stack) {
 	gli.Draw(p.program, p.vao, rectObject)
 }
 
-func translate(v mgl32.Vec3) mgl32.Mat4 {
-	x, y, z := v.Elem()
-	return mgl32.Translate3D(x, y, z)
-}
-
 func (p *Profile) EventRune(w *glfw.Window, char rune) {
 	switch char {
 	case 'a':
@@ -223,5 +216,4 @@ func (p *Profile) EventRune(w *glfw.Window, char rune) {
 	case 'e':
 		p.crane.adjustFingerOpen(-1)
 	}
-	fmt.Printf("base %f\nupper %f\nlower %f\nwpitch %f\nwroll %f\nfinger %f\n\n", p.crane.angBase, p.crane.angUpperArm, p.crane.angLowerArm, p.crane.angWristPitch, p.crane.angWristRoll, p.crane.angFingerOpen)
 }
