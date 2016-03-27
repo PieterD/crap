@@ -55,9 +55,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	p.modelToWorldMatrix = uniforms.ByName("modelToWorldMatrix")
 	id := mgl32.Ident4()
 	p.modelToWorldMatrix.Float(id[:]...)
-
-	blocks := p.program.UniformBlocks()
-	p.globalMatrices = blocks.ByName("GlobalMatrices")
+	p.globalMatrices = uniforms.Block("GlobalMatrices")
 	return gli.GetError()
 }
 
