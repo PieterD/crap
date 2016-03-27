@@ -17,6 +17,7 @@ type Program interface {
 	GetActiveUniformIV(param UniformParameter, index uint32) int32
 	Attributes() AttributeCollection
 	Uniforms() UniformCollection
+	UniformBlocks() UniformBlockCollection
 }
 
 func (context iContext) CreateProgram(shaders ...Shader) (Program, error) {

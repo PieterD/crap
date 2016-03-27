@@ -2,18 +2,24 @@ package gli
 
 import "github.com/go-gl/gl/v3.3-core/gl"
 
+const (
+	INVALID_INDEX uint32 = gl.INVALID_INDEX
+)
+
 type ProgramParameter uint32
 
 const (
-	PROGRAM_DELETE_STATUS       ProgramParameter = gl.DELETE_STATUS
-	LINK_STATUS                 ProgramParameter = gl.LINK_STATUS
-	VALIDATE_STATUS             ProgramParameter = gl.VALIDATE_STATUS
-	PROGRAM_INFO_LOG_LENGTH     ProgramParameter = gl.INFO_LOG_LENGTH
-	ATTACHED_SHADERS            ProgramParameter = gl.ATTACHED_SHADERS
-	ACTIVE_ATTRIBUTES           ProgramParameter = gl.ACTIVE_ATTRIBUTES
-	ACTIVE_ATTRIBUTE_MAX_LENGTH ProgramParameter = gl.ACTIVE_ATTRIBUTE_MAX_LENGTH
-	ACTIVE_UNIFORMS             ProgramParameter = gl.ACTIVE_UNIFORMS
-	ACTIVE_UNIFORM_MAX_LENGTH   ProgramParameter = gl.ACTIVE_UNIFORM_MAX_LENGTH
+	PROGRAM_DELETE_STATUS                ProgramParameter = gl.DELETE_STATUS
+	LINK_STATUS                          ProgramParameter = gl.LINK_STATUS
+	VALIDATE_STATUS                      ProgramParameter = gl.VALIDATE_STATUS
+	PROGRAM_INFO_LOG_LENGTH              ProgramParameter = gl.INFO_LOG_LENGTH
+	ATTACHED_SHADERS                     ProgramParameter = gl.ATTACHED_SHADERS
+	ACTIVE_ATTRIBUTES                    ProgramParameter = gl.ACTIVE_ATTRIBUTES
+	ACTIVE_ATTRIBUTE_MAX_LENGTH          ProgramParameter = gl.ACTIVE_ATTRIBUTE_MAX_LENGTH
+	ACTIVE_UNIFORMS                      ProgramParameter = gl.ACTIVE_UNIFORMS
+	ACTIVE_UNIFORM_MAX_LENGTH            ProgramParameter = gl.ACTIVE_UNIFORM_MAX_LENGTH
+	ACTIVE_UNIFORM_BLOCKS                ProgramParameter = gl.ACTIVE_UNIFORM_BLOCKS
+	ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH ProgramParameter = gl.ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH
 )
 
 type UniformParameter uint32
