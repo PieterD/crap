@@ -11,6 +11,7 @@ import (
 type Buffer interface {
 	Id() uint32
 	Delete()
+	Allocate(size int) Buffer
 	DataSlice(iface interface{}) Buffer
 	SubSlice(iface interface{}, offset int) Buffer
 	Hints() (BufferAccessTypeHint, BufferTarget)
@@ -46,6 +47,13 @@ func (buffer iBuffer) Delete() {
 
 func (buffer iBuffer) Hints() (BufferAccessTypeHint, BufferTarget) {
 	return buffer.accesshint, buffer.targethint
+}
+
+func (buffer iBuffer) Allocate(size int) Buffer {
+	BindBuffer(buffer.targethint, buffer)
+	gl.BufferData(uint32(buffer.targethint), size, nil, uint32(buffer.accesshint))
+	UnbindBuffer(buffer.targethint)
+	return buffer
 }
 
 func (buffer iBuffer) DataSlice(iface interface{}) Buffer {

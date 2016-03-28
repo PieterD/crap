@@ -30,6 +30,7 @@ type UniformBlock struct {
 	Name     string
 	Index    uint32
 	Uniforms []ProgramBlockUniform
+	Size     uint32
 }
 
 type ProgramBlockUniform struct {
@@ -173,6 +174,8 @@ func (program iProgram) uniformBlocks() []UniformBlock {
 		if location == INVALID_INDEX {
 			continue
 		}
+		var size int32
+		gl.GetActiveUniformBlockiv(program.id, location, gl.UNIFORM_BLOCK_DATA_SIZE, &size)
 		name := string(namebytes)
 		index := uint32(location)
 		// binding := uint32(i)
@@ -181,6 +184,7 @@ func (program iProgram) uniformBlocks() []UniformBlock {
 			Program: program,
 			Name:    name,
 			Index:   index,
+			Size:    uint32(size),
 		})
 	}
 	sort.Sort(sortableBlocks(list))
