@@ -18,8 +18,8 @@ type Profile struct {
 	ibuffer  gli.Buffer
 	vao      gli.VertexArrayObject
 
-	modelToCameraMatrix gli.ProgramUniform
-	cameraToClipMatrix  gli.ProgramUniform
+	modelToCameraMatrix gli.Uniform
+	cameraToClipMatrix  gli.Uniform
 
 	crane *Crane
 }

@@ -20,7 +20,7 @@ type Profile struct {
 	ibuffer  gli.Buffer
 	vao      gli.VertexArrayObject
 
-	modelToWorldMatrix gli.ProgramUniform
+	modelToWorldMatrix gli.Uniform
 	globalMatrices     gli.UniformBlock
 }
 

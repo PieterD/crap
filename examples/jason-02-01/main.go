@@ -18,7 +18,7 @@ type Profile struct {
 	buffer   gli.Buffer
 	vao      gli.VertexArrayObject
 
-	uniHeight gli.ProgramUniform
+	uniHeight gli.Uniform
 }
 
 func (p *Profile) PostCreation(w *glfw.Window) (err error) {

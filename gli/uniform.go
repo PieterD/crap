@@ -7,17 +7,24 @@ import (
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
-type UniformCollection struct {
+type UniformCollection interface {
+	List() []Uniform
+	ByIndex(index uint32) Uniform
+	ByName(name string) Uniform
+	Block(name string) UniformBlock
+}
+
+type iUniformCollection struct {
 	program     Program
 	byName      map[string]int
 	byIndex     map[uint32]int
 	blockByName map[string]int
-	list        []ProgramUniform
+	list        []Uniform
 	blocks      []UniformBlock
-	members     []ProgramBlockUniform
+	members     []UniformBlockMember
 }
 
-type ProgramUniform struct {
+type Uniform struct {
 	Program Program
 	Name    string
 	Index   uint32
@@ -29,11 +36,11 @@ type UniformBlock struct {
 	Program  Program
 	Name     string
 	Index    uint32
-	Uniforms []ProgramBlockUniform
+	Uniforms []UniformBlockMember
 	Size     uint32
 }
 
-type ProgramBlockUniform struct {
+type UniformBlockMember struct {
 	Program  Program
 	Name     string
 	Type     DataType
@@ -48,7 +55,7 @@ type ProgramBlockUniform struct {
 func (program iProgram) Uniforms() UniformCollection {
 	list, members := program.uniforms()
 	blocks := program.uniformBlocks()
-	coll := UniformCollection{
+	coll := iUniformCollection{
 		program: program,
 		list:    list,
 		blocks:  blocks,
@@ -90,10 +97,10 @@ func (program iProgram) getActiveUniform(index uint32, buf []byte) (name []byte,
 	return buf[:length : length+1], DataType(idatatype), int(isize)
 }
 
-func (program iProgram) uniforms() ([]ProgramUniform, []ProgramBlockUniform) {
+func (program iProgram) uniforms() ([]Uniform, []UniformBlockMember) {
 	max := uint32(program.GetIV(ACTIVE_UNIFORMS))
-	list := make([]ProgramUniform, 0, max)
-	members := make([]ProgramBlockUniform, 0, max)
+	list := make([]Uniform, 0, max)
+	members := make([]UniformBlockMember, 0, max)
 
 	buf := make([]byte, program.GetIV(ACTIVE_UNIFORM_MAX_LENGTH))
 	for i := uint32(0); i < max; i++ {
@@ -101,7 +108,7 @@ func (program iProgram) uniforms() ([]ProgramUniform, []ProgramBlockUniform) {
 		location := gl.GetUniformLocation(program.id, &namebytes[0])
 		name := string(namebytes)
 		if location >= 0 {
-			list = append(list, ProgramUniform{
+			list = append(list, Uniform{
 				Program: program,
 				Name:    name,
 				Index:   uint32(location),
@@ -118,7 +125,7 @@ func (program iProgram) uniforms() ([]ProgramUniform, []ProgramBlockUniform) {
 			gl.GetActiveUniformsiv(program.id, 1, &i, gl.UNIFORM_ARRAY_STRIDE, &astride)
 			gl.GetActiveUniformsiv(program.id, 1, &i, gl.UNIFORM_MATRIX_STRIDE, &mstride)
 			gl.GetActiveUniformsiv(program.id, 1, &i, gl.UNIFORM_IS_ROW_MAJOR, &rowmaj)
-			members = append(members, ProgramBlockUniform{
+			members = append(members, UniformBlockMember{
 				Program:  program,
 				Name:     name,
 				Type:     DataType(datatype),
@@ -136,7 +143,7 @@ func (program iProgram) uniforms() ([]ProgramUniform, []ProgramBlockUniform) {
 	return list, members
 }
 
-type sortableMembers []ProgramBlockUniform
+type sortableMembers []UniformBlockMember
 
 func (s sortableMembers) Len() int {
 	return len(s)
@@ -205,27 +212,27 @@ func (s sortableBlocks) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-func (coll UniformCollection) List() []ProgramUniform {
+func (coll iUniformCollection) List() []Uniform {
 	return coll.list
 }
 
-func (coll UniformCollection) ByIndex(index uint32) ProgramUniform {
+func (coll iUniformCollection) ByIndex(index uint32) Uniform {
 	i, ok := coll.byIndex[index]
 	if ok {
 		return coll.list[i]
 	}
-	return ProgramUniform{}
+	return Uniform{}
 }
 
-func (coll UniformCollection) ByName(name string) ProgramUniform {
+func (coll iUniformCollection) ByName(name string) Uniform {
 	i, ok := coll.byName[name]
 	if ok {
 		return coll.list[i]
 	}
-	return ProgramUniform{}
+	return Uniform{}
 }
 
-func (coll UniformCollection) Block(name string) UniformBlock {
+func (coll iUniformCollection) Block(name string) UniformBlock {
 	i, ok := coll.blockByName[name]
 	if ok {
 		return coll.blocks[i]
@@ -233,11 +240,11 @@ func (coll UniformCollection) Block(name string) UniformBlock {
 	return UniformBlock{}
 }
 
-func (uni ProgramUniform) Valid() bool {
+func (uni Uniform) Valid() bool {
 	return uni.Size > 0
 }
 
-func (uni ProgramUniform) Float(v ...float32) {
+func (uni Uniform) Float(v ...float32) {
 	if !uni.Valid() {
 		panic(fmt.Errorf("ProgramUniform.Float: invalid uniform %#v", uni))
 	}

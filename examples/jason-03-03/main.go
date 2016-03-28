@@ -17,7 +17,7 @@ type Profile struct {
 	buffer   gli.Buffer
 	vao      gli.VertexArrayObject
 
-	time gli.ProgramUniform
+	time gli.Uniform
 }
 
 func (p *Profile) PostCreation(w *glfw.Window) (err error) {
