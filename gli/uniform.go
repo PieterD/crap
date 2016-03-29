@@ -281,6 +281,19 @@ func (uni Uniform) Float(v ...float32) {
 	}
 }
 
+func (uni Uniform) Sampler(v int32) {
+	if !uni.Valid() {
+		panic(fmt.Errorf("ProgramUniform.Int32: invalid uniform %#v", uni))
+	}
+	// TODO: Add the rest
+	switch uni.Type {
+	case GlSampler1dShadow, GlSampler2dShadow, GlSampler1dArrayShadow, GlSampler2dArrayShadow, GlSampler2dRectShadow, GlSamplerCubeShadow, GlSampler1d, GlSampler2d, GlSampler3d, GlSamplerCube, GlSampler2dArray, GlSampler2dMultisample, GlSampler2dMultisampleArray, GlSampler2dRect:
+		gl.ProgramUniform1iv(uni.Program.Id(), int32(uni.Index), 1, &v)
+	default:
+		panic(fmt.Errorf("ProgramUniform.Sampler: invalid type %v", uni.Type))
+	}
+}
+
 func (b UniformBlock) Valid() bool {
 	return len(b.Uniforms) > 0
 }
