@@ -2,11 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image"
-	"image/draw"
-	"image/png"
-	"os"
-	"unsafe"
 
 	"github.com/PieterD/glimmer/gli"
 	. "github.com/PieterD/glimmer/pan"
@@ -24,43 +19,20 @@ type Profile struct {
 	vao      gli.VertexArrayObject
 }
 
-func OpenImage(path string) (ptr unsafe.Pointer, width int32, height int32, err error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, 0, 0, err
-	}
-	defer f.Close()
-	img, err := png.Decode(f)
-	if err != nil {
-		return nil, 0, 0, err
-	}
-	rgba := image.NewRGBA(img.Bounds())
-	if rgba.Stride != rgba.Rect.Size().X*4 {
-		return nil, 0, 0, fmt.Errorf("Unsupported stride from RGBA image")
-	}
-	draw.Draw(rgba, rgba.Bounds(), img, image.Point{0, 0}, draw.Src)
-	return gl.Ptr(rgba.Pix), int32(rgba.Rect.Size().X), int32(rgba.Rect.Size().Y), nil
-}
-
 func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	defer Recover(&err)
 	glfw.SwapInterval(1)
 	gli.ClearColor(0, 0, 0, 0)
 
-	// Open image
-	tp, tw, th, err := OpenImage("./orange.png")
-	Panicf(err, "Error opening image orange.png: %v", err)
+	// Load texture
+	td, err := gli.TextureFromFile("orange.png")
+	Panicf(err, "Failed to load image orange.png: %v", err)
 
 	// Set up texture
-	var texture uint32
-	gl.GenTextures(1, &texture)
-	gl.ActiveTexture(gl.TEXTURE0) // Set texture unit 0
-	gl.BindTexture(gl.TEXTURE_2D, texture)
-	// gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-	// gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-	// gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-	// gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, tw, th, 0, gl.RGBA, gl.UNSIGNED_BYTE, tp)
+	texture := gli.CreateTexture(gli.Texture2d)
+	gli.ActiveTexture(0)
+	gli.BindTexture(texture)
+	texture.Data(td)
 
 	// Set up sampler
 	var sampler uint32

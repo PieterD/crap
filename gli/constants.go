@@ -274,3 +274,19 @@ const (
 	DepthGreater      DepthFunc = gl.GREATER
 	DepthAlways       DepthFunc = gl.ALWAYS
 )
+
+type TextureTarget uint32
+
+const (
+	Texture1d                 TextureTarget = gl.TEXTURE_1D
+	Texture2d                 TextureTarget = gl.TEXTURE_2D
+	Texture3d                 TextureTarget = gl.TEXTURE_3D
+	Texture1dArray            TextureTarget = gl.TEXTURE_1D_ARRAY
+	Texture2dArray            TextureTarget = gl.TEXTURE_2D_ARRAY
+	TextureRectangle          TextureTarget = gl.TEXTURE_RECTANGLE
+	TextureCubeMap            TextureTarget = gl.TEXTURE_CUBE_MAP
+	TextureCubeMapArray       TextureTarget = gl.TEXTURE_CUBE_MAP_ARRAY
+	Texture2dMultisample      TextureTarget = gl.TEXTURE_2D_MULTISAMPLE
+	Texture2dMultisampleArray TextureTarget = gl.TEXTURE_2D_MULTISAMPLE_ARRAY
+	TextureBufferTarget       TextureTarget = gl.TEXTURE_BUFFER
+)

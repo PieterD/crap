@@ -20,12 +20,15 @@ type Context interface {
 	CreateProgram(shaders ...Shader) (Program, error)
 	CreateVertexArrayObject() VertexArrayObject
 	CreateBuffer(accesshint BufferAccessTypeHint, targethint BufferTarget) Buffer
+	CreateTexture(target TextureTarget) Texture
 	BindProgram(program Program)
 	UnbindProgram()
 	BindVertexArrayObject(vao VertexArrayObject)
 	UnbindVertexArrayObject()
 	BindBuffer(target BufferTarget, buffer Buffer)
 	UnbindBuffer(target BufferTarget)
+	BindTexture(texture Texture)
+	ActiveTexture(i uint32)
 	Draw(program Program, vao VertexArrayObject, object Object)
 	ClearColor(r, g, b, a float32)
 	ClearDepth(d float32)
@@ -55,6 +58,9 @@ func CreateVertexArrayObject() VertexArrayObject {
 func CreateBuffer(accesshint BufferAccessTypeHint, targethint BufferTarget) Buffer {
 	return Current.CreateBuffer(accesshint, targethint)
 }
+func CreateTexture(target TextureTarget) Texture {
+	return Current.CreateTexture(target)
+}
 func BindProgram(program Program) {
 	Current.BindProgram(program)
 }
@@ -72,6 +78,12 @@ func BindBuffer(target BufferTarget, buffer Buffer) {
 }
 func UnbindBuffer(target BufferTarget) {
 	Current.UnbindBuffer(target)
+}
+func BindTexture(texture Texture) {
+	Current.BindTexture(texture)
+}
+func ActiveTexture(i uint32) {
+	Current.ActiveTexture(i)
 }
 func ClearColor(r, g, b, a float32) {
 	Current.ClearColor(r, g, b, a)
