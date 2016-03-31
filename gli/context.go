@@ -21,6 +21,7 @@ type Context interface {
 	CreateVertexArrayObject() VertexArrayObject
 	CreateBuffer(accesshint BufferAccessTypeHint, targethint BufferTarget) Buffer
 	CreateTexture(target TextureTarget) Texture
+	CreateSampler() Sampler
 	BindProgram(program Program)
 	UnbindProgram()
 	BindVertexArrayObject(vao VertexArrayObject)
@@ -28,6 +29,8 @@ type Context interface {
 	BindBuffer(target BufferTarget, buffer Buffer)
 	UnbindBuffer(target BufferTarget)
 	BindTexture(texture Texture)
+	BindSampler(sampler Sampler, textureunit uint32)
+	UnbindSampler(textureunit uint32)
 	ActiveTexture(i uint32)
 	Draw(program Program, vao VertexArrayObject, object Object)
 	ClearColor(r, g, b, a float32)
@@ -61,6 +64,9 @@ func CreateBuffer(accesshint BufferAccessTypeHint, targethint BufferTarget) Buff
 func CreateTexture(target TextureTarget) Texture {
 	return Current.CreateTexture(target)
 }
+func CreateSampler() Sampler {
+	return Current.CreateSampler()
+}
 func BindProgram(program Program) {
 	Current.BindProgram(program)
 }
@@ -81,6 +87,12 @@ func UnbindBuffer(target BufferTarget) {
 }
 func BindTexture(texture Texture) {
 	Current.BindTexture(texture)
+}
+func BindSampler(sampler Sampler, textureunit uint32) {
+	Current.BindSampler(sampler, textureunit)
+}
+func UnbindSampler(textureunit uint32) {
+	Current.UnbindSampler(textureunit)
 }
 func ActiveTexture(i uint32) {
 	Current.ActiveTexture(i)

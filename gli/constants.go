@@ -290,3 +290,38 @@ const (
 	Texture2dMultisampleArray TextureTarget = gl.TEXTURE_2D_MULTISAMPLE_ARRAY
 	TextureBufferTarget       TextureTarget = gl.TEXTURE_BUFFER
 )
+
+type SamplerMinFilter uint32
+
+const (
+	MinNearest              SamplerMinFilter = gl.NEAREST
+	MinLinear               SamplerMinFilter = gl.LINEAR
+	MinNearestMipmapNearest SamplerMinFilter = gl.NEAREST_MIPMAP_NEAREST
+	MinLinearMipmapNearest  SamplerMinFilter = gl.LINEAR_MIPMAP_NEAREST
+	MinNearestMipmapLinear  SamplerMinFilter = gl.NEAREST_MIPMAP_LINEAR
+	MinLinearMipmapLinear   SamplerMinFilter = gl.LINEAR_MIPMAP_LINEAR
+)
+
+type SamplerMagFilter uint32
+
+const (
+	MagNearest SamplerMagFilter = gl.NEAREST
+	MagLinear  SamplerMagFilter = gl.LINEAR
+)
+
+type SamplerCompareMode uint32
+
+const (
+	CompareRefToTexture SamplerCompareMode = gl.COMPARE_REF_TO_TEXTURE
+	CompareNone         SamplerCompareMode = gl.NONE
+)
+
+type SamplerWrapMode uint32
+
+const (
+	ClampToEdge       SamplerWrapMode = gl.CLAMP_TO_EDGE
+	MirroredRepeat    SamplerWrapMode = gl.MIRRORED_REPEAT
+	Repeat            SamplerWrapMode = gl.REPEAT
+	MirrorClampToEdge SamplerWrapMode = gl.MIRROR_CLAMP_TO_EDGE
+	ClampToBorder     SamplerWrapMode = gl.CLAMP_TO_BORDER
+)

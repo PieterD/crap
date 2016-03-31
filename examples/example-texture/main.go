@@ -6,7 +6,6 @@ import (
 	"github.com/PieterD/glimmer/gli"
 	. "github.com/PieterD/glimmer/pan"
 	"github.com/PieterD/glimmer/window"
-	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
@@ -17,6 +16,8 @@ type Profile struct {
 	program  gli.Program
 	buffer   gli.Buffer
 	vao      gli.VertexArrayObject
+	texture  gli.Texture
+	sampler  gli.Sampler
 }
 
 func (p *Profile) PostCreation(w *glfw.Window) (err error) {
@@ -29,19 +30,16 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	Panicf(err, "Failed to load image orange.png: %v", err)
 
 	// Set up texture
-	texture := gli.CreateTexture(gli.Texture2d)
-	gli.ActiveTexture(0)
-	gli.BindTexture(texture)
-	texture.Data(td)
+	p.texture = gli.CreateTexture(gli.Texture2d)
+	gli.ActiveTexture(0) // Make texture unit 0 active
+	gli.BindTexture(p.texture)
+	p.texture.Data(td)
 
 	// Set up sampler
-	var sampler uint32
-	gl.GenSamplers(1, &sampler)
-	gl.BindSampler(0, sampler) // Set sampler to texture unit 0
-	gl.SamplerParameteri(sampler, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-	gl.SamplerParameteri(sampler, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-	gl.SamplerParameteri(sampler, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-	gl.SamplerParameteri(sampler, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+	p.sampler = gli.CreateSampler()
+	gli.BindSampler(p.sampler, 0) // Bind to texture unit 0
+	p.sampler.SetFilter(gli.MinLinear, gli.MagLinear)
+	p.sampler.SetWrap(gli.ClampToEdge, gli.ClampToEdge, gli.Repeat)
 
 	// Set up shaders
 	p.vertex, err = gli.CreateShader(gli.VertexShader, vertexShaderText)
@@ -66,7 +64,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 }
 
 func (p *Profile) End() {
-	gli.SafeDelete(p.program, p.vao, p.fragment, p.vertex, p.buffer)
+	gli.SafeDelete(p.program, p.vao, p.fragment, p.vertex, p.buffer, p.texture, p.sampler)
 }
 
 func (p *Profile) Draw(w *glfw.Window) error {

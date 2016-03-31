@@ -13,6 +13,7 @@ import (
 
 type Texture interface {
 	Id() uint32
+	Delete()
 	Target() TextureTarget
 	Data(data TextureData)
 }
@@ -38,6 +39,10 @@ func (context iContext) BindTexture(texture Texture) {
 
 func (texture iTexture) Id() uint32 {
 	return texture.id
+}
+
+func (texture iTexture) Delete() {
+	gl.DeleteTextures(1, &texture.id)
 }
 
 func (texture iTexture) Target() TextureTarget {
