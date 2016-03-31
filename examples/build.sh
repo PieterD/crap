@@ -2,7 +2,7 @@
 
 cd `dirname $0`
 
-for dir in `ls | grep jason-`; do
+for dir in `ls | egrep 'jason-|ex*-*'`; do
 	echo $dir
 	cd $dir
 	go build
