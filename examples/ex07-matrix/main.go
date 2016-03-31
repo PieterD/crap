@@ -31,7 +31,7 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 	gli.ClearDepth(1)
 	gli.EnableCulling(false, true, true)
 	gli.EnableDepth(gli.DepthLessEqual, true, 0, 1)
-	perspective := gli.PerspectiveMatrix(1.0, 61.0, gli.FrustumScale(45.0), 640, 480)
+	perspective := gli.PerspectiveMatrix(1.0, 45.0, gli.FrustumScale(45.0), 640, 480)
 
 	// Set up shaders
 	p.vertex, err = gli.CreateShader(gli.VertexShader, vertexShaderText)
@@ -64,7 +64,7 @@ func (p *Profile) End() {
 }
 
 func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
-	pm := gli.PerspectiveMatrix(1.0, 61.0, gli.FrustumScale(45.0), width, height)
+	pm := gli.PerspectiveMatrix(1.0, 45.0, gli.FrustumScale(45.0), width, height)
 	p.cameraToClipMatrix.Float(pm[:]...)
 	gli.Viewport(0, 0, int32(width), int32(height))
 }
@@ -72,12 +72,18 @@ func (p *Profile) EventResize(w *glfw.Window, width int, height int) {
 func (p *Profile) Draw(w *glfw.Window) error {
 	gli.Clear(gli.ColorBufferBit, gli.DepthBufferBit)
 	t := glfw.GetTime()
-	for _, f := range []TimeAnim{ScaleNull, ScaleStaticUniform, ScaleStaticNonUniform, ScaleDynamicUniform, ScaleDynamicNonUniform} {
+	for _, f := range animations[current] {
 		offset := f(t)
 		p.modelToCameraMatrix.Float(offset[:]...)
 		gli.Draw(p.program, p.vao, starObject)
 	}
 	return gli.GetError()
+}
+
+func (p *Profile) EventRune(w *glfw.Window, char rune) {
+	if char == ' ' {
+		current = (current + 1) % len(animations)
+	}
 }
 
 func main() {
@@ -89,52 +95,18 @@ func main() {
 
 type TimeAnim func(elapsed float64) mgl32.Mat4
 
+var animations = [][]TimeAnim{
+	AnimateOffset,
+	AnimateScale,
+	AnimateRotate,
+}
+
+var current = 0
+
 func Lerp(elapsed, loop float64) float64 {
 	val := math.Mod(elapsed, loop) / loop
 	if val > 0.5 {
 		val = 1 - val
 	}
 	return val * 2
-}
-
-func ScaleNull(elapsed float64) mgl32.Mat4 {
-	m := mgl32.Scale3D(1, 1, 1)
-	m.SetCol(3, mgl32.Vec4{0, 0, -45, 1})
-	return m
-}
-
-func ScaleStaticUniform(elapsed float64) mgl32.Mat4 {
-	m := mgl32.Scale3D(4, 4, 4)
-	m.SetCol(3, mgl32.Vec4{-10, -10, -45, 1})
-	return m
-}
-
-func ScaleStaticNonUniform(elapsed float64) mgl32.Mat4 {
-	m := mgl32.Scale3D(0.5, 1, 10)
-	m.SetCol(3, mgl32.Vec4{-10, 10, -45, 1})
-	return m
-}
-
-func ScaleDynamicUniform(elapsed float64) mgl32.Mat4 {
-	m := mgl32.Scale3D(
-		Mix(1, 4, Lerp(elapsed, 3)),
-		1,
-		1,
-	)
-	m.SetCol(3, mgl32.Vec4{10, 10, -45, 1})
-	return m
-}
-
-func ScaleDynamicNonUniform(elapsed float64) mgl32.Mat4 {
-	m := mgl32.Scale3D(
-		Mix(1, 0.5, Lerp(elapsed, 3)),
-		1,
-		Mix(1, 10, Lerp(elapsed, 5)),
-	)
-	m.SetCol(3, mgl32.Vec4{10, -10, -45, 1})
-	return m
-}
-
-func Mix(s1, s2, lerp float64) float32 {
-	return float32(s1*lerp + s2*(1-lerp))
 }
