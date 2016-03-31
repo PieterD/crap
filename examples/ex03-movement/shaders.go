@@ -14,7 +14,14 @@ void main() {
 var fragmentShaderText = `
 #version 330
 out vec4 outputColor;
+uniform float fragDuration;
+uniform float time;
+
+const vec4 firstColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+const vec4 secondColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);
 void main() {
-	outputColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	float currTime = mod(time, fragDuration);
+	float currLerp = currTime / fragDuration;
+	outputColor = mix(firstColor, secondColor, currLerp);
 }
 `

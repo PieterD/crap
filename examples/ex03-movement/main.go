@@ -18,7 +18,8 @@ type Profile struct {
 	buffer   gli.Buffer
 	vao      gli.VertexArrayObject
 
-	position gli.ProgramAttribute
+	offset gli.Uniform
+	time   gli.Uniform
 }
 
 func (p *Profile) PostCreation(w *glfw.Window) (err error) {
@@ -36,10 +37,15 @@ func (p *Profile) PostCreation(w *glfw.Window) (err error) {
 
 	// Set up vertex arrays
 	p.vao = gli.CreateVertexArrayObject()
-	p.buffer = gli.CreateBuffer(gli.StreamDraw, gli.ArrayBuffer).DataSlice(vertexData)
+	p.buffer = gli.CreateBuffer(gli.StaticDraw, gli.ArrayBuffer).DataSlice(vertexData)
 	attributes := p.program.Attributes()
-	p.position = attributes.ByName("position")
-	p.vao.Enable(p.position, p.buffer, vertexExtent)
+	p.vao.Enable(attributes.ByName("position"), p.buffer, vertexExtent)
+
+	// Set up uniforms
+	uniforms := p.program.Uniforms()
+	uniforms.ByName("fragDuration").Float(10.0)
+	p.offset = uniforms.ByName("offset")
+	p.time = uniforms.ByName("time")
 
 	return gli.GetError()
 }
@@ -50,6 +56,7 @@ func (p *Profile) End() {
 
 func (p *Profile) Draw(w *glfw.Window) error {
 	p.computePositionOffsets()
+	p.time.Float(float32(glfw.GetTime()))
 	gli.Clear(gli.ColorBufferBit)
 	gli.Draw(p.program, p.vao, triangleObject)
 	return gli.GetError()
@@ -63,13 +70,7 @@ func (p *Profile) computePositionOffsets() {
 	frac *= 5
 	x := float32(math.Cos(frac*scale) * 0.5)
 	y := float32(math.Sin(frac*scale) * 0.5)
-	newvert := make([]float32, len(vertexData))
-	copy(newvert, vertexData)
-	for i := 0; i < len(newvert); i += 4 {
-		newvert[i+0] += x
-		newvert[i+1] += y
-	}
-	p.buffer.SubSlice(newvert, 0)
+	p.offset.Float(x, y)
 }
 
 func main() {
