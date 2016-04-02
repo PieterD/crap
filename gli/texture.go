@@ -65,12 +65,12 @@ type TextureData struct {
 func TextureFromFile(path string) (TextureData, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return TextureData{}, err
+		return TextureData{}, fmt.Errorf("Failed to open texture file '%s': %v", err)
 	}
 	defer f.Close()
 	img, _, err := image.Decode(f)
 	if err != nil {
-		return TextureData{}, err
+		return TextureData{}, fmt.Errorf("Failed to decode image '%s': %v", err)
 	}
 	return TextureFromImage(img)
 }
