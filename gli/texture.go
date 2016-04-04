@@ -3,7 +3,6 @@ package gli
 import (
 	"fmt"
 	"image"
-	"image/draw"
 	_ "image/png"
 	"os"
 	"unsafe"
@@ -72,24 +71,25 @@ func TextureFromFile(path string) (TextureData, error) {
 	if err != nil {
 		return TextureData{}, fmt.Errorf("Failed to decode image '%s': %v", err)
 	}
-	return TextureFromImage(img)
+	return TextureFromImage(img), nil
 }
 
-func TextureFromImage(img image.Image) (TextureData, error) {
-	rgba, ok := img.(*image.RGBA)
-	if !ok || rgba.Stride != rgba.Rect.Size().X*4 {
-		rgba = image.NewRGBA(img.Bounds())
-		draw.Draw(rgba, rgba.Bounds(), img, image.Point{0, 0}, draw.Src)
-	}
-	if rgba.Stride != rgba.Rect.Size().X*4 {
-		return TextureData{}, fmt.Errorf("Unsupported stride from new RGBA image")
+func TextureFromImage(img image.Image) TextureData {
+	width := img.Bounds().Max.X
+	height := img.Bounds().Max.Y
+	slice := make([]byte, 0, width*height*4)
+	for y := height - 1; y >= 0; y-- {
+		for x := 0; x < width; x++ {
+			r, g, b, a := img.At(x, y).RGBA()
+			slice = append(slice, byte(r>>8), byte(g>>8), byte(b>>8), byte(a>>8))
+		}
 	}
 	return TextureData{
-		Width:          uint32(rgba.Rect.Size().X),
-		Height:         uint32(rgba.Rect.Size().Y),
+		Width:          uint32(width),
+		Height:         uint32(height),
 		InternalFormat: gl.RGBA,
 		ExternalFormat: gl.RGBA,
 		Type:           GlUByte,
-		Ptr:            gl.Ptr(rgba.Pix),
-	}, nil
+		Ptr:            gl.Ptr(slice),
+	}
 }

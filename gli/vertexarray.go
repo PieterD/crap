@@ -48,7 +48,14 @@ func (vao iVertexArrayObject) Enable(attr ProgramAttribute, buffer Buffer, exten
 	BindBuffer(ArrayBuffer, buffer)
 	BindVertexArrayObject(vao)
 	gl.EnableVertexAttribArray(uint32(attr.Index))
-	gl.VertexAttribPointer(uint32(attr.Index), int32(extent.Components), uint32(extent.Type), extent.Normalize, int32(extent.Stride), unsafe.Pointer(uintptr(extent.Start)))
+	switch attr.Type {
+	case GlByte, GlUByte, GlShort, GlUShort, GlInt, GlUInt, GlIntV2, GlIntV3, GlIntV4, GlUIntV2, GlUIntV3, GlUIntV4:
+		gl.VertexAttribIPointer(uint32(attr.Index), int32(extent.Components), uint32(extent.Type), int32(extent.Stride), unsafe.Pointer(uintptr(extent.Start)))
+	case GlDouble, GlDoubleV2, GlDoubleV3, GlDoubleV4, GlDoubleMat2, GlDoubleMat2x3, GlDoubleMat2x4, GlDoubleMat3x2, GlDoubleMat4x2, GlDoubleMat4x3, GlDoubleMat4:
+		gl.VertexAttribLPointer(uint32(attr.Index), int32(extent.Components), uint32(extent.Type), int32(extent.Stride), unsafe.Pointer(uintptr(extent.Start)))
+	default:
+		gl.VertexAttribPointer(uint32(attr.Index), int32(extent.Components), uint32(extent.Type), extent.Normalize, int32(extent.Stride), unsafe.Pointer(uintptr(extent.Start)))
+	}
 	UnbindVertexArrayObject()
 	UnbindBuffer(ArrayBuffer)
 }
