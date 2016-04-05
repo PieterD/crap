@@ -2,7 +2,8 @@ package main
 
 var vertexShaderText = `
 #version 330
-layout(location = 0) in vec4 position;
+
+in vec4 position;
 uniform vec2 offset;
 
 void main() {
@@ -13,6 +14,7 @@ void main() {
 
 var fragmentShaderText = `
 #version 330
+
 out vec4 outputColor;
 uniform float fragDuration;
 uniform float time;

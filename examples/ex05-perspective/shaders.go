@@ -2,12 +2,12 @@ package main
 
 var vertexShaderText = `
 #version 330
-layout(location = 0) in vec4 position;
-layout(location = 1) in vec4 color;
+
+in vec4 position;
+in vec4 color;
+smooth out vec4 theColor;
 uniform vec2 offset;
 uniform mat4 perspectiveMatrix;
-
-smooth out vec4 theColor;
 
 void main() {
 	vec4 cameraPos = position + vec4(offset.x, offset.y, 0.0, 0.0);
@@ -18,8 +18,8 @@ void main() {
 
 var fragmentShaderText = `
 #version 330
-smooth in vec4 theColor;
 
+smooth in vec4 theColor;
 out vec4 outputColor;
 
 void main() {
