@@ -281,6 +281,44 @@ func (uni Uniform) Float(v ...float32) {
 	}
 }
 
+func (uni Uniform) Uint(v ...uint32) {
+	if !uni.Valid() {
+		panic(fmt.Errorf("ProgramUniform.Uint: invalid uniform %#v", uni))
+	}
+	num := int32(len(v))
+	switch uni.Type {
+	case GlUInt:
+		gl.ProgramUniform1uiv(uni.Program.Id(), int32(uni.Index), num, &v[0])
+	case GlUIntV2:
+		gl.ProgramUniform2uiv(uni.Program.Id(), int32(uni.Index), num/2, &v[0])
+	case GlUIntV3:
+		gl.ProgramUniform3uiv(uni.Program.Id(), int32(uni.Index), num/3, &v[0])
+	case GlUIntV4:
+		gl.ProgramUniform4uiv(uni.Program.Id(), int32(uni.Index), num/4, &v[0])
+	default:
+		panic(fmt.Errorf("ProgramUniform.Uint: invalid type %v", uni.Type))
+	}
+}
+
+func (uni Uniform) Int(v ...int32) {
+	if !uni.Valid() {
+		panic(fmt.Errorf("ProgramUniform.Int: invalid uniform %#v", uni))
+	}
+	num := int32(len(v))
+	switch uni.Type {
+	case GlUInt:
+		gl.ProgramUniform1iv(uni.Program.Id(), int32(uni.Index), num, &v[0])
+	case GlUIntV2:
+		gl.ProgramUniform2iv(uni.Program.Id(), int32(uni.Index), num/2, &v[0])
+	case GlUIntV3:
+		gl.ProgramUniform3iv(uni.Program.Id(), int32(uni.Index), num/3, &v[0])
+	case GlUIntV4:
+		gl.ProgramUniform4iv(uni.Program.Id(), int32(uni.Index), num/4, &v[0])
+	default:
+		panic(fmt.Errorf("ProgramUniform.Int: invalid type %v", uni.Type))
+	}
+}
+
 func (uni Uniform) Sampler(v int32) {
 	if !uni.Valid() {
 		panic(fmt.Errorf("ProgramUniform.Int32: invalid uniform %#v", uni))
