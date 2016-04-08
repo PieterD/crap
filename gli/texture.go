@@ -84,6 +84,10 @@ func TextureFromImage(img image.Image) TextureData {
 			slice = append(slice, byte(r>>8), byte(g>>8), byte(b>>8), byte(a>>8))
 		}
 	}
+	return TextureFromBytes(slice, width, height)
+}
+
+func TextureFromBytes(slice []byte, width int, height int) TextureData {
 	return TextureData{
 		Width:          uint32(width),
 		Height:         uint32(height),
