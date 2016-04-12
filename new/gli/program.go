@@ -4,6 +4,7 @@ import "fmt"
 
 type DefProgram struct {
 	inputs   []defVar
+	outputs  []defVar
 	uniforms []defVar
 }
 
@@ -61,6 +62,7 @@ func NewProgram(shaderlist ...*DefShader) (*DefProgram, error) {
 	return &DefProgram{
 		inputs:   shaders[0].inputs,
 		uniforms: uniforms,
+		outputs:  shaders[len(shaders)-1].outputs,
 	}, nil
 }
 

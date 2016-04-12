@@ -1,6 +1,12 @@
+// +build generate
+
 package main
 
-import "github.com/PieterD/glimmer/new/gli"
+import (
+	"fmt"
+
+	"github.com/PieterD/glimmer/new/gli"
+)
 
 var myVertexShader = gli.CorrectShader(gli.NewVertexShaderString(`
 in vec4 position;
@@ -25,5 +31,7 @@ void main() {
 
 var myProgram = gli.CorrectProgram(gli.NewProgram(myVertexShader, myFragmentShader))
 
+//go:generate go run myshaders.go
 func main() {
+	fmt.Printf("moo\n")
 }
