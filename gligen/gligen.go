@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/PieterD/glimmer/new/gligen"
+	"github.com/PieterD/glimmer/gligen/internal/gg"
 )
 
 var usage = `
@@ -41,17 +41,17 @@ func main() {
 	}
 }
 
-func getProgram(paths []string) (*gligen.DefProgram, error) {
-	shaders := make([]*gligen.DefShader, 0, len(paths))
+func getProgram(paths []string) (*gg.DefProgram, error) {
+	shaders := make([]*gg.DefShader, 0, len(paths))
 	for _, path := range paths {
-		var shader *gligen.DefShader
+		var shader *gg.DefShader
 		var err error
 		if strings.HasSuffix(path, ".vert") {
-			shader, err = gligen.NewVertexShaderFile(path)
+			shader, err = gg.NewVertexShaderFile(path)
 		} else if strings.HasSuffix(path, ".geom") {
-			shader, err = gligen.NewGeometryShaderFile(path)
+			shader, err = gg.NewGeometryShaderFile(path)
 		} else if strings.HasSuffix(path, ".frag") {
-			shader, err = gligen.NewFragmentShaderFile(path)
+			shader, err = gg.NewFragmentShaderFile(path)
 		} else {
 			err = fmt.Errorf("Unknown extension")
 		}
@@ -60,5 +60,5 @@ func getProgram(paths []string) (*gligen.DefProgram, error) {
 		}
 		shaders = append(shaders, shader)
 	}
-	return gligen.NewProgram(shaders...)
+	return gg.NewProgram(shaders...)
 }

@@ -1,4 +1,4 @@
-package gligen
+package gg
 
 import "fmt"
 

@@ -1,9 +1,9 @@
-package gligen_test
+package gg_test
 
 import (
 	"testing"
 
-	"github.com/PieterD/gligenmmer/new/gligen"
+	"github.com/PieterD/glimmer/gligen/internal/gg"
 )
 
 var shader_vert = gligen.CorrectShader(gligen.NewVertexShaderFile("testfiles/shader.vert"))
@@ -12,29 +12,29 @@ var shader_frag = gligen.CorrectShader(gligen.NewFragmentShaderFile("testfiles/s
 var program = gligen.CorrectProgram(gligen.NewProgram(shader_vert, shader_geom, shader_frag))
 
 func TestShaderString(t *testing.T) {
-	_, err := gligen.NewVertexShaderString("")
+	_, err := gg.NewVertexShaderString("")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	_, err = gligen.NewGeometryShaderString("")
+	_, err = gg.NewGeometryShaderString("")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	_, err = gligen.NewFragmentShaderString("")
+	_, err = gg.NewFragmentShaderString("")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 }
 
 func TestNonexistentShaderFile(t *testing.T) {
-	_, err := gligen.NewVertexShaderFile("testfiles/doesnotexist")
+	_, err := gg.NewVertexShaderFile("testfiles/doesnotexist")
 	if err == nil {
 		t.Fatalf("Expected error, got nothing")
 	}
 }
 
 func TestShaderError(t *testing.T) {
-	shader, err := gligen.NewVertexShaderFile("testfiles/badshader")
+	shader, err := gg.NewVertexShaderFile("testfiles/badshader")
 	if err == nil {
 		t.Fatalf("Expected error, was nil")
 	}
