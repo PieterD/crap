@@ -1,4 +1,4 @@
-package gli
+package gligen
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 )
 
 type DefShader struct {
-	version  int
 	text     string
 	stype    defShaderType
 	inputs   []defVar
