@@ -42,23 +42,29 @@ func (p DefaultProfile) PreCreation() error {
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)
 	return nil
 }
-func (p DefaultProfile) PostCreation(w *glfw.Window) error {
-	glfw.SwapInterval(1)
-	return nil
-}
+
+// func (p DefaultProfile) PostCreation(w *glfw.Window) error {
+// 	glfw.SwapInterval(1)
+// 	return nil
+// }
+
 func (p DefaultProfile) EventFocus(w *glfw.Window, focused bool) {}
-func (p DefaultProfile) EventResize(w *glfw.Window, width int, height int) {
-	gl.Viewport(0, 0, int32(width), int32(height))
-}
+
+// func (p DefaultProfile) EventResize(w *glfw.Window, width int, height int) {
+// 	gl.Viewport(0, 0, int32(width), int32(height))
+// }
+
 func (p DefaultProfile) EventMousePos(w *glfw.Window, x float64, y float64) {}
 func (p DefaultProfile) EventMouseKey(w *glfw.Window, key glfw.MouseButton, act glfw.Action, mod glfw.ModifierKey) {
 }
 func (p DefaultProfile) EventKey(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 }
 func (p DefaultProfile) EventRune(w *glfw.Window, char rune) {}
-func (p DefaultProfile) Draw(w *glfw.Window) error {
-	return nil
-}
+
+// func (p DefaultProfile) Draw(w *glfw.Window) error {
+// 	return nil
+// }
+
 func (p DefaultProfile) Swap(w *glfw.Window) error {
 	w.SwapBuffers()
 	glfw.PollEvents()
