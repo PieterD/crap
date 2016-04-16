@@ -65,6 +65,11 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 		return fmt.Errorf("Failed to create program: %v", err)
 	}
 
+	attributes := p.program.Attributes()
+	position := attributes.ByName("position")
+	dt, as := position.Type()
+	fmt.Printf("%s, %d\n", dt, as)
+
 	return nil
 }
 

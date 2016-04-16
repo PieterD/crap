@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/PieterD/glimmer/convc"
+	"github.com/PieterD/glimmer/raw"
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
@@ -17,7 +18,7 @@ func (_ Raw) Viewport(x, y, width, height int) {
 	gl.Viewport(int32(x), int32(y), int32(width), int32(height))
 }
 
-func (_ Raw) ShaderCreate(iShadertype int) (uint32, error) {
+func (_ Raw) ShaderCreate(iShadertype raw.Enum) (uint32, error) {
 	shadertype := aShaderType.unsigned(iShadertype)
 	id := gl.CreateShader(shadertype)
 	if id == 0 {
@@ -108,4 +109,36 @@ func (_ Raw) ProgramInfoLog(programid uint32, buf []byte) []byte {
 		return buf[:cap(buf)]
 	}
 	return buf[:length]
+}
+
+func (_ Raw) ProgramAttributeNum(programid uint32) int {
+	var pi int32
+	gl.GetProgramiv(programid, gl.ACTIVE_ATTRIBUTES, &pi)
+	return int(pi)
+}
+
+func (_ Raw) ProgramAttributeMaxLength(programid uint32) int {
+	var pi int32
+	gl.GetProgramiv(programid, gl.ACTIVE_ATTRIBUTE_MAX_LENGTH, &pi)
+	return int(pi)
+}
+
+func (_ Raw) ProgramAttribute(programid uint32, index int, buf []byte) (namebytes []byte, datatype raw.Enum, size int) {
+	var length int32
+	var isize int32
+	var idatatype uint32
+	gl.GetActiveAttrib(programid, uint32(index), int32(len(buf)), &length, &isize, &idatatype, &buf[0])
+	dt, ok := aDataType.reverse(int64(idatatype))
+	if !ok {
+		panic(fmt.Errorf("Failed to reverse map gl data type %d", idatatype))
+	}
+	return buf[:length : length+1], dt, int(isize)
+}
+
+func (_ Raw) ProgramAttributeLocation(programid uint32, namebytes []byte) (location int, ok bool) {
+	location = int(gl.GetAttribLocation(programid, &namebytes[0]))
+	if location <= -1 {
+		return -1, false
+	}
+	return location, true
 }

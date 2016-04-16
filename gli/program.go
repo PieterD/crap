@@ -28,3 +28,57 @@ func (ctx *Context) NewProgram(shaders ...*Shader) (*Program, error) {
 		id:  programid,
 	}, nil
 }
+
+type ProgramAttributeCollection struct {
+	program *Program
+	byName  map[string]int
+	list    []*ProgramAttribute
+}
+
+type ProgramAttribute struct {
+	program   *Program
+	name      string
+	location  int
+	datatype  iDataType
+	arraysize int
+}
+
+func (program *Program) Attributes() *ProgramAttributeCollection {
+	max := program.ctx.r.ProgramAttributeNum(program.id)
+	byname := make(map[string]int, max)
+	attributes := make([]*ProgramAttribute, 0, max)
+	buf := make([]byte, program.ctx.r.ProgramAttributeMaxLength(program.id))
+	for i := 0; i < max; i++ {
+		namebytes, datatype, size := program.ctx.r.ProgramAttribute(program.id, i, buf)
+		location, ok := program.ctx.r.ProgramAttributeLocation(program.id, namebytes)
+		if !ok {
+			continue
+		}
+		name := string(namebytes)
+		byname[name] = len(attributes)
+		attributes = append(attributes, &ProgramAttribute{
+			program:   program,
+			name:      name,
+			location:  location,
+			datatype:  iDataType{datatype},
+			arraysize: size,
+		})
+	}
+	return &ProgramAttributeCollection{
+		program: program,
+		list:    attributes,
+		byName:  byname,
+	}
+}
+
+func (coll *ProgramAttributeCollection) ByName(name string) *ProgramAttribute {
+	i, ok := coll.byName[name]
+	if ok {
+		return coll.list[i]
+	}
+	return nil
+}
+
+func (attr *ProgramAttribute) Type() (datatype iDataType, arraysize int) {
+	return attr.datatype, attr.arraysize
+}

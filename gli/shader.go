@@ -1,26 +1,12 @@
 package gli
 
-import (
-	"fmt"
-
-	"github.com/PieterD/glimmer/raw"
-)
+import "fmt"
 
 type Shader struct {
 	ctx *Context
 	id  uint32
 	typ iShaderType
 }
-
-type iShaderType struct {
-	t int
-}
-
-var (
-	VertexShader   = iShaderType{raw.ShaderTypeVertex}
-	GeometryShader = iShaderType{raw.ShaderTypeGeometry}
-	FragmentShader = iShaderType{raw.ShaderTypeFragment}
-)
 
 func (ctx *Context) NewShader(typ iShaderType, sources ...string) (*Shader, error) {
 	shaderid, err := ctx.r.ShaderCreate(typ.t)
