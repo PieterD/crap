@@ -27,3 +27,7 @@ func (ctx *Context) Init() error {
 func (ctx *Context) Viewport(x, y, width, height int) {
 	ctx.r.Viewport(x, y, width, height)
 }
+
+func (ctx *Context) ClearColor(r, g, b, a float32) {
+	ctx.r.ClearColor(r, g, b, a)
+}

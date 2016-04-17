@@ -48,6 +48,7 @@ const (
 type Raw interface {
 	Init() error
 	Viewport(x, y, width, height int)
+	ClearColor(r, g, b, a float32)
 
 	ShaderCreate(iShadertype Enum) (shaderid uint32, err error)
 	ShaderDelete(shaderid uint32)
@@ -64,8 +65,14 @@ type Raw interface {
 	ProgramLinkStatus(programid uint32) bool
 	ProgramInfoLogLength(programid uint32) int
 	ProgramInfoLog(programid uint32, buf []byte) []byte
+
 	ProgramAttributeNum(programid uint32) int
 	ProgramAttributeMaxLength(programid uint32) int
 	ProgramAttribute(programid uint32, index int, buf []byte) (namebytes []byte, datatype Enum, size int)
 	ProgramAttributeLocation(programid uint32, namebytes []byte) (location int, ok bool)
+
+	ProgramUniformNum(programid uint32) int
+	ProgramUniformMaxLength(programid uint32) int
+	ProgramUniform(programid uint32, index int, buf []byte) (namebytes []byte, datatype Enum, size int)
+	ProgramUniformLocation(programid uint32, namebytes []byte) (location int, ok bool)
 }

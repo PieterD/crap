@@ -82,3 +82,57 @@ func (coll *ProgramAttributeCollection) ByName(name string) *ProgramAttribute {
 func (attr *ProgramAttribute) Type() (datatype iDataType, arraysize int) {
 	return attr.datatype, attr.arraysize
 }
+
+type ProgramUniformCollection struct {
+	program *Program
+	byName  map[string]int
+	list    []*ProgramUniform
+}
+
+type ProgramUniform struct {
+	program   *Program
+	name      string
+	location  int
+	datatype  iDataType
+	arraysize int
+}
+
+func (program *Program) Uniforms() *ProgramUniformCollection {
+	max := program.ctx.r.ProgramUniformNum(program.id)
+	byname := make(map[string]int, max)
+	uniforms := make([]*ProgramUniform, 0, max)
+	buf := make([]byte, program.ctx.r.ProgramUniformMaxLength(program.id))
+	for i := 0; i < max; i++ {
+		namebytes, datatype, arraysize := program.ctx.r.ProgramUniform(program.id, i, buf)
+		location, ok := program.ctx.r.ProgramUniformLocation(program.id, namebytes)
+		if !ok {
+			continue
+		}
+		name := string(namebytes)
+		byname[name] = len(uniforms)
+		uniforms = append(uniforms, &ProgramUniform{
+			program:   program,
+			name:      name,
+			location:  location,
+			datatype:  iDataType{datatype},
+			arraysize: arraysize,
+		})
+	}
+	return &ProgramUniformCollection{
+		program: program,
+		list:    uniforms,
+		byName:  byname,
+	}
+}
+
+func (coll *ProgramUniformCollection) ByName(name string) *ProgramUniform {
+	i, ok := coll.byName[name]
+	if ok {
+		return coll.list[i]
+	}
+	return nil
+}
+
+func (attr *ProgramUniform) Type() (datatype iDataType, arraysize int) {
+	return attr.datatype, attr.arraysize
+}

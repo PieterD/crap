@@ -18,6 +18,10 @@ func (_ Raw) Viewport(x, y, width, height int) {
 	gl.Viewport(int32(x), int32(y), int32(width), int32(height))
 }
 
+func (_ Raw) ClearColor(r, g, b, a float32) {
+	gl.ClearColor(r, g, b, a)
+}
+
 func (_ Raw) ShaderCreate(iShadertype raw.Enum) (uint32, error) {
 	shadertype := aShaderType.unsigned(iShadertype)
 	id := gl.CreateShader(shadertype)
@@ -137,6 +141,38 @@ func (_ Raw) ProgramAttribute(programid uint32, index int, buf []byte) (namebyte
 
 func (_ Raw) ProgramAttributeLocation(programid uint32, namebytes []byte) (location int, ok bool) {
 	location = int(gl.GetAttribLocation(programid, &namebytes[0]))
+	if location <= -1 {
+		return -1, false
+	}
+	return location, true
+}
+
+func (_ Raw) ProgramUniformNum(programid uint32) int {
+	var pi int32
+	gl.GetProgramiv(programid, gl.ACTIVE_UNIFORMS, &pi)
+	return int(pi)
+}
+
+func (_ Raw) ProgramUniformMaxLength(programid uint32) int {
+	var pi int32
+	gl.GetProgramiv(programid, gl.ACTIVE_UNIFORM_MAX_LENGTH, &pi)
+	return int(pi)
+}
+
+func (_ Raw) ProgramUniform(programid uint32, index int, buf []byte) (namebytes []byte, datatype raw.Enum, size int) {
+	var length int32
+	var isize int32
+	var idatatype uint32
+	gl.GetActiveUniform(programid, uint32(index), int32(len(buf)), &length, &isize, &idatatype, &buf[0])
+	dt, ok := aDataType.reverse(int64(idatatype))
+	if !ok {
+		panic(fmt.Errorf("Failed to reverse map gl data type %d", idatatype))
+	}
+	return buf[:length : length+1], dt, int(isize)
+}
+
+func (_ Raw) ProgramUniformLocation(programid uint32, namebytes []byte) (location int, ok bool) {
+	location = int(gl.GetUniformLocation(programid, &namebytes[0]))
 	if location <= -1 {
 		return -1, false
 	}

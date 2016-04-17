@@ -36,9 +36,10 @@ var fragmentShaderText = `
 
 smooth in vec4 theColor;
 out vec4 outputColor;
+uniform float colorshift;
 
 void main() {
-	outputColor = theColor;
+	outputColor = theColor * colorshift;
 }
 `
 
@@ -49,6 +50,7 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 	if err != nil {
 		return fmt.Errorf("Failed to initialize context: %v", err)
 	}
+	p.ctx.ClearColor(0, 0, 0, 0)
 
 	p.vshader, err = p.ctx.NewShader(gli.VertexShader, vertexShaderText)
 	if err != nil {
@@ -68,7 +70,12 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 	attributes := p.program.Attributes()
 	position := attributes.ByName("position")
 	dt, as := position.Type()
-	fmt.Printf("%s, %d\n", dt, as)
+	fmt.Printf("position: %s, %d\n", dt, as)
+
+	uniforms := p.program.Uniforms()
+	colorshift := uniforms.ByName("colorshift")
+	dt, as = colorshift.Type()
+	fmt.Printf("colorshift: %s, %d\n", dt, as)
 
 	return nil
 }
