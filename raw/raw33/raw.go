@@ -178,3 +178,20 @@ func (_ Raw) ProgramUniformLocation(programid uint32, namebytes []byte) (locatio
 	}
 	return location, true
 }
+
+func (_ Raw) ArrayBufferCreate() (id uint32) {
+	gl.GenBuffers(1, &id)
+	return id
+}
+
+func (_ Raw) ArrayBufferDelete(bufferid uint32) {
+	gl.DeleteBuffers(1, &bufferid)
+}
+
+func (_ Raw) ArrayBufferBind(bufferid uint32) {
+	gl.BindBuffer(gl.ARRAY_BUFFER, bufferid)
+}
+
+func (_ Raw) ArrayBufferUnbind() {
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+}

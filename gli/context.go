@@ -6,6 +6,10 @@ import (
 	"github.com/PieterD/glimmer/raw"
 )
 
+type Deletable interface {
+	Delete()
+}
+
 type Context struct {
 	r raw.Raw
 }
@@ -30,4 +34,13 @@ func (ctx *Context) Viewport(x, y, width, height int) {
 
 func (ctx *Context) ClearColor(r, g, b, a float32) {
 	ctx.r.ClearColor(r, g, b, a)
+}
+
+func (ctx *Context) SafeDelete(deletables ...Deletable) {
+	for _, deletable := range deletables {
+		//TODO: Does this work, or do I need to unpack the interface to get at the inner nil?
+		if deletable != nil {
+			deletable.Delete()
+		}
+	}
 }

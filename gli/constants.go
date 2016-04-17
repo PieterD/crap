@@ -24,6 +24,22 @@ func (t iShaderType) String() string {
 	return "Unknown Shader"
 }
 
+type iAccessType struct {
+	t raw.Enum
+}
+
+var (
+	StaticDraw  = iShaderType{raw.AccessTypeStaticDraw}
+	StaticRead  = iShaderType{raw.AccessTypeStaticRead}
+	StaticCopy  = iShaderType{raw.AccessTypeStaticCopy}
+	StreamDraw  = iShaderType{raw.AccessTypeStreamDraw}
+	StreamRead  = iShaderType{raw.AccessTypeStreamRead}
+	StreamCopy  = iShaderType{raw.AccessTypeStreamCopy}
+	DynamicDraw = iShaderType{raw.AccessTypeDynamicDraw}
+	DynamicRead = iShaderType{raw.AccessTypeDynamicRead}
+	DynamicCopy = iShaderType{raw.AccessTypeDynamicCopy}
+)
+
 type iDataType struct {
 	t raw.Enum
 }

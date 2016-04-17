@@ -13,6 +13,7 @@ import (
 type Profile struct {
 	window.DefaultProfile
 	ctx     *gli.Context
+	buffer  *gli.ArrayBuffer
 	vshader *gli.Shader
 	fshader *gli.Shader
 	program *gli.Program
@@ -67,6 +68,8 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 		return fmt.Errorf("Failed to create program: %v", err)
 	}
 
+	p.buffer = p.ctx.NewArrayBuffer()
+
 	attributes := p.program.Attributes()
 	position := attributes.ByName("position")
 	dt, as := position.Type()
@@ -78,6 +81,10 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 	fmt.Printf("colorshift: %s, %d\n", dt, as)
 
 	return nil
+}
+
+func (p *Profile) End() {
+	p.ctx.SafeDelete(p.buffer, p.vshader, p.fshader, p.program)
 }
 
 func (p *Profile) EventResize(w *glfw.Window, width int, height int) {

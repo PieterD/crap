@@ -29,6 +29,10 @@ func (ctx *Context) NewProgram(shaders ...*Shader) (*Program, error) {
 	}, nil
 }
 
+func (program *Program) Delete() {
+	program.ctx.r.ProgramDelete(program.id)
+}
+
 type ProgramAttributeCollection struct {
 	program *Program
 	byName  map[string]int
