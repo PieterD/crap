@@ -26,9 +26,9 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 	if err != nil {
 		return fmt.Errorf("Failed to initialize context: %v", err)
 	}
-	p.ctx.VertexAttribute(gli.Float, "moo")
-	p.ctx.VertexAttribute(gli.Float4, "Position", "position")
-	p.ctx.VertexAttribute(gli.Float3, "Color", "color")
+	p.ctx.VertexAttribute(gli.Float.Full(), "moo")
+	p.ctx.VertexAttribute(gli.Float4.Full(), "Position", "position")
+	p.ctx.VertexAttribute(gli.Float3.Full(), "Color", "color")
 
 	p.ctx.ClearColor(0, 0, 0, 0)
 

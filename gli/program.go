@@ -12,14 +12,14 @@ func (ctx *Context) NewProgram(shaders ...*Shader) (*Program, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Program creation error: %v", err)
 	}
-	for _, shader := range shaders {
-		ctx.r.ProgramAttachShader(programid, shader.id)
-	}
 	var buf []byte
 	for name, attr := range ctx.attributeIndexMap {
 		buf = append(buf[:0], name...)
 		buf = append(buf, 0)
 		ctx.r.ProgramAttributeLocationBind(programid, attr.index, buf)
+	}
+	for _, shader := range shaders {
+		ctx.r.ProgramAttachShader(programid, shader.id)
 	}
 	ctx.r.ProgramLink(programid)
 	if !ctx.r.ProgramLinkStatus(programid) {

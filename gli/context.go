@@ -19,7 +19,7 @@ type Context struct {
 
 type attributeIndexType struct {
 	index int
-	typ   iDataType
+	typ   FullType
 }
 
 func New(r raw.Raw) *Context {
@@ -54,23 +54,53 @@ func (ctx *Context) SafeDelete(deletables ...Deletable) {
 	}
 }
 
-func (ctx *Context) VertexAttribute(datatype iDataType, names ...string) {
+func (ctx *Context) VertexAttribute(fulltype FullType, names ...string) {
 	if len(names) == 0 {
 		return
 	}
-	if !datatype.ValidAttribute() {
-		panic(fmt.Errorf("Invalid vertex attribute type: %s", datatype.String()))
+	if !fulltype.DataType.ValidAttribute() {
+		panic(fmt.Errorf("Invalid vertex attribute type: %s", fulltype.String()))
 	}
 	index := ctx.attributeIndexCounter
 	for _, name := range names {
 		_, ok := ctx.attributeIndexMap[name]
 		if ok {
-			panic(fmt.Errorf("Set the same attribute more than once: %s %s", datatype.String(), name))
+			panic(fmt.Errorf("Set the same attribute more than once: %s %s", fulltype.String(), name))
 		}
 		ctx.attributeIndexMap[name] = attributeIndexType{
 			index: index,
-			typ:   datatype,
+			typ:   fulltype,
 		}
 	}
-	ctx.attributeIndexCounter++
+	ctx.attributeIndexCounter += calculateLocationSize(fulltype)
+}
+
+func calculateLocationSize(fulltype FullType) int {
+	var size int
+	switch fulltype.DataType {
+	case Float, Float2, Float3, Float4:
+		size = 1
+	case FloatMat2, FloatMat2x3, FloatMat2x4:
+		size = 2
+	case FloatMat3, FloatMat3x2, FloatMat3x4:
+		size = 3
+	case FloatMat4, FloatMat4x2, FloatMat4x3:
+		size = 4
+	case Int, Int2, Int3, Int4, UInt, UInt2, UInt3, UInt4:
+		size = 1
+	case Double, Double2, Double3, Double4:
+		size = 1
+	case DoubleMat2, DoubleMat2x3, DoubleMat2x4:
+		size = 2
+	case DoubleMat3, DoubleMat3x2, DoubleMat3x4:
+		size = 3
+	case DoubleMat4, DoubleMat4x2, DoubleMat4x3:
+		size = 4
+	default:
+		panic(fmt.Errorf("Invalid attribute type when calculating size: %s", fulltype.String()))
+	}
+	if fulltype.ArraySize > 0 {
+		size *= int(fulltype.ArraySize)
+	}
+	return size
 }

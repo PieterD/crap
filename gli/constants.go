@@ -1,6 +1,10 @@
 package gli
 
-import "github.com/PieterD/glimmer/raw"
+import (
+	"fmt"
+
+	"github.com/PieterD/glimmer/raw"
+)
 
 type iShaderType struct {
 	t raw.Enum
@@ -377,4 +381,27 @@ func (t iDataType) String() string {
 
 	}
 	return "Unknown DataType"
+}
+
+func (typ iDataType) Full() FullType {
+	return FullType{DataType: typ, ArraySize: -1}
+}
+
+func (typ iDataType) Array(size uint) FullType {
+	return FullType{DataType: typ, ArraySize: int(size)}
+}
+
+type FullType struct {
+	DataType  iDataType
+	ArraySize int
+}
+
+func (ft FullType) String() string {
+	if ft.ArraySize <= -1 {
+		return ft.DataType.String()
+	}
+	if ft.ArraySize == 0 {
+		return ft.DataType.String() + "[]"
+	}
+	return fmt.Sprintf("%s[%d]", ft.DataType.String(), ft.ArraySize)
 }
