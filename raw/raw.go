@@ -25,6 +25,7 @@ type Raw interface {
 	ProgramAttributeMaxLength(programid uint32) int
 	ProgramAttribute(programid uint32, index int, buf []byte) (namebytes []byte, datatype Enum, size int)
 	ProgramAttributeLocation(programid uint32, namebytes []byte) (location int, ok bool)
+	ProgramAttributeLocationBind(programid uint32, index int, namebytes []byte)
 
 	ProgramUniformNum(programid uint32) int
 	ProgramUniformMaxLength(programid uint32) int

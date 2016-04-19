@@ -19,31 +19,6 @@ type Profile struct {
 	program *gli.Program
 }
 
-var vertexShaderText = `
-#version 330
-
-in vec4 position;
-in vec4 color;
-smooth out vec4 theColor;
-
-void main() {
-	gl_Position = position;
-	theColor = color;
-}
-`
-
-var fragmentShaderText = `
-#version 330
-
-smooth in vec4 theColor;
-out vec4 outputColor;
-uniform float colorshift;
-
-void main() {
-	outputColor = theColor * colorshift;
-}
-`
-
 func (p *Profile) PostCreation(w *glfw.Window) error {
 	glfw.SwapInterval(1)
 	p.ctx = gli.New(raw33.Raw{})
@@ -51,6 +26,10 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 	if err != nil {
 		return fmt.Errorf("Failed to initialize context: %v", err)
 	}
+	p.ctx.VertexAttribute(gli.Float, "moo")
+	p.ctx.VertexAttribute(gli.Float4, "Position", "position")
+	p.ctx.VertexAttribute(gli.Float3, "Color", "color")
+
 	p.ctx.ClearColor(0, 0, 0, 0)
 
 	p.vshader, err = p.ctx.NewShader(gli.VertexShader, vertexShaderText)
@@ -71,9 +50,12 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 	p.buffer = p.ctx.NewArrayBuffer()
 
 	attributes := p.program.Attributes()
-	position := attributes.ByName("position")
+	position := attributes.ByName("Position")
 	dt, as := position.Type()
-	fmt.Printf("position: %s, %d\n", dt, as)
+	fmt.Printf("position: %s, %d  %#v\n", dt, as, position)
+	color := attributes.ByName("Color")
+	dt, as = color.Type()
+	fmt.Printf("color: %s, %d  %#v\n", dt, as, color)
 
 	uniforms := p.program.Uniforms()
 	colorshift := uniforms.ByName("colorshift")
@@ -84,7 +66,7 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 }
 
 func (p *Profile) End() {
-	p.ctx.SafeDelete(p.buffer, p.vshader, p.fshader, p.program)
+	// p.ctx.SafeDelete(p.buffer, p.vshader, p.fshader, p.program)
 }
 
 func (p *Profile) EventResize(w *glfw.Window, width int, height int) {

@@ -12,11 +12,20 @@ type Deletable interface {
 
 type Context struct {
 	r raw.Raw
+
+	attributeIndexCounter int
+	attributeIndexMap     map[string]attributeIndexType
+}
+
+type attributeIndexType struct {
+	index int
+	typ   iDataType
 }
 
 func New(r raw.Raw) *Context {
 	return &Context{
-		r: r,
+		r:                 r,
+		attributeIndexMap: make(map[string]attributeIndexType),
 	}
 }
 
@@ -43,4 +52,25 @@ func (ctx *Context) SafeDelete(deletables ...Deletable) {
 			deletable.Delete()
 		}
 	}
+}
+
+func (ctx *Context) VertexAttribute(datatype iDataType, names ...string) {
+	if len(names) == 0 {
+		return
+	}
+	if !datatype.ValidAttribute() {
+		panic(fmt.Errorf("Invalid vertex attribute type: %s", datatype.String()))
+	}
+	index := ctx.attributeIndexCounter
+	for _, name := range names {
+		_, ok := ctx.attributeIndexMap[name]
+		if ok {
+			panic(fmt.Errorf("Set the same attribute more than once: %s %s", datatype.String(), name))
+		}
+		ctx.attributeIndexMap[name] = attributeIndexType{
+			index: index,
+			typ:   datatype,
+		}
+	}
+	ctx.attributeIndexCounter++
 }

@@ -82,6 +82,10 @@ var (
 	DoubleMat4x3 = iDataType{raw.DataTypeDoubleMat4x3}
 )
 
+func (dt iDataType) ValidAttribute() bool {
+	return dt.t < raw.DataTypeAttributeLimit
+}
+
 // Valid only for uniforms
 var (
 	Bool                          = iDataType{raw.DataTypeBool}

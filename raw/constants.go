@@ -20,6 +20,11 @@ const (
 	AccessTypeDynamicCopy
 )
 
+// Some data types are allowed only for uniforms, others for both uniforms
+// and attributes. Data types less than DataTypeAttributeLimit are okay for both,
+// but data types greater than it are suitable only for uniforms.
+var DataTypeAttributeLimit = DataTypeBool
+
 const (
 	DataTypeFloat Enum = iota + 1
 	DataTypeFloatVec2

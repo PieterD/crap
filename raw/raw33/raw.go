@@ -147,6 +147,10 @@ func (_ Raw) ProgramAttributeLocation(programid uint32, namebytes []byte) (locat
 	return location, true
 }
 
+func (_ Raw) ProgramAttributeLocationBind(programid uint32, index int, namebytes []byte) {
+	gl.BindAttribLocation(programid, uint32(index), &namebytes[0])
+}
+
 func (_ Raw) ProgramUniformNum(programid uint32) int {
 	var pi int32
 	gl.GetProgramiv(programid, gl.ACTIVE_UNIFORMS, &pi)
