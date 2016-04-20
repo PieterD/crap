@@ -2,6 +2,7 @@ package raw33
 
 import (
 	"fmt"
+	"unsafe"
 
 	"github.com/PieterD/glimmer/convc"
 	"github.com/PieterD/glimmer/raw"
@@ -196,6 +197,28 @@ func (_ Raw) ArrayBufferBind(bufferid uint32) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, bufferid)
 }
 
+func (_ Raw) ArrayBufferData(bufferid uint32, bytes int, ptr unsafe.Pointer, accesstype raw.Enum) {
+	gl.BufferData(bufferid, bytes, ptr, uint32(accesstype))
+}
+
+func (_ Raw) ArrayBufferSubData(bufferid uint32, offset int, bytes int, ptr unsafe.Pointer) {
+	gl.BufferSubData(bufferid, offset, bytes, ptr)
+}
+
 func (_ Raw) ArrayBufferUnbind() {
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+}
+
+func (_ Raw) VertexArrayCreate() (vaoid uint32) {
+	var id uint32
+	gl.GenVertexArrays(1, &id)
+	return id
+}
+
+func (_ Raw) VertexArrayDelete(vaoid uint32) {
+	gl.DeleteVertexArrays(1, &vaoid)
+}
+
+func (_ Raw) VertexArrayBind(vaoid uint32) {
+	gl.BindVertexArray(vaoid)
 }

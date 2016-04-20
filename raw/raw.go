@@ -1,5 +1,7 @@
 package raw
 
+import "unsafe"
+
 type Raw interface {
 	Init() error
 	Viewport(x, y, width, height int)
@@ -35,5 +37,11 @@ type Raw interface {
 	ArrayBufferCreate() (bufferid uint32)
 	ArrayBufferDelete(bufferid uint32)
 	ArrayBufferBind(bufferid uint32)
+	ArrayBufferData(bufferid uint32, bytenum int, ptr unsafe.Pointer, accesstype Enum)
+	ArrayBufferSubData(bufferid uint32, offset int, bytes int, ptr unsafe.Pointer)
 	ArrayBufferUnbind()
+
+	VertexArrayCreate() (vaoid uint32)
+	VertexArrayDelete(vaoid uint32)
+	VertexArrayBind(vaoid uint32)
 }

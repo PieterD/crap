@@ -3,8 +3,9 @@ package gli
 import "fmt"
 
 type Program struct {
-	ctx *Context
-	id  uint32
+	ctx  *Context
+	id   uint32
+	attr *programAttributeCollection
 }
 
 func (ctx *Context) NewProgram(shaders ...*Shader) (*Program, error) {
@@ -29,23 +30,25 @@ func (ctx *Context) NewProgram(shaders ...*Shader) (*Program, error) {
 		ctx.r.ProgramDelete(programid)
 		return nil, fmt.Errorf("Program link error: %s", log)
 	}
-	return &Program{
+	prog := &Program{
 		ctx: ctx,
 		id:  programid,
-	}, nil
+	}
+	prog.attributes()
+	return prog, nil
 }
 
 func (program *Program) Delete() {
 	program.ctx.r.ProgramDelete(program.id)
 }
 
-type ProgramAttributeCollection struct {
+type programAttributeCollection struct {
 	program *Program
-	byName  map[string]int
-	list    []*ProgramAttribute
+	nameMap map[string]int
+	list    []*programAttribute
 }
 
-type ProgramAttribute struct {
+type programAttribute struct {
 	program   *Program
 	name      string
 	location  int
@@ -53,10 +56,10 @@ type ProgramAttribute struct {
 	arraysize int
 }
 
-func (program *Program) Attributes() *ProgramAttributeCollection {
+func (program *Program) attributes() {
 	max := program.ctx.r.ProgramAttributeNum(program.id)
-	byname := make(map[string]int, max)
-	attributes := make([]*ProgramAttribute, 0, max)
+	nameMap := make(map[string]int, max)
+	attributes := make([]*programAttribute, 0, max)
 	buf := make([]byte, program.ctx.r.ProgramAttributeMaxLength(program.id))
 	for i := 0; i < max; i++ {
 		namebytes, datatype, size := program.ctx.r.ProgramAttribute(program.id, i, buf)
@@ -65,8 +68,8 @@ func (program *Program) Attributes() *ProgramAttributeCollection {
 			continue
 		}
 		name := string(namebytes)
-		byname[name] = len(attributes)
-		attributes = append(attributes, &ProgramAttribute{
+		nameMap[name] = len(attributes)
+		attributes = append(attributes, &programAttribute{
 			program:   program,
 			name:      name,
 			location:  location,
@@ -74,22 +77,22 @@ func (program *Program) Attributes() *ProgramAttributeCollection {
 			arraysize: size,
 		})
 	}
-	return &ProgramAttributeCollection{
+	program.attr = &programAttributeCollection{
 		program: program,
 		list:    attributes,
-		byName:  byname,
+		nameMap: nameMap,
 	}
 }
 
-func (coll *ProgramAttributeCollection) ByName(name string) *ProgramAttribute {
-	i, ok := coll.byName[name]
+func (coll *programAttributeCollection) byName(name string) *programAttribute {
+	i, ok := coll.nameMap[name]
 	if ok {
 		return coll.list[i]
 	}
 	return nil
 }
 
-func (attr *ProgramAttribute) Type() (datatype iDataType, arraysize int) {
+func (attr *programAttribute) typ() (datatype iDataType, arraysize int) {
 	return attr.datatype, attr.arraysize
 }
 

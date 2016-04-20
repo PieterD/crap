@@ -13,6 +13,9 @@ type Deletable interface {
 type Context struct {
 	r raw.Raw
 
+	currentArrayBuffer *ArrayBuffer
+	currentVertexArray *VertexArray
+
 	attributeIndexCounter int
 	attributeIndexMap     map[string]attributeIndexType
 }

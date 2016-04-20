@@ -26,7 +26,6 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 	if err != nil {
 		return fmt.Errorf("Failed to initialize context: %v", err)
 	}
-	p.ctx.VertexAttribute(gli.Float.Full(), "moo")
 	p.ctx.VertexAttribute(gli.Float4.Full(), "Position", "position")
 	p.ctx.VertexAttribute(gli.Float3.Full(), "Color", "color")
 
@@ -48,18 +47,11 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 	}
 
 	p.buffer = p.ctx.NewArrayBuffer()
-
-	attributes := p.program.Attributes()
-	position := attributes.ByName("Position")
-	dt, as := position.Type()
-	fmt.Printf("position: %s, %d  %#v\n", dt, as, position)
-	color := attributes.ByName("Color")
-	dt, as = color.Type()
-	fmt.Printf("color: %s, %d  %#v\n", dt, as, color)
+	p.buffer.DataFloat(gli.StaticDraw, vertexData)
 
 	uniforms := p.program.Uniforms()
 	colorshift := uniforms.ByName("colorshift")
-	dt, as = colorshift.Type()
+	dt, as := colorshift.Type()
 	fmt.Printf("colorshift: %s, %d\n", dt, as)
 
 	return nil

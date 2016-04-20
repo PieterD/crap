@@ -33,15 +33,15 @@ type iAccessType struct {
 }
 
 var (
-	StaticDraw  = iShaderType{raw.AccessTypeStaticDraw}
-	StaticRead  = iShaderType{raw.AccessTypeStaticRead}
-	StaticCopy  = iShaderType{raw.AccessTypeStaticCopy}
-	StreamDraw  = iShaderType{raw.AccessTypeStreamDraw}
-	StreamRead  = iShaderType{raw.AccessTypeStreamRead}
-	StreamCopy  = iShaderType{raw.AccessTypeStreamCopy}
-	DynamicDraw = iShaderType{raw.AccessTypeDynamicDraw}
-	DynamicRead = iShaderType{raw.AccessTypeDynamicRead}
-	DynamicCopy = iShaderType{raw.AccessTypeDynamicCopy}
+	StaticDraw  = iAccessType{raw.AccessTypeStaticDraw}
+	StaticRead  = iAccessType{raw.AccessTypeStaticRead}
+	StaticCopy  = iAccessType{raw.AccessTypeStaticCopy}
+	StreamDraw  = iAccessType{raw.AccessTypeStreamDraw}
+	StreamRead  = iAccessType{raw.AccessTypeStreamRead}
+	StreamCopy  = iAccessType{raw.AccessTypeStreamCopy}
+	DynamicDraw = iAccessType{raw.AccessTypeDynamicDraw}
+	DynamicRead = iAccessType{raw.AccessTypeDynamicRead}
+	DynamicCopy = iAccessType{raw.AccessTypeDynamicCopy}
 )
 
 type iDataType struct {
