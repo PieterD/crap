@@ -222,3 +222,11 @@ func (_ Raw) VertexArrayDelete(vaoid uint32) {
 func (_ Raw) VertexArrayBind(vaoid uint32) {
 	gl.BindVertexArray(vaoid)
 }
+
+func (_ Raw) VertexArrayEnable(idx int) {
+	gl.EnableVertexAttribArray(uint32(idx))
+}
+
+func (_ Raw) VertexArrayDisable(idx int) {
+	gl.DisableVertexAttribArray(uint32(idx))
+}

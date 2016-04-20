@@ -44,4 +44,6 @@ type Raw interface {
 	VertexArrayCreate() (vaoid uint32)
 	VertexArrayDelete(vaoid uint32)
 	VertexArrayBind(vaoid uint32)
+	VertexArrayEnable(idx int)
+	VertexArrayDisable(idx int)
 }
