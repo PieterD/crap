@@ -44,6 +44,104 @@ var (
 	DynamicCopy = iAccessType{raw.AccessTypeDynamicCopy}
 )
 
+func (t iAccessType) String() string {
+	switch t {
+	case StaticDraw:
+		return "StaticDraw"
+	case StaticRead:
+		return "StaticRead"
+	case StaticCopy:
+		return "StaticCopy"
+	case StreamDraw:
+		return "StreamDraw"
+	case StreamRead:
+		return "StreamRead"
+	case StreamCopy:
+		return "StreamCopy"
+	case DynamicDraw:
+		return "DynamicDraw"
+	case DynamicRead:
+		return "DynamicRead"
+	case DynamicCopy:
+		return "DynamicCopy"
+	}
+	return "Unknown AccessType"
+}
+
+type iDataFormat struct {
+	t raw.Enum
+}
+
+var (
+	FmByte                = iDataFormat{raw.DataFormatByte}
+	FmUByte               = iDataFormat{raw.DataFormatUnsignedByte}
+	FmShort               = iDataFormat{raw.DataFormatShort}
+	FmUShort              = iDataFormat{raw.DataFormatUnsignedShort}
+	FmInt                 = iDataFormat{raw.DataFormatInt}
+	FmUInt                = iDataFormat{raw.DataFormatUnsignedInt}
+	FmHalfFloat           = iDataFormat{raw.DataFormatHalfFloat}
+	FmFloat               = iDataFormat{raw.DataFormatFloat}
+	FmDouble              = iDataFormat{raw.DataFormatDouble}
+	FmFixed               = iDataFormat{raw.DataFormatFixed}
+	FmIntRev_2_10_10_10   = iDataFormat{raw.DataFormatIntRev_2_10_10_10}
+	FmUIntRev_2_10_10_10  = iDataFormat{raw.DataFormatUnsignedIntRev_2_10_10_10}
+	FmUIntRev_10F_11F_11F = iDataFormat{raw.DataFormatUnsignedIntRev_10F_11F_11F}
+)
+
+func (t iDataFormat) String() string {
+	switch t {
+	case FmByte:
+		return "FmByte"
+	case FmUByte:
+		return "FmUByte"
+	case FmShort:
+		return "FmShort"
+	case FmUShort:
+		return "FmUShort"
+	case FmInt:
+		return "FmInt"
+	case FmUInt:
+		return "FmUInt"
+	case FmHalfFloat:
+		return "FmHalfFloat"
+	case FmFloat:
+		return "FmFloat"
+	case FmDouble:
+		return "FmDouble"
+	case FmFixed:
+		return "FmFixed"
+	case FmIntRev_2_10_10_10:
+		return "FmIntRev_2_10_10_10"
+	case FmUIntRev_2_10_10_10:
+		return "FmUIntRev_2_10_10_10"
+	case FmUIntRev_10F_11F_11F:
+		return "FmUIntRev_10F_11F_11F"
+	}
+	return "Unknown DataFormat"
+}
+
+type iIndexType struct {
+	t raw.Enum
+}
+
+var (
+	IndexByte  = iIndexType{raw.IndexFormatByte}
+	IndexShort = iIndexType{raw.IndexFormatShort}
+	IndexInt   = iIndexType{raw.IndexFormatInt}
+)
+
+func (t iIndexType) String() string {
+	switch t {
+	case IndexByte:
+		return "IndexByte"
+	case IndexShort:
+		return "IndexShort"
+	case IndexInt:
+		return "IndexInt"
+	}
+	return "Unknown IndexType"
+}
+
 type iDataType struct {
 	t raw.Enum
 }

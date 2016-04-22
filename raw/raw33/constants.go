@@ -59,6 +59,30 @@ var aAccessType = glEnumList{
 	gl.DYNAMIC_COPY,
 }
 
+var aDataFormat = glEnumList{
+	0,
+	gl.BYTE,
+	gl.UNSIGNED_BYTE,
+	gl.SHORT,
+	gl.UNSIGNED_SHORT,
+	gl.INT,
+	gl.UNSIGNED_INT,
+	gl.HALF_FLOAT,
+	gl.FLOAT,
+	gl.DOUBLE,
+	gl.FIXED,
+	gl.INT_2_10_10_10_REV,
+	gl.UNSIGNED_INT_2_10_10_10_REV,
+	gl.UNSIGNED_INT_10F_11F_11F_REV,
+}
+
+var aIndexFormat = glEnumList{
+	0,
+	gl.UNSIGNED_BYTE,
+	gl.UNSIGNED_SHORT,
+	gl.UNSIGNED_INT,
+}
+
 var aDataType = glEnumList{
 	0,
 	gl.FLOAT,

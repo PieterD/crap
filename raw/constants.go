@@ -20,6 +20,28 @@ const (
 	AccessTypeDynamicCopy
 )
 
+const (
+	DataFormatByte Enum = iota + 1
+	DataFormatUnsignedByte
+	DataFormatShort
+	DataFormatUnsignedShort
+	DataFormatInt
+	DataFormatUnsignedInt
+	DataFormatHalfFloat
+	DataFormatFloat
+	DataFormatDouble
+	DataFormatFixed
+	DataFormatIntRev_2_10_10_10
+	DataFormatUnsignedIntRev_2_10_10_10
+	DataFormatUnsignedIntRev_10F_11F_11F
+)
+
+const (
+	IndexFormatByte Enum = iota + 1
+	IndexFormatShort
+	IndexFormatInt
+)
+
 // Some data types are allowed only for uniforms, others for both uniforms
 // and attributes. Data types less than DataTypeAttributeLimit are okay for both,
 // but data types greater than it are suitable only for uniforms.
