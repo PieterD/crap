@@ -6,9 +6,50 @@ import (
 	"reflect"
 )
 
+func defaultFormat(typ reflect.Type) (FullFormat, error) {
+	var length int = 1
+	etyp := typ
+	if typ.Kind() == reflect.Array {
+		length = typ.Len()
+		if length <= 0 {
+			return FullFormat{}, fmt.Errorf("MeshBuilder: array length %d is too short: %v", length, typ)
+		}
+		if length > 4 {
+			return FullFormat{}, fmt.Errorf("MeshBuilder: array length %d is too long: %v", length, typ)
+		}
+		etyp = etyp.Elem()
+	}
+	df, ok := defaultBasicFormat(etyp)
+	if !ok {
+		return FullFormat{}, fmt.Errorf("MeshBuilder: Invalid field type %v", typ)
+	}
+	return df.Full(length), nil
+}
+
+func defaultBasicFormat(typ reflect.Type) (iDataFormat, bool) {
+	switch typ.Kind() {
+	case reflect.Float32, reflect.Float64:
+		return FmFloat, true
+	case reflect.Int8:
+		return FmByte, true
+	case reflect.Int16:
+		return FmShort, true
+	case reflect.Int32:
+		return FmInt, true
+	case reflect.Uint8:
+		return FmUByte, true
+	case reflect.Uint16:
+		return FmUShort, true
+	case reflect.Uint32:
+		return FmUInt, true
+	default:
+		return iDataFormat{}, false
+	}
+}
+
 type meshConverter func(v reflect.Value, b []byte) []byte
 
-func fieldConvert(typ reflect.Type, idx []int, format iDataFormat) (meshConverter, error) {
+func fieldConvert(typ reflect.Type, idx []int, format FullFormat) (meshConverter, error) {
 	conv, err := dataConvert(typ, format)
 	if err != nil {
 		return nil, err
@@ -19,7 +60,7 @@ func fieldConvert(typ reflect.Type, idx []int, format iDataFormat) (meshConverte
 	}, nil
 }
 
-func dataConvert(typ reflect.Type, format iDataFormat) (meshConverter, error) {
+func dataConvert(typ reflect.Type, format FullFormat) (meshConverter, error) {
 	switch typ.Kind() {
 	case reflect.Float32, reflect.Float64:
 		return convertFloat(typ, format, true)
@@ -42,8 +83,8 @@ func dataConvert(typ reflect.Type, format iDataFormat) (meshConverter, error) {
 	}
 }
 
-func convertFloat(typ reflect.Type, format iDataFormat, clear bool) (meshConverter, error) {
-	switch format {
+func convertFloat(typ reflect.Type, format FullFormat, clear bool) (meshConverter, error) {
+	switch format.DataFormat {
 	case FmHalfFloat:
 		return func(v reflect.Value, b []byte) []byte {
 			bits := float2half(float32(v.Float()))
@@ -70,8 +111,8 @@ func convertFloat(typ reflect.Type, format iDataFormat, clear bool) (meshConvert
 	}
 }
 
-func convertInt(typ reflect.Type, size int, format iDataFormat, clear bool) (meshConverter, error) {
-	switch format {
+func convertInt(typ reflect.Type, size int, format FullFormat, clear bool) (meshConverter, error) {
+	switch format.DataFormat {
 	case FmByte:
 		if size > 1 {
 			return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: Format too small", format, typ)
@@ -95,8 +136,8 @@ func convertInt(typ reflect.Type, size int, format iDataFormat, clear bool) (mes
 	}
 }
 
-func convertUint(typ reflect.Type, size int, format iDataFormat, clear bool) (meshConverter, error) {
-	switch format {
+func convertUint(typ reflect.Type, size int, format FullFormat, clear bool) (meshConverter, error) {
+	switch format.DataFormat {
 	case FmUByte:
 		if size > 1 {
 			return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: Format too small", format, typ)
@@ -120,7 +161,7 @@ func convertUint(typ reflect.Type, size int, format iDataFormat, clear bool) (me
 	}
 }
 
-func convertArray(typ reflect.Type, format iDataFormat) (meshConverter, error) {
+func convertArray(typ reflect.Type, format FullFormat) (meshConverter, error) {
 	length := typ.Len()
 	if length == 0 {
 		return nil, fmt.Errorf("MeshBuilder: Empty array is not a valid field type for attribute: %v", typ)

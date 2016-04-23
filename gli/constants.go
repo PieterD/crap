@@ -88,6 +88,31 @@ var (
 	FmUIntRev_10F_11F_11F = iDataFormat{raw.DataFormatUnsignedIntRev_10F_11F_11F}
 )
 
+type FullFormat struct {
+	DataFormat iDataFormat
+	Components int
+}
+
+func (f iDataFormat) Full(components int) FullFormat {
+	if components < 1 {
+		components = 1
+	}
+	if components > 4 {
+		components = 4
+	}
+	return FullFormat{
+		DataFormat: f,
+		Components: components,
+	}
+}
+
+func (ff FullFormat) String() string {
+	if ff.Components <= 1 {
+		return ff.DataFormat.String()
+	}
+	return fmt.Sprintf("%s[%d]", ff.DataFormat.String(), ff.Components)
+}
+
 func (t iDataFormat) String() string {
 	switch t {
 	case FmByte:

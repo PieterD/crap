@@ -14,7 +14,7 @@ type meshAttribute struct {
 	name   string
 	buffer int
 	conv   meshConverter
-	format iDataFormat
+	format FullFormat
 }
 
 func (mb *meshBuilder) Build() (*Mesh, error) {
@@ -32,6 +32,13 @@ func (mb *meshBuilder) Build() (*Mesh, error) {
 			}
 			if !attr.ok {
 				return nil, fmt.Errorf("MeshBuilder: Attempted to define attribute '%s' which has no corresponding struct field", name)
+			}
+			if !attr.customformat {
+				format, err := defaultFormat(attr.typ)
+				if err != nil {
+					return nil, err
+				}
+				attr.format = format
 			}
 			attr.added = true
 			mb.attrs[name] = attr
@@ -53,7 +60,7 @@ func (mb *meshBuilder) Build() (*Mesh, error) {
 type meshBuilder struct {
 	typ     reflect.Type
 	fields  map[string]meshBuilderField
-	attrs   map[string]meshBuilderAttribute
+	attrs   map[string]*meshBuilderAttribute
 	buffers [][]string
 }
 
@@ -64,12 +71,13 @@ type meshBuilderField struct {
 }
 
 type meshBuilderAttribute struct {
-	name   string
-	idx    []int
-	typ    reflect.Type
-	format iDataFormat
-	ok     bool
-	added  bool
+	name         string
+	idx          []int
+	typ          reflect.Type
+	format       FullFormat
+	ok           bool
+	added        bool
+	customformat bool
 }
 
 func MeshBuilder(iface interface{}) (*meshBuilder, error) {
@@ -84,7 +92,7 @@ func MeshBuilder(iface interface{}) (*meshBuilder, error) {
 	mb := &meshBuilder{
 		typ:    typ,
 		fields: make(map[string]meshBuilderField),
-		attrs:  make(map[string]meshBuilderAttribute),
+		attrs:  make(map[string]*meshBuilderAttribute),
 	}
 	err := mb.seedFields(typ)
 	if err != nil {
@@ -128,17 +136,21 @@ func (mb *meshBuilder) seedFields(typ reflect.Type) error {
 	return nil
 }
 
-func (mb *meshBuilder) Attribute(name string, format iDataFormat) *meshBuilder {
+func (mb *meshBuilder) Attribute(name string) *meshBuilderAttribute {
 	field, ok := mb.fields[name]
-	attr := meshBuilderAttribute{
-		name:   name,
-		idx:    field.idx,
-		typ:    field.typ,
-		format: format,
-		ok:     ok,
+	attr := &meshBuilderAttribute{
+		name: name,
+		idx:  field.idx,
+		typ:  field.typ,
+		ok:   ok,
 	}
 	mb.attrs[name] = attr
-	return mb
+	return attr
+}
+
+func (attr *meshBuilderAttribute) Format(format FullFormat) {
+	attr.format = format
+	attr.customformat = true
 }
 
 func (mb *meshBuilder) Interleave(names ...string) *meshBuilder {
