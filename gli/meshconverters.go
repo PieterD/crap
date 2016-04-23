@@ -169,6 +169,9 @@ func convertArray(typ reflect.Type, format FullFormat) (meshConverter, error) {
 	if length > 4 {
 		return nil, fmt.Errorf("MeshBuilder: Array greater than size 4 is not a valid field type for attribute: %v", typ)
 	}
+	if length != format.Components {
+		return nil, fmt.Errorf("MeshBuilder: Array length '%d' not equal to type component number '%v'", length, format)
+	}
 	var one meshConverter
 	var err error
 	//TODO: Int and UInt Rev stuff
