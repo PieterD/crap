@@ -106,6 +106,21 @@ func (f iDataFormat) Full(components int) FullFormat {
 	}
 }
 
+func (f iDataFormat) Size() int {
+	switch f {
+	case FmByte, FmUByte:
+		return 1
+	case FmShort, FmUShort, FmHalfFloat:
+		return 2
+	case FmInt, FmUInt, FmFloat, FmFixed, FmIntRev_2_10_10_10, FmUIntRev_2_10_10_10, FmUIntRev_10F_11F_11F:
+		return 4
+	case FmDouble:
+		return 8
+	default:
+		return -1
+	}
+}
+
 func (ff FullFormat) String() string {
 	if ff.Components <= 1 {
 		return ff.DataFormat.String()

@@ -63,19 +63,19 @@ func fieldConvert(typ reflect.Type, idx []int, format FullFormat) (meshConverter
 func dataConvert(typ reflect.Type, format FullFormat) (meshConverter, error) {
 	switch typ.Kind() {
 	case reflect.Float32, reflect.Float64:
-		return convertFloat(typ, format, true)
+		return convertFloat(typ, format)
 	case reflect.Int8:
-		return convertInt(typ, 1, format, true)
+		return convertInt(typ, 1, format)
 	case reflect.Int16:
-		return convertInt(typ, 2, format, true)
+		return convertInt(typ, 2, format)
 	case reflect.Int32:
-		return convertInt(typ, 4, format, true)
+		return convertInt(typ, 4, format)
 	case reflect.Uint8:
-		return convertUint(typ, 1, format, true)
+		return convertUint(typ, 1, format)
 	case reflect.Uint16:
-		return convertUint(typ, 2, format, true)
+		return convertUint(typ, 2, format)
 	case reflect.Uint32:
-		return convertUint(typ, 4, format, true)
+		return convertUint(typ, 4, format)
 	case reflect.Array:
 		return convertArray(typ, format)
 	default:
@@ -83,78 +83,78 @@ func dataConvert(typ reflect.Type, format FullFormat) (meshConverter, error) {
 	}
 }
 
-func convertFloat(typ reflect.Type, format FullFormat, clear bool) (meshConverter, error) {
+func convertFloat(typ reflect.Type, format FullFormat) (meshConverter, error) {
 	switch format.DataFormat {
 	case FmHalfFloat:
 		return func(v reflect.Value, b []byte) []byte {
 			bits := float2half(float32(v.Float()))
-			return toBits2(bits, b, clear)
+			return toBits2(bits, b)
 		}, nil
 	case FmFixed:
 		// https://www.khronos.org/assets/uploads/developers/library/coping_with_fixed_point-Bry.pdf
 		return func(v reflect.Value, b []byte) []byte {
 			bits := uint32(v.Float() * 65536)
-			return toBits4(bits, b, clear)
+			return toBits4(bits, b)
 		}, nil
 	case FmFloat:
 		return func(v reflect.Value, b []byte) []byte {
 			bits := math.Float32bits(float32(v.Float()))
-			return toBits4(bits, b, clear)
+			return toBits4(bits, b)
 		}, nil
 	case FmDouble:
 		return func(v reflect.Value, b []byte) []byte {
 			bits := math.Float64bits(v.Float())
-			return toBits8(bits, b, clear)
+			return toBits8(bits, b)
 		}, nil
 	default:
 		return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: conversion not supported", format, typ)
 	}
 }
 
-func convertInt(typ reflect.Type, size int, format FullFormat, clear bool) (meshConverter, error) {
+func convertInt(typ reflect.Type, size int, format FullFormat) (meshConverter, error) {
 	switch format.DataFormat {
 	case FmByte:
 		if size > 1 {
 			return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: Format too small", format, typ)
 		}
 		return func(v reflect.Value, b []byte) []byte {
-			return toBits1(uint8(v.Int()), b, clear)
+			return toBits1(uint8(v.Int()), b)
 		}, nil
 	case FmShort:
 		if size > 2 {
 			return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: Format too small", format, typ)
 		}
 		return func(v reflect.Value, b []byte) []byte {
-			return toBits2(uint16(v.Int()), b, clear)
+			return toBits2(uint16(v.Int()), b)
 		}, nil
 	case FmInt:
 		return func(v reflect.Value, b []byte) []byte {
-			return toBits4(uint32(v.Int()), b, clear)
+			return toBits4(uint32(v.Int()), b)
 		}, nil
 	default:
 		return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: conversion not supported", format, typ)
 	}
 }
 
-func convertUint(typ reflect.Type, size int, format FullFormat, clear bool) (meshConverter, error) {
+func convertUint(typ reflect.Type, size int, format FullFormat) (meshConverter, error) {
 	switch format.DataFormat {
 	case FmUByte:
 		if size > 1 {
 			return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: Format too small", format, typ)
 		}
 		return func(v reflect.Value, b []byte) []byte {
-			return toBits1(uint8(v.Uint()), b, clear)
+			return toBits1(uint8(v.Uint()), b)
 		}, nil
 	case FmUShort:
 		if size > 2 {
 			return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: Format too small", format, typ)
 		}
 		return func(v reflect.Value, b []byte) []byte {
-			return toBits2(uint16(v.Uint()), b, clear)
+			return toBits2(uint16(v.Uint()), b)
 		}, nil
 	case FmUInt:
 		return func(v reflect.Value, b []byte) []byte {
-			return toBits4(uint32(v.Uint()), b, clear)
+			return toBits4(uint32(v.Uint()), b)
 		}, nil
 	default:
 		return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: conversion not supported", format, typ)
@@ -177,19 +177,19 @@ func convertArray(typ reflect.Type, format FullFormat) (meshConverter, error) {
 	//TODO: Int and UInt Rev stuff
 	switch typ.Elem().Kind() {
 	case reflect.Float32, reflect.Float64:
-		one, err = convertFloat(typ, format, false)
+		one, err = convertFloat(typ, format)
 	case reflect.Int8:
-		one, err = convertInt(typ, 1, format, false)
+		one, err = convertInt(typ, 1, format)
 	case reflect.Int16:
-		one, err = convertInt(typ, 2, format, false)
+		one, err = convertInt(typ, 2, format)
 	case reflect.Int32:
-		one, err = convertInt(typ, 4, format, false)
+		one, err = convertInt(typ, 4, format)
 	case reflect.Uint8:
-		one, err = convertUint(typ, 1, format, false)
+		one, err = convertUint(typ, 1, format)
 	case reflect.Uint16:
-		one, err = convertUint(typ, 2, format, false)
+		one, err = convertUint(typ, 2, format)
 	case reflect.Uint32:
-		one, err = convertUint(typ, 4, format, false)
+		one, err = convertUint(typ, 4, format)
 	default:
 		err = fmt.Errorf("MeshBuilder: Invalid struct field type for attribute: %v", typ)
 	}
@@ -205,27 +205,18 @@ func convertArray(typ reflect.Type, format FullFormat) (meshConverter, error) {
 	}, nil
 }
 
-func toBits1(bits uint8, b []byte, clear bool) []byte {
-	if clear {
-		b = b[:0]
-	}
+func toBits1(bits uint8, b []byte) []byte {
 	b = append(b, byte(bits>>0))
 	return b
 }
 
-func toBits2(bits uint16, b []byte, clear bool) []byte {
-	if clear {
-		b = b[:0]
-	}
+func toBits2(bits uint16, b []byte) []byte {
 	b = append(b, byte(bits>>8))
 	b = append(b, byte(bits>>0))
 	return b
 }
 
-func toBits4(bits uint32, b []byte, clear bool) []byte {
-	if clear {
-		b = b[:0]
-	}
+func toBits4(bits uint32, b []byte) []byte {
 	b = append(b, byte(bits>>24))
 	b = append(b, byte(bits>>16))
 	b = append(b, byte(bits>>8))
@@ -233,10 +224,7 @@ func toBits4(bits uint32, b []byte, clear bool) []byte {
 	return b
 }
 
-func toBits8(bits uint64, b []byte, clear bool) []byte {
-	if clear {
-		b = b[:0]
-	}
+func toBits8(bits uint64, b []byte) []byte {
 	b = append(b, byte(bits>>56))
 	b = append(b, byte(bits>>48))
 	b = append(b, byte(bits>>40))

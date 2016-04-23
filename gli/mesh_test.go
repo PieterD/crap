@@ -10,9 +10,9 @@ type testMesh struct {
 
 func TestMesh(t *testing.T) {
 	mb, err := MeshBuilder(testMesh{})
-	mb.Attribute("Position", FmFloat)
-	mb.Attribute("Color", FmUByte)
-	mb.Attribute("integer", FmUShort)
+	mb.Attribute("Position")
+	mb.Attribute("Color")
+	mb.Attribute("integer").Format(FmUShort.Full(1))
 	mb.Interleave("Position", "Color")
 	mb.Interleave("integer")
 }
