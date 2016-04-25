@@ -111,7 +111,7 @@ func (mb *meshBuilder) seedFields(typ reflect.Type) error {
 
 	numfield := typ.NumField()
 	for i := 0; i < numfield; i++ {
-		field := typ.Field(numfield)
+		field := typ.Field(i)
 		if field.PkgPath != "" {
 			continue
 		}
