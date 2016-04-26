@@ -1,9 +1,50 @@
 package gli
 
 import (
+	"bytes"
+	"math"
 	"reflect"
 	"testing"
 )
+
+func TestFieldConvert(t *testing.T) {
+	v := struct {
+		Float32 float32
+		Int8    int8
+		Uint8   uint8
+		Int16   int16
+		Uint16  uint16
+	}{
+		Float32: 1.0,
+		Int8:    -100,
+		Uint8:   32,
+		Int16:   -6000,
+		Uint16:  6000,
+	}
+
+	var exp []byte
+	exp = toBits4(math.Float32bits(v.Float32), nil)
+	testFieldConvert(t, v, 0, FmFloat.Full(1), exp)
+	exp = toBits1(uint8(v.Int8), nil)
+	testFieldConvert(t, v, 1, FmByte.Full(1), exp)
+	exp = toBits1(uint8(v.Uint8), nil)
+	testFieldConvert(t, v, 2, FmUByte.Full(1), exp)
+	exp = toBits2(uint16(v.Int16), nil)
+	testFieldConvert(t, v, 3, FmShort.Full(1), exp)
+	exp = toBits2(uint16(v.Uint16), nil)
+	testFieldConvert(t, v, 4, FmUShort.Full(1), exp)
+}
+
+func testFieldConvert(t *testing.T, v interface{}, idx int, format FullFormat, exp []byte) {
+	f, err := fieldConvert(reflect.TypeOf(v), []int{idx}, format)
+	if err != nil {
+		t.Fatalf("bad fieldConvert: %v", err)
+	}
+	got := f(reflect.ValueOf(v), nil)
+	if !bytes.Equal(got, exp) {
+		t.Fatalf("bad fieldConvert: expected %v, got %v", exp, got)
+	}
+}
 
 func TestDefaultFormat(t *testing.T) {
 	tests := []struct {
@@ -41,16 +82,6 @@ func TestDefaultFormat(t *testing.T) {
 			t.Fatalf("bad defaultFormat: for [%v, %v] got %v", typ, test.fmt, format)
 		}
 	}
-
-	/*
-		format, err := defaultFormat(reflect.TypeOf(float32(1.0)))
-		if err != nil {
-			t.Fatalf("bad defaultFormat %v", err)
-		}
-		if format != FmFloat.Full(1) {
-			t.Fatalf("bad defaultFormat %v", format)
-		}
-	*/
 }
 
 func TestToBits8(t *testing.T) {

@@ -50,7 +50,7 @@ func defaultBasicFormat(typ reflect.Type) (iDataFormat, bool) {
 type meshConverter func(v reflect.Value, b []byte) []byte
 
 func fieldConvert(typ reflect.Type, idx []int, format FullFormat) (meshConverter, error) {
-	conv, err := dataConvert(typ, format)
+	conv, err := dataConvert(typ.FieldByIndex(idx).Type, format)
 	if err != nil {
 		return nil, err
 	}
