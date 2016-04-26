@@ -14,25 +14,55 @@ func TestFieldConvert(t *testing.T) {
 		Uint8   uint8
 		Int16   int16
 		Uint16  uint16
+		Int32   int32
+		Uint32  uint32
+
+		Bytes []byte
 	}{
 		Float32: 1.0,
 		Int8:    -100,
 		Uint8:   32,
 		Int16:   -6000,
 		Uint16:  6000,
+		Int32:   -116000,
+		Uint32:  116000,
 	}
 
 	var exp []byte
 	exp = toBits4(math.Float32bits(v.Float32), nil)
 	testFieldConvert(t, v, 0, FmFloat.Full(1), exp)
+
 	exp = toBits1(uint8(v.Int8), nil)
 	testFieldConvert(t, v, 1, FmByte.Full(1), exp)
 	exp = toBits1(uint8(v.Uint8), nil)
 	testFieldConvert(t, v, 2, FmUByte.Full(1), exp)
+
 	exp = toBits2(uint16(v.Int16), nil)
 	testFieldConvert(t, v, 3, FmShort.Full(1), exp)
 	exp = toBits2(uint16(v.Uint16), nil)
 	testFieldConvert(t, v, 4, FmUShort.Full(1), exp)
+
+	exp = toBits4(uint32(v.Int32), nil)
+	testFieldConvert(t, v, 5, FmInt.Full(1), exp)
+	exp = toBits4(uint32(v.Uint32), nil)
+	testFieldConvert(t, v, 6, FmUInt.Full(1), exp)
+
+	_, err := fieldConvert(reflect.TypeOf(v), []int{7}, FmFloat.Full(1))
+	if err == nil {
+		t.Fatalf("bad fieldconvert: expected error with []byte field")
+	}
+	_, err = fieldConvert(reflect.TypeOf(v), []int{0}, FmByte.Full(1))
+	if err == nil {
+		t.Fatalf("bad fieldconvert: expected error converting float32 to Byte[1]")
+	}
+	_, err = fieldConvert(reflect.TypeOf(v), []int{1}, FmFloat.Full(1))
+	if err == nil {
+		t.Fatalf("bad fieldconvert: expected error converting int8 to Float[1]")
+	}
+	_, err = fieldConvert(reflect.TypeOf(v), []int{2}, FmFloat.Full(1))
+	if err == nil {
+		t.Fatalf("bad fieldconvert: expected error converting uint8 to Float[1]")
+	}
 }
 
 func testFieldConvert(t *testing.T, v interface{}, idx int, format FullFormat, exp []byte) {
