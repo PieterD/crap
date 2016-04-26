@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestFieldConvert(t *testing.T) {
+func TestFieldSimpleConvert(t *testing.T) {
 	v := struct {
 		Float32 float32
 		Int8    int8
@@ -16,8 +16,8 @@ func TestFieldConvert(t *testing.T) {
 		Uint16  uint16
 		Int32   int32
 		Uint32  uint32
-
-		Bytes []byte
+		Float64 float64
+		Bytes   []byte
 	}{
 		Float32: 1.0,
 		Int8:    -100,
@@ -26,6 +26,7 @@ func TestFieldConvert(t *testing.T) {
 		Uint16:  6000,
 		Int32:   -116000,
 		Uint32:  116000,
+		Float64: 1.0,
 	}
 
 	var exp []byte
@@ -47,7 +48,11 @@ func TestFieldConvert(t *testing.T) {
 	exp = toBits4(uint32(v.Uint32), nil)
 	testFieldConvert(t, v, 6, FmUInt.Full(1), exp)
 
-	_, err := fieldConvert(reflect.TypeOf(v), []int{7}, FmFloat.Full(1))
+	exp = toBits8(math.Float64bits(float64(v.Float64)), nil)
+	testFieldConvert(t, v, 7, FmDouble.Full(1), exp)
+
+	// Errors
+	_, err := fieldConvert(reflect.TypeOf(v), []int{8}, FmFloat.Full(1))
 	if err == nil {
 		t.Fatalf("bad fieldconvert: expected error with []byte field")
 	}
@@ -62,6 +67,25 @@ func TestFieldConvert(t *testing.T) {
 	_, err = fieldConvert(reflect.TypeOf(v), []int{2}, FmFloat.Full(1))
 	if err == nil {
 		t.Fatalf("bad fieldconvert: expected error converting uint8 to Float[1]")
+	}
+
+	// Array size errors
+	_, err = fieldConvert(reflect.TypeOf(v), []int{5}, FmShort.Full(1))
+	if err == nil {
+		t.Fatalf("bad fieldconvert: expected error converting int32 to Short[1]")
+	}
+	_, err = fieldConvert(reflect.TypeOf(v), []int{6}, FmUShort.Full(1))
+	if err == nil {
+		t.Fatalf("bad fieldconvert: expected error converting uint32 to UShort[1]")
+	}
+
+	_, err = fieldConvert(reflect.TypeOf(v), []int{5}, FmByte.Full(1))
+	if err == nil {
+		t.Fatalf("bad fieldconvert: expected error converting int32 to Byte[1]")
+	}
+	_, err = fieldConvert(reflect.TypeOf(v), []int{6}, FmUByte.Full(1))
+	if err == nil {
+		t.Fatalf("bad fieldconvert: expected error converting uint32 to UByte[1]")
 	}
 }
 
