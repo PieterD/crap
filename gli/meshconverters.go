@@ -61,6 +61,12 @@ func fieldConvert(typ reflect.Type, idx []int, format FullFormat) (meshConverter
 }
 
 func dataConvert(typ reflect.Type, format FullFormat) (meshConverter, error) {
+	if typ.Kind() == reflect.Array {
+		return convertArray(typ, format)
+	}
+	if format.Components > 1 {
+		return nil, fmt.Errorf("MeshBuilder: Non-array type %v but format has components %v", typ, format)
+	}
 	switch typ.Kind() {
 	case reflect.Float32, reflect.Float64:
 		return convertFloat(typ, format)
@@ -76,8 +82,6 @@ func dataConvert(typ reflect.Type, format FullFormat) (meshConverter, error) {
 		return convertUint(typ, 2, format)
 	case reflect.Uint32:
 		return convertUint(typ, 4, format)
-	case reflect.Array:
-		return convertArray(typ, format)
 	default:
 		return nil, fmt.Errorf("MeshBuilder: Invalid struct field type for attribute: %v", typ)
 	}
@@ -199,7 +203,7 @@ func convertArray(typ reflect.Type, format FullFormat) (meshConverter, error) {
 	return func(v reflect.Value, b []byte) []byte {
 		b = b[:0]
 		for i := 0; i < length; i++ {
-			one(v.Index(i), b)
+			b = one(v.Index(i), b)
 		}
 		return b
 	}, nil
