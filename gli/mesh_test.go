@@ -8,8 +8,8 @@ type testMesh struct {
 	Integer  byte `meshattr:"integer"`
 }
 
-func ignoreTestMesh(t *testing.T) {
-	mb, err := MeshBuilder(testMesh{})
+func TestMesh(t *testing.T) {
+	mb, err := NewMeshBuilder(testMesh{})
 	if err != nil {
 		t.Fatalf("MeshBuilder failed: %v", err)
 	}

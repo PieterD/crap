@@ -42,7 +42,7 @@ func (mb *meshBuilder) Build() (*Mesh, error) {
 			}
 			attr.added = true
 			mb.attrs[name] = attr
-			conv, err := fieldConvert(attr.typ, attr.idx, attr.format)
+			conv, err := fieldConvert(mb.typ, attr.idx, attr.format)
 			if err != nil {
 				return nil, err
 			}
@@ -80,7 +80,7 @@ type meshBuilderAttribute struct {
 	customformat bool
 }
 
-func MeshBuilder(iface interface{}) (*meshBuilder, error) {
+func NewMeshBuilder(iface interface{}) (*meshBuilder, error) {
 	typ := reflect.TypeOf(iface)
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
