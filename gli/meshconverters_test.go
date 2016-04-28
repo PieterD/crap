@@ -22,7 +22,11 @@ func TestFieldArrayConvert(t *testing.T) {
 	exp = toBits4(math.Float32bits(v.Float3[2]), exp)
 	testFieldConvert(t, v, 0, FmFloat.Full(3), exp)
 
-	_, err := fieldConvert(reflect.TypeOf(v), []int{1}, FmFloat.Full(1))
+	_, err := fieldConvert(reflect.TypeOf(v), []int{0}, FmFloat.Full(2))
+	if err == nil {
+		t.Fatalf("bad fieldconvert: expected error with [3]float32 field and float[2] format")
+	}
+	_, err = fieldConvert(reflect.TypeOf(v), []int{1}, FmFloat.Full(1))
 	if err == nil {
 		t.Fatalf("bad fieldconvert: expected error with [0]float32 field")
 	}
@@ -55,7 +59,8 @@ func TestFieldSimpleConvert(t *testing.T) {
 	}
 
 	var exp []byte
-	exp = toBits4(math.Float32bits(v.Float32), nil)
+
+	exp = toBits4(uint32(math.Float32bits(v.Float32)), nil)
 	testFieldConvert(t, v, 0, FmFloat.Full(1), exp)
 
 	exp = toBits1(uint8(v.Int8), nil)
@@ -123,7 +128,10 @@ func testFieldConvert(t *testing.T, v interface{}, idx int, format FullFormat, e
 	if err != nil {
 		t.Fatalf("bad fieldConvert: %v", err)
 	}
-	got := f(reflect.ValueOf(v), nil)
+	bw := bytes.NewBuffer(nil)
+	mw := NewMeshWriter(bw)
+	f(reflect.ValueOf(v), mw)
+	got := bw.Bytes()
 	if !bytes.Equal(got, exp) {
 		t.Fatalf("bad fieldConvert: expected %v, got %v", exp, got)
 	}
@@ -167,50 +175,33 @@ func TestDefaultFormat(t *testing.T) {
 	}
 }
 
-func TestToBits8(t *testing.T) {
-	var b []byte
-	b = toBits8(0x3256100112345678, b)
-	b = toBits8(0x3F32123487654321, b)
-	if b[0] != 0x32 || b[1] != 0x56 || b[2] != 0x10 || b[3] != 0x01 {
-		t.Fatalf("bad toBits8")
-	}
-	if b[4] != 0x12 || b[5] != 0x34 || b[6] != 0x56 || b[7] != 0x78 {
-		t.Fatalf("bad toBits8")
-	}
-	if b[8] != 0x3F || b[9] != 0x32 || b[10] != 0x12 || b[11] != 0x34 {
-		t.Fatalf("bad toBits8")
-	}
-	if b[12] != 0x87 || b[13] != 0x65 || b[14] != 0x43 || b[15] != 0x21 {
-		t.Fatalf("bad toBits8")
-	}
+func toBits1(bits uint8, b []byte) []byte {
+	b = append(b, byte(bits>>0))
+	return b
 }
 
-func TestToBits4(t *testing.T) {
-	var b []byte
-	b = toBits4(0x32561001, b)
-	b = toBits4(0x3F321234, b)
-	if b[0] != 0x32 || b[1] != 0x56 || b[2] != 0x10 || b[3] != 0x01 {
-		t.Fatalf("bad toBits4")
-	}
-	if b[4] != 0x3F || b[5] != 0x32 || b[6] != 0x12 || b[7] != 0x34 {
-		t.Fatalf("bad toBits4")
-	}
+func toBits2(bits uint16, b []byte) []byte {
+	b = append(b, byte(bits>>8))
+	b = append(b, byte(bits>>0))
+	return b
 }
 
-func TestToBits2(t *testing.T) {
-	var b []byte
-	b = toBits2(0x1001, b)
-	b = toBits2(0x3F32, b)
-	if b[0] != 0x10 || b[1] != 0x01 || b[2] != 0x3F || b[3] != 0x32 {
-		t.Fatalf("bad toBits2")
-	}
+func toBits4(bits uint32, b []byte) []byte {
+	b = append(b, byte(bits>>24))
+	b = append(b, byte(bits>>16))
+	b = append(b, byte(bits>>8))
+	b = append(b, byte(bits>>0))
+	return b
 }
 
-func TestToBits1(t *testing.T) {
-	var b []byte
-	b = toBits1(1, b)
-	b = toBits1(2, b)
-	if b[0] != 1 || b[1] != 2 {
-		t.Fatalf("bad toBits1")
-	}
+func toBits8(bits uint64, b []byte) []byte {
+	b = append(b, byte(bits>>56))
+	b = append(b, byte(bits>>48))
+	b = append(b, byte(bits>>40))
+	b = append(b, byte(bits>>32))
+	b = append(b, byte(bits>>24))
+	b = append(b, byte(bits>>16))
+	b = append(b, byte(bits>>8))
+	b = append(b, byte(bits>>0))
+	return b
 }

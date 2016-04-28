@@ -2,9 +2,10 @@ package gli
 
 import (
 	"fmt"
-	"math"
 	"reflect"
 )
+
+type meshConverter func(v reflect.Value, mw *MeshWriter)
 
 func defaultFormat(typ reflect.Type) (FullFormat, error) {
 	var length int = 1
@@ -47,16 +48,14 @@ func defaultBasicFormat(typ reflect.Type) (iDataFormat, bool) {
 	}
 }
 
-type meshConverter func(v reflect.Value, b []byte) []byte
-
 func fieldConvert(typ reflect.Type, idx []int, format FullFormat) (meshConverter, error) {
 	conv, err := dataConvert(typ.FieldByIndex(idx).Type, format)
 	if err != nil {
 		return nil, err
 	}
-	return func(v reflect.Value, b []byte) []byte {
+	return func(v reflect.Value, mw *MeshWriter) {
 		v = v.FieldByIndex(idx)
-		return conv(v, b)
+		conv(v, mw)
 	}, nil
 }
 
@@ -90,25 +89,23 @@ func dataConvert(typ reflect.Type, format FullFormat) (meshConverter, error) {
 func convertFloat(typ reflect.Type, format FullFormat) (meshConverter, error) {
 	switch format.DataFormat {
 	case FmHalfFloat:
-		return func(v reflect.Value, b []byte) []byte {
+		return func(v reflect.Value, mw *MeshWriter) {
 			bits := float2half(float32(v.Float()))
-			return toBits2(bits, b)
+			mw.PutUint16(bits)
 		}, nil
 	case FmFixed:
 		// https://www.khronos.org/assets/uploads/developers/library/coping_with_fixed_point-Bry.pdf
-		return func(v reflect.Value, b []byte) []byte {
+		return func(v reflect.Value, mw *MeshWriter) {
 			bits := uint32(v.Float() * 65536)
-			return toBits4(bits, b)
+			mw.PutUint32(bits)
 		}, nil
 	case FmFloat:
-		return func(v reflect.Value, b []byte) []byte {
-			bits := math.Float32bits(float32(v.Float()))
-			return toBits4(bits, b)
+		return func(v reflect.Value, mw *MeshWriter) {
+			mw.PutFloat32(float32(v.Float()))
 		}, nil
 	case FmDouble:
-		return func(v reflect.Value, b []byte) []byte {
-			bits := math.Float64bits(v.Float())
-			return toBits8(bits, b)
+		return func(v reflect.Value, mw *MeshWriter) {
+			mw.PutFloat64(v.Float())
 		}, nil
 	default:
 		return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: conversion not supported", format, typ)
@@ -121,19 +118,19 @@ func convertInt(typ reflect.Type, size int, format FullFormat) (meshConverter, e
 		if size > 1 {
 			return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: Format too small", format, typ)
 		}
-		return func(v reflect.Value, b []byte) []byte {
-			return toBits1(uint8(v.Int()), b)
+		return func(v reflect.Value, mw *MeshWriter) {
+			mw.PutUint8(uint8(v.Int()))
 		}, nil
 	case FmShort:
 		if size > 2 {
 			return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: Format too small", format, typ)
 		}
-		return func(v reflect.Value, b []byte) []byte {
-			return toBits2(uint16(v.Int()), b)
+		return func(v reflect.Value, mw *MeshWriter) {
+			mw.PutUint16(uint16(v.Int()))
 		}, nil
 	case FmInt:
-		return func(v reflect.Value, b []byte) []byte {
-			return toBits4(uint32(v.Int()), b)
+		return func(v reflect.Value, mw *MeshWriter) {
+			mw.PutUint32(uint32(v.Int()))
 		}, nil
 	default:
 		return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: conversion not supported", format, typ)
@@ -146,19 +143,19 @@ func convertUint(typ reflect.Type, size int, format FullFormat) (meshConverter, 
 		if size > 1 {
 			return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: Format too small", format, typ)
 		}
-		return func(v reflect.Value, b []byte) []byte {
-			return toBits1(uint8(v.Uint()), b)
+		return func(v reflect.Value, mw *MeshWriter) {
+			mw.PutUint8(uint8(v.Uint()))
 		}, nil
 	case FmUShort:
 		if size > 2 {
 			return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: Format too small", format, typ)
 		}
-		return func(v reflect.Value, b []byte) []byte {
-			return toBits2(uint16(v.Uint()), b)
+		return func(v reflect.Value, mw *MeshWriter) {
+			mw.PutUint16(uint16(v.Uint()))
 		}, nil
 	case FmUInt:
-		return func(v reflect.Value, b []byte) []byte {
-			return toBits4(uint32(v.Uint()), b)
+		return func(v reflect.Value, mw *MeshWriter) {
+			mw.PutUint32(uint32(v.Uint()))
 		}, nil
 	default:
 		return nil, fmt.Errorf("MeshBuilder: Invalid format %v for field type %v: conversion not supported", format, typ)
@@ -200,42 +197,9 @@ func convertArray(typ reflect.Type, format FullFormat) (meshConverter, error) {
 	if err != nil {
 		return nil, err
 	}
-	return func(v reflect.Value, b []byte) []byte {
-		b = b[:0]
+	return func(v reflect.Value, mw *MeshWriter) {
 		for i := 0; i < length; i++ {
-			b = one(v.Index(i), b)
+			one(v.Index(i), mw)
 		}
-		return b
 	}, nil
-}
-
-func toBits1(bits uint8, b []byte) []byte {
-	b = append(b, byte(bits>>0))
-	return b
-}
-
-func toBits2(bits uint16, b []byte) []byte {
-	b = append(b, byte(bits>>8))
-	b = append(b, byte(bits>>0))
-	return b
-}
-
-func toBits4(bits uint32, b []byte) []byte {
-	b = append(b, byte(bits>>24))
-	b = append(b, byte(bits>>16))
-	b = append(b, byte(bits>>8))
-	b = append(b, byte(bits>>0))
-	return b
-}
-
-func toBits8(bits uint64, b []byte) []byte {
-	b = append(b, byte(bits>>56))
-	b = append(b, byte(bits>>48))
-	b = append(b, byte(bits>>40))
-	b = append(b, byte(bits>>32))
-	b = append(b, byte(bits>>24))
-	b = append(b, byte(bits>>16))
-	b = append(b, byte(bits>>8))
-	b = append(b, byte(bits>>0))
-	return b
 }
