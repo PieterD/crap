@@ -18,8 +18,12 @@ func TestMesh(t *testing.T) {
 	mb.Attribute("integer").Format(FmUShort.Full(1))
 	mb.Interleave("Position", "Color")
 	mb.Interleave("integer")
-	_, err = mb.Build()
+	mb.Index(IndexShort)
+	mb.Mode(DrawTriangles)
+	mesh, err := mb.Build()
 	if err != nil {
 		t.Fatalf("MeshBuilder.Build failed: %v", err)
 	}
+
+	mesh.Instance()
 }

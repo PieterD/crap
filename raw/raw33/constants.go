@@ -39,6 +39,22 @@ func (l glEnumList) reverse(v int64) (raw.Enum, bool) {
 	return 0, false
 }
 
+var aDrawMode = glEnumList{
+	0,
+	gl.POINTS,
+	gl.LINE_STRIP,
+	gl.LINE_LOOP,
+	gl.LINES,
+	gl.LINE_STRIP_ADJACENCY,
+	gl.LINES_ADJACENCY,
+	gl.TRIANGLE_STRIP,
+	gl.TRIANGLE_FAN,
+	gl.TRIANGLES,
+	gl.TRIANGLE_STRIP_ADJACENCY,
+	gl.TRIANGLES_ADJACENCY,
+	gl.PATCHES,
+}
+
 var aShaderType = glEnumList{
 	0,
 	gl.VERTEX_SHADER,

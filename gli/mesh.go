@@ -5,9 +5,19 @@ import (
 	"reflect"
 )
 
+type MeshInstance struct {
+}
+
+func (mesh *Mesh) Instance() *MeshInstance {
+	return &MeshInstance{}
+}
+
 type Mesh struct {
 	typ   reflect.Type
 	attrs []meshAttribute
+
+	drawMode  iDrawMode
+	indexType iIndexType
 }
 
 type meshAttribute struct {
@@ -19,7 +29,9 @@ type meshAttribute struct {
 
 func (mb *meshBuilder) Build() (*Mesh, error) {
 	mesh := &Mesh{
-		typ: mb.typ,
+		typ:       mb.typ,
+		drawMode:  mb.drawMode,
+		indexType: mb.indexType,
 	}
 	for bufnum, buffer := range mb.buffers {
 		for _, name := range buffer {
@@ -33,7 +45,7 @@ func (mb *meshBuilder) Build() (*Mesh, error) {
 			if !attr.ok {
 				return nil, fmt.Errorf("MeshBuilder: Attempted to define attribute '%s' which has no corresponding struct field", name)
 			}
-			if !attr.customformat {
+			if !attr.customFormat {
 				format, err := defaultFormat(attr.typ)
 				if err != nil {
 					return nil, err
@@ -58,10 +70,12 @@ func (mb *meshBuilder) Build() (*Mesh, error) {
 }
 
 type meshBuilder struct {
-	typ     reflect.Type
-	fields  map[string]meshBuilderField
-	attrs   map[string]*meshBuilderAttribute
-	buffers [][]string
+	typ       reflect.Type
+	fields    map[string]meshBuilderField
+	attrs     map[string]*meshBuilderAttribute
+	buffers   [][]string
+	indexType iIndexType
+	drawMode  iDrawMode
 }
 
 type meshBuilderField struct {
@@ -77,7 +91,7 @@ type meshBuilderAttribute struct {
 	format       FullFormat
 	ok           bool
 	added        bool
-	customformat bool
+	customFormat bool
 }
 
 func NewMeshBuilder(iface interface{}) (*meshBuilder, error) {
@@ -90,9 +104,10 @@ func NewMeshBuilder(iface interface{}) (*meshBuilder, error) {
 	}
 
 	mb := &meshBuilder{
-		typ:    typ,
-		fields: make(map[string]meshBuilderField),
-		attrs:  make(map[string]*meshBuilderAttribute),
+		typ:      typ,
+		fields:   make(map[string]meshBuilderField),
+		attrs:    make(map[string]*meshBuilderAttribute),
+		drawMode: DrawPoints,
 	}
 	err := mb.seedFields(typ)
 	if err != nil {
@@ -150,10 +165,20 @@ func (mb *meshBuilder) Attribute(name string) *meshBuilderAttribute {
 
 func (attr *meshBuilderAttribute) Format(format FullFormat) {
 	attr.format = format
-	attr.customformat = true
+	attr.customFormat = true
 }
 
 func (mb *meshBuilder) Interleave(names ...string) *meshBuilder {
 	mb.buffers = append(mb.buffers, names)
+	return mb
+}
+
+func (mb *meshBuilder) Index(indextype iIndexType) *meshBuilder {
+	mb.indexType = indextype
+	return mb
+}
+
+func (mb *meshBuilder) Mode(drawmode iDrawMode) *meshBuilder {
+	mb.drawMode = drawmode
 	return mb
 }

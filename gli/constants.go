@@ -6,6 +6,25 @@ import (
 	"github.com/PieterD/glimmer/raw"
 )
 
+type iDrawMode struct {
+	t raw.Enum
+}
+
+var (
+	DrawPoints                 = iDrawMode{raw.DrawPoints}
+	DrawLineStrip              = iDrawMode{raw.DrawLineStrip}
+	DrawLineLoop               = iDrawMode{raw.DrawLineLoop}
+	DrawLines                  = iDrawMode{raw.DrawLines}
+	DrawLineStripAdjacency     = iDrawMode{raw.DrawLineStripAdjacency}
+	DrawLinesAdjacency         = iDrawMode{raw.DrawLinesAdjacency}
+	DrawTriangleStrip          = iDrawMode{raw.DrawTriangleStrip}
+	DrawTriangleFan            = iDrawMode{raw.DrawTriangleFan}
+	DrawTriangles              = iDrawMode{raw.DrawTriangles}
+	DrawTriangleStripAdjacency = iDrawMode{raw.DrawTriangleStripAdjacency}
+	DrawTrianglesAdjacency     = iDrawMode{raw.DrawTrianglesAdjacency}
+	DrawPatches                = iDrawMode{raw.DrawPatches}
+)
+
 type iShaderType struct {
 	t raw.Enum
 }

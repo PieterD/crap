@@ -3,6 +3,21 @@ package raw
 type Enum byte
 
 const (
+	DrawPoints Enum = iota + 1
+	DrawLineStrip
+	DrawLineLoop
+	DrawLines
+	DrawLineStripAdjacency
+	DrawLinesAdjacency
+	DrawTriangleStrip
+	DrawTriangleFan
+	DrawTriangles
+	DrawTriangleStripAdjacency
+	DrawTrianglesAdjacency
+	DrawPatches
+)
+
+const (
 	ShaderTypeVertex Enum = iota + 1
 	ShaderTypeGeometry
 	ShaderTypeFragment
