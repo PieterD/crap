@@ -10,4 +10,5 @@ type Buffer struct {
 }
 
 func (ctx *Context) NewBuffer(access iAccessType, targethint iBindTarget) *Buffer {
+	return nil
 }

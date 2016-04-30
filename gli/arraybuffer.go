@@ -1,6 +1,10 @@
 package gli
 
-import "unsafe"
+import (
+	"unsafe"
+
+	"github.com/PieterD/glimmer/raw"
+)
 
 type ArrayBuffer struct {
 	ctx    *Context
@@ -11,7 +15,7 @@ type ArrayBuffer struct {
 }
 
 func (ctx *Context) NewArrayBuffer() *ArrayBuffer {
-	bufferid := ctx.r.ArrayBufferCreate()
+	bufferid := ctx.r.BufferCreate()
 	return &ArrayBuffer{
 		ctx: ctx,
 		id:  bufferid,
@@ -19,7 +23,7 @@ func (ctx *Context) NewArrayBuffer() *ArrayBuffer {
 }
 
 func (buffer *ArrayBuffer) Delete() {
-	buffer.ctx.r.ArrayBufferDelete(buffer.id)
+	buffer.ctx.r.BufferDelete(buffer.id)
 }
 
 func (buffer *ArrayBuffer) DataFloat(accesstype iAccessType, data []float32) {
@@ -28,13 +32,13 @@ func (buffer *ArrayBuffer) DataFloat(accesstype iAccessType, data []float32) {
 	buffer.typ = Float
 	ptr := unsafe.Pointer(&data[0])
 	buffer.bind()
-	buffer.ctx.r.ArrayBufferData(buffer.id, len(data)*4, ptr, accesstype.t)
+	buffer.ctx.r.BufferData(buffer.id, len(data)*4, ptr, accesstype.t)
 }
 
 func (buffer *ArrayBuffer) SubFloat(offset int, data []float32) {
 	ptr := unsafe.Pointer(&data[0])
 	buffer.bind()
-	buffer.ctx.r.ArrayBufferSubData(buffer.id, offset*4, len(data)*4, ptr)
+	buffer.ctx.r.BufferSubData(buffer.id, offset*4, len(data)*4, ptr)
 }
 
 func (buffer *ArrayBuffer) bind() {
@@ -42,5 +46,5 @@ func (buffer *ArrayBuffer) bind() {
 		return
 	}
 	buffer.ctx.currentArrayBuffer = buffer
-	buffer.ctx.r.ArrayBufferBind(buffer.id)
+	buffer.ctx.r.BufferBind(buffer.id, raw.BindTargetArrayBuffer)
 }
