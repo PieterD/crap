@@ -3,6 +3,23 @@ package raw
 type Enum byte
 
 const (
+	BindTargetArrayBuffer Enum = iota + 1
+	BindTargetCopyReadBuffer
+	BindTargetCopyWriteBuffer
+	BindTargetDrawIndirectBuffer
+	BindTargetElementArrayBuffer
+	BindTargetPixelPackBuffer
+	BindTargetPixelUnpackBuffer
+	BindTargetTextureBuffer
+	BindTargetTransformFeedbackBuffer
+	BindTargetUniformBuffer
+	// BindTargetAtomicCounterBuffer
+	// BindTargetDispatchIndirectBuffer
+	// BindTargetQueryBuffer
+	// BindTargetShaderStorageBuffer
+)
+
+const (
 	DrawPoints Enum = iota + 1
 	DrawLineStrip
 	DrawLineLoop

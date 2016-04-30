@@ -34,12 +34,11 @@ type Raw interface {
 	ProgramUniform(programid uint32, index int, buf []byte) (namebytes []byte, datatype Enum, size int)
 	ProgramUniformLocation(programid uint32, namebytes []byte) (location int, ok bool)
 
-	ArrayBufferCreate() (bufferid uint32)
-	ArrayBufferDelete(bufferid uint32)
-	ArrayBufferBind(bufferid uint32)
-	ArrayBufferData(bufferid uint32, bytenum int, ptr unsafe.Pointer, accesstype Enum)
-	ArrayBufferSubData(bufferid uint32, offset int, bytes int, ptr unsafe.Pointer)
-	ArrayBufferUnbind()
+	BufferCreate() (bufferid uint32)
+	BufferDelete(bufferid uint32)
+	BufferBind(bufferid uint32, target Enum)
+	BufferData(bufferid uint32, bytenum int, ptr unsafe.Pointer, accesstype Enum)
+	BufferSubData(bufferid uint32, offset int, bytes int, ptr unsafe.Pointer)
 
 	VertexArrayCreate() (vaoid uint32)
 	VertexArrayDelete(vaoid uint32)

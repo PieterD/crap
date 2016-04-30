@@ -39,6 +39,23 @@ func (l glEnumList) reverse(v int64) (raw.Enum, bool) {
 	return 0, false
 }
 
+var aBindTarget = glEnumList{
+	0,
+	gl.ARRAY_BUFFER,
+	gl.COPY_READ_BUFFER,
+	gl.COPY_WRITE_BUFFER,
+	gl.DRAW_INDIRECT_BUFFER,
+	gl.PIXEL_PACK_BUFFER,
+	gl.PIXEL_UNPACK_BUFFER,
+	gl.TEXTURE_BUFFER,
+	gl.TRANSFORM_FEEDBACK_BUFFER,
+	gl.UNIFORM_BUFFER,
+	// gl.ATOMIC_COUNTER_BUFFER,
+	// gl.DISPATCH_INDIRECT_BUFFER,
+	// gl.QUERY_BUFFER,
+	// gl.SHADER_STORAGE_BUFFER,
+}
+
 var aDrawMode = glEnumList{
 	0,
 	gl.POINTS,

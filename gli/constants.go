@@ -6,6 +6,23 @@ import (
 	"github.com/PieterD/glimmer/raw"
 )
 
+type iBindTarget struct {
+	t raw.Enum
+}
+
+var (
+	BindArrayBuffer             = iBindTarget{raw.BindTargetArrayBuffer}
+	BindCopyReadBuffer          = iBindTarget{raw.BindTargetCopyReadBuffer}
+	BindCopyWriteBuffer         = iBindTarget{raw.BindTargetCopyWriteBuffer}
+	BindDrawIndirectBuffer      = iBindTarget{raw.BindTargetDrawIndirectBuffer}
+	BindElementArrayBuffer      = iBindTarget{raw.BindTargetElementArrayBuffer}
+	BindPixelPackBuffer         = iBindTarget{raw.BindTargetPixelPackBuffer}
+	BindPixelUnpackBuffer       = iBindTarget{raw.BindTargetPixelUnpackBuffer}
+	BindTextureBuffer           = iBindTarget{raw.BindTargetTextureBuffer}
+	BindTransformFeedbackBuffer = iBindTarget{raw.BindTargetTransformFeedbackBuffer}
+	BindUniformBuffer           = iBindTarget{raw.BindTargetUniformBuffer}
+)
+
 type iDrawMode struct {
 	t raw.Enum
 }

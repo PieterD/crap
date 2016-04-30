@@ -184,29 +184,25 @@ func (_ Raw) ProgramUniformLocation(programid uint32, namebytes []byte) (locatio
 	return location, true
 }
 
-func (_ Raw) ArrayBufferCreate() (id uint32) {
+func (_ Raw) BufferCreate() (id uint32) {
 	gl.GenBuffers(1, &id)
 	return id
 }
 
-func (_ Raw) ArrayBufferDelete(bufferid uint32) {
+func (_ Raw) BufferDelete(bufferid uint32) {
 	gl.DeleteBuffers(1, &bufferid)
 }
 
-func (_ Raw) ArrayBufferBind(bufferid uint32) {
-	gl.BindBuffer(gl.ARRAY_BUFFER, bufferid)
+func (_ Raw) BufferBind(bufferid uint32, target Enum) {
+	gl.BindBuffer(target, bufferid)
 }
 
-func (_ Raw) ArrayBufferData(bufferid uint32, bytes int, ptr unsafe.Pointer, accesstype raw.Enum) {
+func (_ Raw) BufferData(bufferid uint32, bytes int, ptr unsafe.Pointer, accesstype raw.Enum) {
 	gl.BufferData(bufferid, bytes, ptr, uint32(accesstype))
 }
 
-func (_ Raw) ArrayBufferSubData(bufferid uint32, offset int, bytes int, ptr unsafe.Pointer) {
+func (_ Raw) BufferSubData(bufferid uint32, offset int, bytes int, ptr unsafe.Pointer) {
 	gl.BufferSubData(bufferid, offset, bytes, ptr)
-}
-
-func (_ Raw) ArrayBufferUnbind() {
-	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 }
 
 func (_ Raw) VertexArrayCreate() (vaoid uint32) {
