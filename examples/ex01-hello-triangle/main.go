@@ -13,7 +13,6 @@ import (
 type Profile struct {
 	window.DefaultProfile
 	ctx     *gli.Context
-	buffer  *gli.ArrayBuffer
 	vshader *gli.Shader
 	fshader *gli.Shader
 	program *gli.Program
@@ -45,6 +44,9 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 	if err != nil {
 		return fmt.Errorf("Failed to create program: %v", err)
 	}
+
+	instance, _ := DefineMyMesh()
+	instance.Transmit(p.ctx)
 
 	return nil
 }

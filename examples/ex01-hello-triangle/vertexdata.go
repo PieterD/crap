@@ -22,9 +22,15 @@ var meshData = []MeshType{
 	},
 }
 
-func DefineMyMesh() {
+func DefineMyMesh() (*gli.MeshInstance, *gli.Object) {
 	mesh, err := gli.NewMeshBuilder(MeshType{}).Mode(gli.DrawTriangles).Build()
 	if err != nil {
 		panic(err)
 	}
+	instance := mesh.Instance()
+	object, err := instance.Object(meshData, nil)
+	if err != nil {
+		panic(err)
+	}
+	return instance, object
 }

@@ -17,6 +17,18 @@ type MeshInstance struct {
 type meshInstanceBuffer struct {
 	meshWriter *MeshWriter
 	buffer     *bytes.Buffer
+	gpubuf     *Buffer
+}
+
+func (instance *MeshInstance) Transmit(ctx *Context) {
+	for i := range instance.buffers {
+		instance.buffers[i].gpubuf = ctx.NewBuffer(StaticDraw, BindArrayBuffer)
+		instance.buffers[i].gpubuf.Data(instance.buffers[i].buffer.Bytes())
+	}
+	if instance.indices > 0 {
+		instance.indexbuf.gpubuf = ctx.NewBuffer(StaticDraw, BindElementArrayBuffer)
+		instance.indexbuf.gpubuf.Data(instance.indexbuf.buffer.Bytes())
+	}
 }
 
 func (mesh *Mesh) Instance() *MeshInstance {
@@ -53,12 +65,17 @@ type Object struct {
 
 func (instance *MeshInstance) Object(vertex interface{}, index interface{}) (*Object, error) {
 	vertexv := reflect.ValueOf(vertex)
-	indexv := reflect.ValueOf(index)
 	if vertexv.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("MeshBuilder: Object vertex data type is not a slice but a %v", vertexv.Type())
 	}
 	if vertexv.Type().Elem() != instance.mesh.typ {
 		return nil, fmt.Errorf("MeshBuilder, Object vertex data type is not a slice of %v but a slice of %v", instance.mesh.typ, vertexv.Type().Elem())
+	}
+	var indexv reflect.Value
+	if index == nil {
+		indexv = reflect.ValueOf([]uint32(nil))
+	} else {
+		indexv = reflect.ValueOf(index)
 	}
 	if indexv.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("MeshBuilder: Object index data type is not a slice but a %v", indexv.Kind())

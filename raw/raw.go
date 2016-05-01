@@ -37,8 +37,8 @@ type Raw interface {
 	BufferCreate() (bufferid uint32)
 	BufferDelete(bufferid uint32)
 	BufferBind(bufferid uint32, target Enum)
-	BufferData(bufferid uint32, bytenum int, ptr unsafe.Pointer, accesstype Enum)
-	BufferSubData(bufferid uint32, offset int, bytes int, ptr unsafe.Pointer)
+	BufferData(target Enum, bytenum int, ptr unsafe.Pointer, accesstype Enum)
+	BufferSubData(target Enum, offset int, bytes int, ptr unsafe.Pointer)
 
 	VertexArrayCreate() (vaoid uint32)
 	VertexArrayDelete(vaoid uint32)

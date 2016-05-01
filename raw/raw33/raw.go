@@ -197,12 +197,12 @@ func (_ Raw) BufferBind(bufferid uint32, target raw.Enum) {
 	gl.BindBuffer(uint32(target), bufferid)
 }
 
-func (_ Raw) BufferData(bufferid uint32, bytes int, ptr unsafe.Pointer, accesstype raw.Enum) {
-	gl.BufferData(bufferid, bytes, ptr, uint32(accesstype))
+func (_ Raw) BufferData(target raw.Enum, bytes int, ptr unsafe.Pointer, accesstype raw.Enum) {
+	gl.BufferData(uint32(target), bytes, ptr, uint32(accesstype))
 }
 
-func (_ Raw) BufferSubData(bufferid uint32, offset int, bytes int, ptr unsafe.Pointer) {
-	gl.BufferSubData(bufferid, offset, bytes, ptr)
+func (_ Raw) BufferSubData(target raw.Enum, offset int, bytes int, ptr unsafe.Pointer) {
+	gl.BufferSubData(uint32(target), offset, bytes, ptr)
 }
 
 func (_ Raw) VertexArrayCreate() (vaoid uint32) {

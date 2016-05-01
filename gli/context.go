@@ -13,7 +13,7 @@ type Deletable interface {
 type Context struct {
 	r raw.Raw
 
-	currentArrayBuffer *ArrayBuffer
+	currentBuffer      map[iBindTarget]*Buffer
 	currentVertexArray *VertexArray
 
 	attributeIndexCounter int
@@ -28,6 +28,7 @@ type attributeIndexType struct {
 func New(r raw.Raw) *Context {
 	return &Context{
 		r:                 r,
+		currentBuffer:     make(map[iBindTarget]*Buffer),
 		attributeIndexMap: make(map[string]attributeIndexType),
 	}
 }
