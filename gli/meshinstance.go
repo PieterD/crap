@@ -10,7 +10,6 @@ type MeshInstance struct {
 	mesh     *Mesh
 	buffers  []meshInstanceBuffer
 	indexbuf meshInstanceBuffer
-	index    []uint32
 	vertices int
 	indices  int
 }

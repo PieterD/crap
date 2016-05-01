@@ -22,22 +22,9 @@ var meshData = []MeshType{
 	},
 }
 
-func DefineMyMesh() *gli.Mesh {
-	mb, err := gli.NewMeshBuilder(MeshType{})
+func DefineMyMesh() {
+	mesh, err := gli.NewMeshBuilder(MeshType{}).Mode(gli.DrawTriangles).Build()
 	if err != nil {
 		panic(err)
 	}
-	mb.Attribute("Position")
-	mb.Attribute("Color")
-	mb.Interleave("Position", "Color")
-	mb.Mode(gli.DrawTriangles)
-	mesh, err := mb.Build()
-	if err != nil {
-		panic(err)
-	}
-	return mesh
-}
-
-func LoadMyMesh(ctx *gli.Context, mesh *gli.Mesh, data []MeshType) {
-
 }
