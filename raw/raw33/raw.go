@@ -193,8 +193,8 @@ func (_ Raw) BufferDelete(bufferid uint32) {
 	gl.DeleteBuffers(1, &bufferid)
 }
 
-func (_ Raw) BufferBind(bufferid uint32, target Enum) {
-	gl.BindBuffer(target, bufferid)
+func (_ Raw) BufferBind(bufferid uint32, target raw.Enum) {
+	gl.BindBuffer(uint32(target), bufferid)
 }
 
 func (_ Raw) BufferData(bufferid uint32, bytes int, ptr unsafe.Pointer, accesstype raw.Enum) {
