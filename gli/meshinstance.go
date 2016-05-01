@@ -99,5 +99,7 @@ func (instance *MeshInstance) Object(vertex interface{}, index interface{}) (*Ob
 			}
 		}
 	}
+	instance.indices += object.indexnum
+	instance.vertices += object.vertexnum
 	return object, nil
 }
