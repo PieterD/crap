@@ -21,11 +21,22 @@ func (mw *MeshWriter) GetError() error {
 	return mw.err
 }
 
+func (mw *MeshWriter) SetError(err error) {
+	mw.err = err
+}
+
 func (mw *MeshWriter) put(num int) {
 	if mw.err != nil {
 		return
 	}
 	_, mw.err = mw.w.Write(mw.buf[:num])
+}
+
+func (mw *MeshWriter) Pad(num int) {
+	for i := 0; i < num; i++ {
+		mw.buf[i] = 0
+	}
+	mw.put(num)
 }
 
 func (mw *MeshWriter) Write(b []byte) (n int, err error) {

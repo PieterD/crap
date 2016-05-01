@@ -46,19 +46,7 @@ func (p *Profile) PostCreation(w *glfw.Window) error {
 		return fmt.Errorf("Failed to create program: %v", err)
 	}
 
-	p.buffer = p.ctx.NewArrayBuffer()
-	p.buffer.DataFloat(gli.StaticDraw, vertexData)
-
-	uniforms := p.program.Uniforms()
-	colorshift := uniforms.ByName("colorshift")
-	dt, as := colorshift.Type()
-	fmt.Printf("colorshift: %s, %d\n", dt, as)
-
 	return nil
-}
-
-func (p *Profile) End() {
-	// p.ctx.SafeDelete(p.buffer, p.vshader, p.fshader, p.program)
 }
 
 func (p *Profile) EventResize(w *glfw.Window, width int, height int) {

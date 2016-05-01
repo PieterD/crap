@@ -5,19 +5,12 @@ import (
 	"reflect"
 )
 
-type MeshInstance struct {
-}
-
-func (mesh *Mesh) Instance() *MeshInstance {
-	return &MeshInstance{}
-}
-
 type Mesh struct {
 	typ   reflect.Type
 	attrs []meshAttribute
 
 	drawMode  iDrawMode
-	indexType iIndexType
+	indexConv meshConverter
 }
 
 type meshAttribute struct {
@@ -28,10 +21,17 @@ type meshAttribute struct {
 }
 
 func (mb *meshBuilder) Build() (*Mesh, error) {
+	if mb.err != nil {
+		return nil, mb.err
+	}
+	ic, err := indexConvert(mb.indexType)
+	if err != nil {
+		return nil, err
+	}
 	mesh := &Mesh{
 		typ:       mb.typ,
 		drawMode:  mb.drawMode,
-		indexType: mb.indexType,
+		indexConv: ic,
 	}
 	for bufnum, buffer := range mb.buffers {
 		for _, name := range buffer {
@@ -39,21 +39,6 @@ func (mb *meshBuilder) Build() (*Mesh, error) {
 			if !ok {
 				return nil, fmt.Errorf("MeshBuilder: Attempted to add the attribute '%s' which was not defined", name)
 			}
-			if attr.added {
-				return nil, fmt.Errorf("MeshBuilder: Attempted to add the attribute '%s' more than once", name)
-			}
-			if !attr.ok {
-				return nil, fmt.Errorf("MeshBuilder: Attempted to define attribute '%s' which has no corresponding struct field", name)
-			}
-			if !attr.customFormat {
-				format, err := defaultFormat(attr.typ)
-				if err != nil {
-					return nil, err
-				}
-				attr.format = format
-			}
-			attr.added = true
-			mb.attrs[name] = attr
 			conv, err := fieldConvert(mb.typ, attr.idx, attr.format)
 			if err != nil {
 				return nil, err
@@ -71,49 +56,43 @@ func (mb *meshBuilder) Build() (*Mesh, error) {
 
 type meshBuilder struct {
 	typ       reflect.Type
-	fields    map[string]meshBuilderField
 	attrs     map[string]*meshBuilderAttribute
 	buffers   [][]string
 	indexType iIndexType
 	drawMode  iDrawMode
-}
-
-type meshBuilderField struct {
-	name string
-	typ  reflect.Type
-	idx  []int
+	err       error
 }
 
 type meshBuilderAttribute struct {
-	name         string
-	idx          []int
-	typ          reflect.Type
-	format       FullFormat
-	ok           bool
-	added        bool
-	customFormat bool
+	name   string
+	idx    []int
+	typ    reflect.Type
+	format FullFormat
+	conv   meshConverter
 }
 
-func NewMeshBuilder(iface interface{}) (*meshBuilder, error) {
+func NewMeshBuilder(iface interface{}) *meshBuilder {
 	typ := reflect.TypeOf(iface)
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
-	if typ.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("MeshBuilder: Expected the provided type to be a struct or a pointer to a struct")
-	}
-
 	mb := &meshBuilder{
 		typ:      typ,
-		fields:   make(map[string]meshBuilderField),
 		attrs:    make(map[string]*meshBuilderAttribute),
 		drawMode: DrawPoints,
 	}
+
+	if typ.Kind() != reflect.Struct {
+		mb.err = fmt.Errorf("MeshBuilder: Expected the provided type to be a struct or a pointer to a struct")
+		return mb
+	}
+
 	err := mb.seedFields(typ)
 	if err != nil {
-		return nil, err
+		mb.err = err
+		return nil
 	}
-	return mb, nil
+	return mb
 }
 
 func (mb *meshBuilder) seedFields(typ reflect.Type) error {
@@ -124,6 +103,7 @@ func (mb *meshBuilder) seedFields(typ reflect.Type) error {
 		return fmt.Errorf("MeshBuilder: Anonymous fields are only allowed to be structs or pointers to struct")
 	}
 
+	var buffers []string
 	numfield := typ.NumField()
 	for i := 0; i < numfield; i++ {
 		field := typ.Field(i)
@@ -138,47 +118,92 @@ func (mb *meshBuilder) seedFields(typ reflect.Type) error {
 		if name == "" {
 			name = field.Name
 		}
-		_, ok := mb.fields[name]
+		if name == "-" {
+			continue
+		}
+		_, ok := mb.attrs[name]
 		if ok {
 			return fmt.Errorf("MeshBuilder: Multiple attributes named '%s'", name)
 		}
-		mb.fields[name] = meshBuilderField{
-			name: name,
-			typ:  field.Type,
-			idx:  field.Index,
+		format, err := defaultFormat(field.Type)
+		if err != nil {
+			return err
 		}
+		mb.attrs[name] = &meshBuilderAttribute{
+			name:   name,
+			idx:    field.Index,
+			typ:    field.Type,
+			format: format,
+		}
+		buffers = append(buffers, name)
 	}
+	mb.buffers = append(mb.buffers, buffers)
 	return nil
 }
 
-func (mb *meshBuilder) Attribute(name string) *meshBuilderAttribute {
-	field, ok := mb.fields[name]
-	attr := &meshBuilderAttribute{
-		name: name,
-		idx:  field.idx,
-		typ:  field.typ,
-		ok:   ok,
+func (mb *meshBuilder) Format(name string, format FullFormat) *meshBuilder {
+	if mb.err != nil {
+		return mb
 	}
-	mb.attrs[name] = attr
-	return attr
-}
-
-func (attr *meshBuilderAttribute) Format(format FullFormat) {
+	attr, ok := mb.attrs[name]
+	if !ok {
+		mb.err = fmt.Errorf("MeshBuilder: Invalid attribute name '%s' supplied to MeshBuilder.Format", name)
+		return mb
+	}
 	attr.format = format
-	attr.customFormat = true
+	return mb
 }
 
 func (mb *meshBuilder) Interleave(names ...string) *meshBuilder {
-	mb.buffers = append(mb.buffers, names)
+	if mb.err != nil {
+		return mb
+	}
+
+	nmap := make(map[string]struct{})
+	for _, name := range names {
+		nmap[name] = struct{}{}
+	}
+
+	var lastlist []string
+	var newlists [][]string
+	for _, buflist := range mb.buffers {
+		var newlist []string
+		for _, bufname := range buflist {
+			_, selected := nmap[bufname]
+			if selected {
+				lastlist = append(lastlist, bufname)
+				delete(nmap, bufname)
+			} else {
+				newlist = append(newlist, bufname)
+			}
+		}
+		if len(newlist) > 0 {
+			newlists = append(newlists, newlist)
+		}
+	}
+	if len(lastlist) > 0 {
+		newlists = append(newlists, lastlist)
+	}
+
+	for name := range nmap {
+		mb.err = fmt.Errorf("MeshBuilder: Unknown attribute name '%s' in Interleave", name)
+	}
+
+	mb.buffers = newlists
+
 	return mb
 }
 
 func (mb *meshBuilder) Index(indextype iIndexType) *meshBuilder {
-	mb.indexType = indextype
+	if mb.err == nil {
+		mb.indexType = indextype
+	}
 	return mb
 }
 
 func (mb *meshBuilder) Mode(drawmode iDrawMode) *meshBuilder {
-	mb.drawMode = drawmode
+	if mb.err == nil {
+		mb.drawMode = drawmode
+	}
 	return mb
 }

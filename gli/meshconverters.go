@@ -7,6 +7,43 @@ import (
 
 type meshConverter func(v reflect.Value, mw *MeshWriter)
 
+func indexConvert(it iIndexType) (meshConverter, error) {
+	if it.t == 0 {
+		return nil, nil
+	}
+	switch it {
+	case IndexByte:
+		return func(v reflect.Value, mw *MeshWriter) {
+			ui := v.Uint()
+			if ui >= 256 {
+				mw.SetError(fmt.Errorf("Index value overflow: %d does not fit in ubyte", ui))
+			} else {
+				mw.PutUint8(uint8(ui))
+			}
+		}, nil
+	case IndexShort:
+		return func(v reflect.Value, mw *MeshWriter) {
+			ui := v.Uint()
+			if ui >= 256*256 {
+				mw.SetError(fmt.Errorf("Index value overflow: %d does not fit in ushort", ui))
+			} else {
+				mw.PutUint16(uint16(ui))
+			}
+		}, nil
+	case IndexInt:
+		return func(v reflect.Value, mw *MeshWriter) {
+			ui := v.Uint()
+			if ui >= 256*256*256*256 {
+				mw.SetError(fmt.Errorf("Index value overflow: %d does not fit in uint", ui))
+			} else {
+				mw.PutUint32(uint32(ui))
+			}
+		}, nil
+	default:
+		return nil, fmt.Errorf("MeshBuilder: Invalid index type %v", it)
+	}
+}
+
 func defaultFormat(typ reflect.Type) (FullFormat, error) {
 	var length int = 1
 	etyp := typ
