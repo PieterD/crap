@@ -226,3 +226,20 @@ func (_ Raw) VertexArrayEnable(idx int) {
 func (_ Raw) VertexArrayDisable(idx int) {
 	gl.DisableVertexAttribArray(uint32(idx))
 }
+
+func (_ Raw) SyncFence() unsafe.Pointer {
+	return gl.FenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)
+}
+
+func (_ Raw) SyncClientWait(s unsafe.Pointer, flush bool, timeout uint64) raw.Enum {
+	var bits uint32
+	if flush {
+		bits = gl.SYNC_FLUSH_COMMANDS_BIT
+	}
+	rv := gl.ClientWaitSync(s, bits, timeout)
+	enum, ok := aSyncResult.reverse(int64(rv))
+	if !ok {
+		panic(fmt.Errorf("Impossible return value from glClientWaitSync: %d", rv))
+	}
+	return enum
+}

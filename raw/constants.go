@@ -3,6 +3,13 @@ package raw
 type Enum byte
 
 const (
+	SyncAlreadySignaled Enum = iota + 1
+	SyncTimeoutExpired
+	SyncConditionSatisfied
+	SyncWaitFailed
+)
+
+const (
 	BindTargetArrayBuffer Enum = iota + 1
 	BindTargetCopyReadBuffer
 	BindTargetCopyWriteBuffer

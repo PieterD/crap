@@ -6,6 +6,31 @@ import (
 	"github.com/PieterD/glimmer/raw"
 )
 
+type iSyncResult struct {
+	t raw.Enum
+}
+
+var (
+	SyncAlreadySignaled    = iSyncResult{raw.SyncAlreadySignaled}
+	SyncTimeoutExpired     = iSyncResult{raw.SyncTimeoutExpired}
+	SyncConditionSatisfied = iSyncResult{raw.SyncConditionSatisfied}
+	SyncWaitFailed         = iSyncResult{raw.SyncWaitFailed}
+)
+
+func (t iSyncResult) String() string {
+	switch t {
+	case SyncAlreadySignaled:
+		return "SyncAlreadySignaled"
+	case SyncTimeoutExpired:
+		return "SyncTimeoutExpired"
+	case SyncConditionSatisfied:
+		return "SyncConditionSatisfied"
+	case SyncWaitFailed:
+		return "SyncWaitFailed"
+	}
+	return "Unknown SyncResult"
+}
+
 type iBindTarget struct {
 	t raw.Enum
 }
@@ -22,6 +47,32 @@ var (
 	BindTransformFeedbackBuffer = iBindTarget{raw.BindTargetTransformFeedbackBuffer}
 	BindUniformBuffer           = iBindTarget{raw.BindTargetUniformBuffer}
 )
+
+func (t iBindTarget) String() string {
+	switch t {
+	case BindArrayBuffer:
+		return "BindArrayBuffer"
+	case BindCopyReadBuffer:
+		return "BindCopyReadBuffer"
+	case BindCopyWriteBuffer:
+		return "BindCopyWriteBuffer"
+	case BindDrawIndirectBuffer:
+		return "BindDrawIndirectBuffer"
+	case BindElementArrayBuffer:
+		return "BindElementArrayBuffer"
+	case BindPixelPackBuffer:
+		return "BindPixelPackBuffer"
+	case BindPixelUnpackBuffer:
+		return "BindPixelUnpackBuffer"
+	case BindTextureBuffer:
+		return "BindTextureBuffer"
+	case BindTransformFeedbackBuffer:
+		return "BindTransformFeedbackBuffer"
+	case BindUniformBuffer:
+		return "BindUniformBuffer"
+	}
+	return "Unknown BindTarget"
+}
 
 type iDrawMode struct {
 	t raw.Enum
@@ -41,6 +92,36 @@ var (
 	DrawTrianglesAdjacency     = iDrawMode{raw.DrawTrianglesAdjacency}
 	DrawPatches                = iDrawMode{raw.DrawPatches}
 )
+
+func (t iDrawMode) String() string {
+	switch t {
+	case DrawPoints:
+		return "DrawPoints"
+	case DrawLineStrip:
+		return "DrawLineStrip"
+	case DrawLineLoop:
+		return "DrawLineLoop"
+	case DrawLines:
+		return "DrawLines"
+	case DrawLineStripAdjacency:
+		return "DrawLineStripAdjacency"
+	case DrawLinesAdjacency:
+		return "DrawLinesAdjacency"
+	case DrawTriangleStrip:
+		return "DrawTriangleStrip"
+	case DrawTriangleFan:
+		return "DrawTriangleFan"
+	case DrawTriangles:
+		return "DrawTriangles"
+	case DrawTriangleStripAdjacency:
+		return "DrawTriangleStripAdjacency"
+	case DrawTrianglesAdjacency:
+		return "DrawTrianglesAdjacency"
+	case DrawPatches:
+		return "DrawPatches"
+	}
+	return "Unknown DrawMode"
+}
 
 type iShaderType struct {
 	t raw.Enum

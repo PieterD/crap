@@ -39,6 +39,14 @@ func (l glEnumList) reverse(v int64) (raw.Enum, bool) {
 	return 0, false
 }
 
+var aSyncResult = glEnumList{
+	0,
+	gl.ALREADY_SIGNALED,
+	gl.TIMEOUT_EXPIRED,
+	gl.CONDITION_SATISFIED,
+	gl.WAIT_FAILED,
+}
+
 var aBindTarget = glEnumList{
 	0,
 	gl.ARRAY_BUFFER,

@@ -45,4 +45,7 @@ type Raw interface {
 	VertexArrayBind(vaoid uint32)
 	VertexArrayEnable(idx int)
 	VertexArrayDisable(idx int)
+
+	SyncFence() unsafe.Pointer
+	SyncClientWait(s unsafe.Pointer, flush bool, timeout uint64) Enum
 }
