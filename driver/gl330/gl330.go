@@ -17,6 +17,10 @@ func (_ gl330) Name() string {
 	return "gl330"
 }
 
+func (_ gl330) Init() error {
+	return gl.Init()
+}
+
 func getError() error {
 	id := gl.GetError()
 	var desc string

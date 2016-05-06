@@ -18,6 +18,7 @@ type AttributeLocation struct {
 
 type Driver interface {
 	Name() string
+	Init() error
 	ShaderCreate(typ ShaderType, sources ...string) (ShaderId, error)
 	ShaderDelete(id ShaderId)
 	ProgramCreate(locations []AttributeLocation, shaders ...ShaderId) (ProgramId, error)
