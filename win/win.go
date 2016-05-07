@@ -32,10 +32,10 @@ func DefaultConfig() WindowConfig {
 
 type EventHandler interface {
 	Init() error
-	Tick() error
-	Anim(ticks int) error
-	Draw() error
-	Drop(ticks int) error
+	FrameTick() error
+	FrameAnim(ticks int) error
+	FrameDraw() error
+	FrameDrop(ticks int) error
 	EventChar(char rune)
 	EventClose()
 	EventRefresh()
@@ -104,24 +104,24 @@ func New(config WindowConfig, handler EventHandler) error {
 			}
 			ticks++
 			glfw.PollEvents()
-			err := handler.Tick()
+			err := handler.FrameTick()
 			if err != nil {
 				return fmt.Errorf("Error ticking game state: %v", err)
 			}
 		}
 		if skipped > 0 {
-			err := handler.Drop(skipped)
+			err := handler.FrameDrop(skipped)
 			if err != nil {
 				return fmt.Errorf("Error skipping %d frames: %v", skipped, err)
 			}
 		}
 		if ticks > 0 {
-			err := handler.Anim(ticks)
+			err := handler.FrameAnim(ticks)
 			if err != nil {
 				return fmt.Errorf("Error animating %d ticks: %v", ticks, err)
 			}
 		}
-		err := handler.Draw()
+		err := handler.FrameDraw()
 		if err != nil {
 			return fmt.Errorf("Error drawing: %v", err)
 		}

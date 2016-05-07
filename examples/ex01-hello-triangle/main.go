@@ -9,8 +9,14 @@ import (
 )
 
 type Profile struct {
-	win.DefaultHandler
+	win.DefaultEventHandler
 	ctx *gli.Context
+}
+
+func Panic(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (p *Profile) Init() error {
@@ -19,10 +25,21 @@ func (p *Profile) Init() error {
 		return err
 	}
 	p.ctx = ctx
+	vs, err := p.ctx.Driver().ShaderCreate(gli.ShaderTypeVertex, vertexShaderText)
+	Panic(err)
+	fs, err := p.ctx.Driver().ShaderCreate(gli.ShaderTypeFragment, fragmentShaderText)
+	Panic(err)
+	prog, err := p.ctx.Driver().ProgramCreate(nil, vs, fs)
+	Panic(err)
+	attrs, err := p.ctx.Driver().ProgramAttributes(prog)
+	Panic(err)
+	for _, attr := range attrs {
+		fmt.Printf("%#v\n", attr)
+	}
 	return nil
 }
 
-func (p *Profile) Draw() error {
+func (p *Profile) FrameDraw() error {
 	return nil
 }
 

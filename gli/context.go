@@ -14,3 +14,7 @@ func New() (*Context, error) {
 	}
 	return &Context{}, nil
 }
+
+func (ctx *Context) Driver() Driver {
+	return driver
+}
