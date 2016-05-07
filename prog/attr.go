@@ -9,7 +9,7 @@ import (
 )
 
 var inRegexpBasic = regexp.MustCompile(`^\s*in\s+`)
-var inRegexp = regexp.MustCompile(`^(?:\s*in)(?:\s+([a-z][a-z0-9]+))(?:\s+([_a-zA-Z][_a-zA-Z0-9]*))(?:\s*\[([0-9]+)\])?(?:\s+BUFFER\(([a-zA-Z0-9_]+)\))?(?:\s*;)(?:\s*\/\/.*)?(?:\s*)$`)
+var inRegexp = regexp.MustCompile(`^(?:\s*in)(?:\s+([a-z][a-z0-9]+))(?:\s+([_a-zA-Z][_a-zA-Z0-9]*))(?:\s*\[([0-9]+)\])?(?:\s+(STATIC|DYNAMIC|STREAM)\(([a-zA-Z0-9_]+)\))?(?:\s*;)(?:\s*\/\/.*)?(?:\s*)$`)
 
 func (coll *programCollection) parseAttrs() error {
 	for _, group := range coll.groups {
@@ -37,29 +37,34 @@ func (p *program) parseAttrs(path string, content string) error {
 			typ := matches[1]
 			nam := matches[2]
 			arr := matches[3]
-			buf := matches[4]
+			acc := matches[4]
+			buf := matches[5]
+			if acc == "" {
+				acc = "STATIC"
+			}
 			if buf == "" {
 				buf = "DEFAULT"
 			}
-			if arr == "" {
-				arr = "1"
-			}
-			size, err := strconv.ParseUint(arr, 10, 32)
-			if err != nil {
-				return fmt.Errorf("Shader %s:%d: Failed to parse array size '%s' for attribute '%s'", path, num+1, arr, nam)
+			var size uint64
+			if arr != "" {
+				var err error
+				size, err = strconv.ParseUint(arr, 10, 32)
+				if err != nil {
+					return fmt.Errorf("Shader %s:%d: Failed to parse array size '%s' for attribute '%s'", path, num+1, arr, nam)
+				}
 			}
 			dt, ok := attrTypeMap[typ]
 			if !ok {
 				return fmt.Errorf("Shader %s:%d: Failed to parse data type '%s' on line %d: unknown type", path, num+1, typ, num)
 			}
 			dt.Size = uint(size)
-			err = dt.IsValid()
+			err := dt.IsValid()
 			if err != nil {
 				return fmt.Errorf("Shader %s:%d: Failed to parse data type '%s' on line %d: %v", path, num+1, typ, num, err)
 			}
 			buffer, ok := p.buffers[buf]
 			if !ok {
-				buffer = &programAttributeBuffer{name: buf}
+				buffer = &programAttributeBuffer{name: buf, usage: acc}
 				p.buffers[buf] = buffer
 			}
 			buffer.attrs = append(buffer.attrs, &programAttribute{

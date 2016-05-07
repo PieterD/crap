@@ -20,7 +20,7 @@ type ProgramResource struct {
 	Resource ResourceType
 	Name     string
 	Type     DataType
-	Index    int
+	Index    uint
 }
 
 func (pr ProgramResource) GoString() string {

@@ -19,10 +19,3 @@ func New() (*Context, error) {
 func (ctx *Context) Driver() Driver {
 	return driver
 }
-
-type ProgramCollection interface {
-	Program(name string) ProgramDef
-}
-
-type ProgramDef interface {
-}

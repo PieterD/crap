@@ -34,6 +34,36 @@ const (
 	ResourceTypeAttribute
 )
 
+//go:generate stringer -type=BufferUsage
+type BufferUsage uint32
+
+const (
+	BufferUsageStreamDraw BufferUsage = iota + 1
+	BufferUsageStreamRead
+	BufferUsageStreamCopy
+	BufferUsageStaticDraw
+	BufferUsageStaticRead
+	BufferUsageStaticCopy
+	BufferUsageDynamicDraw
+	BufferUsageDynamicRead
+	BufferUsageDynamicCopy
+)
+
+//go:generate stringer -type=BufferTarget
+type BufferTarget uint32
+
+const (
+	BufferTargetArray BufferTarget = iota + 1
+	BufferTargetCopyRead
+	BufferTargetCopyWrite
+	BufferTargetElementArray
+	BufferTargetPixelPack
+	BufferTargetPixelUnpack
+	BufferTargetTexture
+	BufferTargetTransformFeedback
+	BufferTargetUniform
+)
+
 //go:generate stringer -type=SamplerType
 type SamplerType uint32
 

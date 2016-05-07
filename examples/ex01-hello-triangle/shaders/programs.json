@@ -1,5 +1,8 @@
 {
-  "MyGroup": {
-    "MyProgram": { "vertex": [ "vertex.txt" ], "fragment": [ "fragment.txt" ] }
+  "version": 330,
+  "groups": {
+    "MyGroup": {
+      "MyProgram": { "vertex": [ "vertex.txt" ], "fragment": [ "fragment.txt" ] }
+    }
   }
 }

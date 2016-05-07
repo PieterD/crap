@@ -86,7 +86,7 @@ func (_ gl330) ProgramAttributes(id gli.ProgramId) ([]gli.ProgramResource, error
 			Resource: gli.ResourceTypeAttribute,
 			Name:     string(namebuf[:namelength]),
 			Type:     dt,
-			Index:    int(location),
+			Index:    uint(location),
 		})
 	}
 	return attrs, nil

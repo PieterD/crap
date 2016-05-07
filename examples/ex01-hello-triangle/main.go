@@ -27,12 +27,18 @@ func (p *Profile) Init() error {
 		return err
 	}
 	p.ctx = ctx
-	vs, err := p.ctx.Driver().ShaderCreate(gli.ShaderTypeVertex, vertexShaderText)
+	program, err := p.programs.Program("MyGroup.MyProgram")
 	Panic(err)
-	fs, err := p.ctx.Driver().ShaderCreate(gli.ShaderTypeFragment, fragmentShaderText)
+
+	var shaders []gli.ShaderId
+	for _, shader := range program.Shaders {
+		id, err := p.ctx.Driver().ShaderCreate(shader.Type, shader.Source...)
+		Panic(err)
+		shaders = append(shaders, id)
+	}
+	prog, err := p.ctx.Driver().ProgramCreate(program.Locations, shaders...)
 	Panic(err)
-	prog, err := p.ctx.Driver().ProgramCreate([]gli.AttributeLocation{gli.AttributeLocation{"Position", 0}}, vs, fs)
-	Panic(err)
+
 	attrs, err := p.ctx.Driver().ProgramAttributes(prog)
 	Panic(err)
 	for _, attr := range attrs {

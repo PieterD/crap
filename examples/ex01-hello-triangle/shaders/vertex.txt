@@ -1,7 +1,5 @@
-#version 330
-
 in vec4 Position;
-in mat4 Matrix BUFFER(MyBuffer);
+in mat4 Matrix DYNAMIC(MyBuffer);
 in vec3 Color;
 in float Float[2];
 

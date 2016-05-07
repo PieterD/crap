@@ -1,6 +1,7 @@
 package prog
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/PieterD/glimmer/gli"
@@ -10,11 +11,15 @@ import (
 	"strings"
 )
 
-type jsonGroups map[string]map[string]map[string][]string
+type jsonGroups struct {
+	Version int                                       `json:"version"`
+	Groups  map[string]map[string]map[string][]string `json:"groups"`
+}
 
 type programCollection struct {
-	text   map[string]string
-	groups map[string]*programGroup
+	version int
+	text    map[string]string
+	groups  map[string]*programGroup
 }
 
 type programGroup struct {
@@ -32,6 +37,7 @@ type programAttribute struct {
 
 type programAttributeBuffer struct {
 	name  string
+	usage string
 	attrs []*programAttribute
 }
 
@@ -61,7 +67,20 @@ func ReadPrograms(jsonpath string) (gli.ProgramCollection, error) {
 		text:   make(map[string]string),
 		groups: make(map[string]*programGroup),
 	}
-	for jGroup, jPrograms := range jGroups {
+	if jGroups.Version == 0 {
+		return nil, fmt.Errorf("Missing or invalid 'version' in json file '%s'", jsonpath)
+	}
+	if len(jGroups.Groups) == 0 {
+		return nil, fmt.Errorf("Missing 'groups' in json file '%s'", jsonpath)
+	}
+	coll.version = jGroups.Version
+	for jGroup, jPrograms := range jGroups.Groups {
+		if strings.Contains(jGroup, ".") {
+			return nil, fmt.Errorf("Group name '%s' not allowed: contains '.'", jGroup)
+		}
+		if jGroup == "" {
+			return nil, fmt.Errorf("Empty group name found")
+		}
 		group, ok := coll.groups[jGroup]
 		if !ok {
 			group = &programGroup{
@@ -71,6 +90,12 @@ func ReadPrograms(jsonpath string) (gli.ProgramCollection, error) {
 			coll.groups[jGroup] = group
 		}
 		for jProgram, jFields := range jPrograms {
+			if strings.Contains(jProgram, ".") {
+				return nil, fmt.Errorf("Group %s: Program name '%s' not allowed: contains '.'", jGroup, jProgram)
+			}
+			if jProgram == "" {
+				return nil, fmt.Errorf("Group %s: Empty program name found", jGroup)
+			}
 			if _, ok := group.programs[jProgram]; ok {
 				return nil, fmt.Errorf("Program %s.%s defined multiple times", jGroup, jProgram)
 			}
@@ -135,6 +160,84 @@ func ReadPrograms(jsonpath string) (gli.ProgramCollection, error) {
 	return coll, nil
 }
 
-func (coll *programCollection) Program(name string) gli.ProgramDef {
-	return nil
+func (coll *programCollection) Program(name string) (gli.ProgramDef, error) {
+	split := strings.Split(name, ".")
+	if len(split) != 2 || split[0] == "" || split[1] == "" {
+		return gli.ProgramDef{}, fmt.Errorf("Invalid program identifier '%s': expected 'group.program'", name)
+	}
+	group, ok := coll.groups[split[0]]
+	if !ok {
+		return gli.ProgramDef{}, fmt.Errorf("Unknown program group: '%s'", split[0])
+	}
+	program, ok := group.programs[split[1]]
+	if !ok {
+		return gli.ProgramDef{}, fmt.Errorf("Unknown program: '%s.%s'", split[0], split[1])
+	}
+	p := gli.ProgramDef{
+		Name:  program.name,
+		Group: group.name,
+	}
+	p.Locations = append(p.Locations, group.locations...)
+	for _, buffer := range program.buffers {
+		nBuffer := gli.BufferDef{Name: buffer.name}
+		switch buffer.usage {
+		case "STATIC":
+			nBuffer.Usage = gli.BufferUsageStaticDraw
+		case "DYNAMIC":
+			nBuffer.Usage = gli.BufferUsageDynamicDraw
+		case "STREAM":
+			nBuffer.Usage = gli.BufferUsageStreamDraw
+		default:
+			return gli.ProgramDef{}, fmt.Errorf("Program %s.%s: Invalid buffer usage '%s'", group.name, program.name, buffer.usage)
+		}
+		for _, attr := range buffer.attrs {
+			nAttr := gli.ProgramResource{
+				Name:     attr.name,
+				Index:    attr.location,
+				Resource: gli.ResourceTypeAttribute,
+				Type:     attr.typ,
+			}
+			nBuffer.Attributes = append(nBuffer.Attributes, nAttr)
+		}
+		p.Buffers = append(p.Buffers, nBuffer)
+	}
+
+	if program.vertexShader != nil {
+		buf := bytes.NewBuffer(nil)
+		fmt.Fprintf(buf, "#version %d\n#define DYNAMIC(X)\n#define STATIC(X)\n#define STREAM(X)\n\n", coll.version)
+		for _, filename := range program.vertexShader.files {
+			fmt.Fprintln(buf, "")
+			buf.WriteString(coll.text[filename])
+		}
+		p.Shaders = append(p.Shaders, gli.ShaderDef{
+			Type:   gli.ShaderTypeVertex,
+			Source: []string{buf.String()},
+		})
+	}
+	if program.geometryShader != nil {
+		buf := bytes.NewBuffer(nil)
+		fmt.Fprintf(buf, "#version %d\n", coll.version)
+		for _, filename := range program.geometryShader.files {
+			fmt.Fprintln(buf, "")
+			buf.WriteString(coll.text[filename])
+		}
+		p.Shaders = append(p.Shaders, gli.ShaderDef{
+			Type:   gli.ShaderTypeGeometry,
+			Source: []string{buf.String()},
+		})
+	}
+	if program.fragmentShader != nil {
+		buf := bytes.NewBuffer(nil)
+		fmt.Fprintf(buf, "#version %d\n", coll.version)
+		for _, filename := range program.fragmentShader.files {
+			fmt.Fprintln(buf, "")
+			buf.WriteString(coll.text[filename])
+		}
+		p.Shaders = append(p.Shaders, gli.ShaderDef{
+			Type:   gli.ShaderTypeFragment,
+			Source: []string{buf.String()},
+		})
+	}
+
+	return p, nil
 }
