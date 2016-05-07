@@ -1,0 +1,13 @@
+#version 330
+
+in Vertex {
+	smooth vec4 Color;
+} In;
+
+out vec4 Color;
+
+uniform float colorshift;
+
+void main() {
+	Color = In.Color * colorshift;
+}

@@ -2,8 +2,8 @@ package gl330
 
 import (
 	"fmt"
-	"github.com/PieterD/gl/v3.3-core/gl"
 	"github.com/PieterD/glimmer/gli"
+	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type enum int64

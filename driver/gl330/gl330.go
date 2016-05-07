@@ -3,8 +3,8 @@ package gl330
 import (
 	"errors"
 	"fmt"
-	"github.com/PieterD/gl/v3.3-core/gl"
 	"github.com/PieterD/glimmer/gli"
+	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type gl330 struct{}

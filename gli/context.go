@@ -12,9 +12,17 @@ func New() (*Context, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Context{}, nil
+	ctx := &Context{}
+	return ctx, nil
 }
 
 func (ctx *Context) Driver() Driver {
 	return driver
+}
+
+type ProgramCollection interface {
+	Program(name string) ProgramDef
+}
+
+type ProgramDef interface {
 }

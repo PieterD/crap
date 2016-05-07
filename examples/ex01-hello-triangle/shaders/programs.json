@@ -1,0 +1,5 @@
+{
+  "MyGroup": {
+    "MyProgram": { "vertex": [ "vertex.txt" ], "fragment": [ "fragment.txt" ] }
+  }
+}

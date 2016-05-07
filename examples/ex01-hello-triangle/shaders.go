@@ -2,8 +2,10 @@ package main
 
 var vertexShaderText = `
 #version 330
+#define BUFFER(X)
 
-in vec4 Position;
+in vec4 Position[2];
+in mat4 Matrix BUFFER(MatrixBuffer);
 in vec3 Color;
 
 out Vertex {
@@ -11,7 +13,7 @@ out Vertex {
 } Out;
 
 void main() {
-	gl_Position = Position;
+	gl_Position = Position[1] * Matrix;
 	Out.Color = vec4(Color, 1.0);
 }
 `

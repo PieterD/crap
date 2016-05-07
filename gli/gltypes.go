@@ -117,7 +117,7 @@ func (dt DataType) isValidMatrix() error {
 	if dt.Rows == 1 || dt.Cols == 1 {
 		return fmt.Errorf("Invalid DataType %#v: Matrix dimensions too small", dt)
 	}
-	if dt.Base != BaseTypeFloat && dt.Base != BaseTypeDouble {
+	if dt.Base != BaseTypeFloat {
 		return fmt.Errorf("Invalid DataType %#v: Only Float or Double matrices are allowed", dt)
 	}
 	return nil
@@ -130,4 +130,8 @@ func (dt DataType) isValidVector() error {
 		return fmt.Errorf("Invalid DataType %#v: Vector dimensions too small", dt)
 	}
 	return nil
+}
+
+func (dt DataType) Location() uint {
+	return uint(dt.Rows) * uint(dt.Size)
 }
