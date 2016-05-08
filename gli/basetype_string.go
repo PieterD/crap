@@ -4,9 +4,9 @@ package gli
 
 import "fmt"
 
-const _BaseType_name = "BaseTypeFloatBaseTypeIntBaseTypeUnsignedIntBaseTypeDoubleBaseTypeBool"
+const _BaseType_name = "BaseTypeFloatBaseTypeIntBaseTypeUnsignedIntBaseTypeBool"
 
-var _BaseType_index = [...]uint8{0, 13, 24, 43, 57, 69}
+var _BaseType_index = [...]uint8{0, 13, 24, 43, 55}
 
 func (i BaseType) String() string {
 	i -= 1

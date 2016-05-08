@@ -22,7 +22,6 @@ const (
 	BaseTypeFloat BaseType = iota + 1
 	BaseTypeInt
 	BaseTypeUnsignedInt
-	BaseTypeDouble
 	BaseTypeBool
 )
 
@@ -93,18 +92,15 @@ type DataType struct {
 	Base    BaseType
 	Sampler SamplerType
 	Cols    byte
-	Rows    byte
+	Matrix  bool
 	Size    uint
 }
 
 func (dt DataType) GoString() string {
-	return fmt.Sprintf("gli.DataType{Base: %s, Sampler: %s, Cols: %d, Rows: %d, Size: %d}", dt.Base.String(), dt.Sampler.String(), dt.Cols, dt.Rows, dt.Size)
+	return fmt.Sprintf("gli.DataType{Base: %s, Sampler: %s, Cols: %d, Matrix: %t, Size: %d}", dt.Base.String(), dt.Sampler.String(), dt.Cols, dt.Matrix, dt.Size)
 }
 
 func (dt DataType) IsValid() error {
-	if dt.Cols == 0 && dt.Rows > 0 {
-		return fmt.Errorf("Invalid DataType %#v: Rows without Columns", dt)
-	}
 	if dt.Base > BaseTypeBool {
 		return fmt.Errorf("Invalid DataType %#v: Unknown BaseType", dt)
 	}
@@ -114,7 +110,7 @@ func (dt DataType) IsValid() error {
 	if dt.Sampler > 0 {
 		return dt.isValidSampler()
 	}
-	if dt.Rows > 0 {
+	if dt.Matrix {
 		return dt.isValidMatrix()
 	}
 	if dt.Cols > 0 {
@@ -127,7 +123,10 @@ func (dt DataType) isValidSampler() error {
 	if dt.Sampler > SamplerTypeCubeArrayShadow {
 		return fmt.Errorf("Invalid DataType %#v: Unknown SamplerType", dt)
 	}
-	if dt.Cols > 0 || dt.Rows > 0 {
+	if dt.Matrix {
+		return fmt.Errorf("Invalid DataType %#v: Sampler types not allowed to be matrices", dt)
+	}
+	if dt.Cols > 0 {
 		return fmt.Errorf("Invalid DataType %#v: Sampler types not allowed to have columns or rows", dt)
 	}
 	if dt.Sampler > SamplerType1dShadow {
@@ -141,10 +140,10 @@ func (dt DataType) isValidSampler() error {
 	return nil
 }
 func (dt DataType) isValidMatrix() error {
-	if dt.Rows > 4 || dt.Cols > 4 {
+	if dt.Cols > 4 {
 		return fmt.Errorf("Invalid DataType %#v: Matrix dimensions too large", dt)
 	}
-	if dt.Rows == 1 || dt.Cols == 1 {
+	if dt.Cols <= 1 {
 		return fmt.Errorf("Invalid DataType %#v: Matrix dimensions too small", dt)
 	}
 	if dt.Base != BaseTypeFloat {
@@ -163,5 +162,9 @@ func (dt DataType) isValidVector() error {
 }
 
 func (dt DataType) Location() uint {
-	return uint(dt.Rows) * uint(dt.Size)
+	base := uint(1)
+	if dt.Matrix {
+		base = uint(dt.Cols)
+	}
+	return base * uint(dt.Size)
 }
