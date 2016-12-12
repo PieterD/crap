@@ -14,13 +14,10 @@ func init() {
 
 var vertexData = []float32{
 	0.75, 0.75, 0.0, 1.0,
-	0.75, -0.75, 0.0, 1.0,
-	-0.75, -0.75, 0.0, 1.0,
-}
-
-var colorData = []float32{
 	1.0, 0.0, 0.0, 1.0,
+	0.75, -0.75, 0.0, 1.0,
 	0.0, 1.0, 0.0, 1.0,
+	-0.75, -0.75, 0.0, 1.0,
 	0.0, 0.0, 1.0, 1.0,
 }
 
@@ -66,19 +63,17 @@ func main() {
 	Panic(err)
 	defer vao.Delete()
 
-	posVbo, err := gli.NewBuffer(vertexData)
+	vbo, err := gli.NewBuffer(vertexData)
 	Panic(err)
-	defer posVbo.Delete()
+	defer vbo.Delete()
+
 	posLoc, err := program.AttribLocation("position")
 	Panic(err)
-	vao.Enable(posLoc, 4, posVbo).Done()
+	vao.Enable(4, vbo, posLoc, gli.VAOStride(8))
 
-	colVbo, err := gli.NewBuffer(colorData)
-	Panic(err)
-	defer colVbo.Delete()
 	colLoc, err := program.AttribLocation("color")
 	Panic(err)
-	vao.Enable(colLoc, 4, colVbo).Done()
+	vao.Enable(4, vbo, colLoc, gli.VAOStride(8), gli.VAOOffset(4))
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 

@@ -35,7 +35,7 @@ func (buffer *Buffer) Delete() {
 	gl.DeleteBuffers(1, &buffer.id)
 }
 
-func NewBuffer(idata interface{}) (*Buffer, error) {
+func NewBuffer(idata interface{}, opts ...BufferOption) (*Buffer, error) {
 	var id uint32
 	gl.GenBuffers(1, &id)
 	gl.BindBuffer(gl.ARRAY_BUFFER, id)
@@ -65,3 +65,8 @@ func resolveData(idata interface{}) (iData, error) {
 	}
 	return d, nil
 }
+
+type bufferOption struct {
+}
+
+type BufferOption func(opt *bufferOption)
