@@ -28,7 +28,7 @@ func NewVAO() (*VAO, error) {
 	}, nil
 }
 
-func (vao *VAO) Enable(elements int, buffer *Buffer, index uint32, opts ...VAOOption) {
+func (vao *VAO) Enable(elements int, buffer *Buffer, attrib Attrib, opts ...VAOOption) {
 	opt := vaoOption{
 		stride:     0,
 		offset:     0,
@@ -41,9 +41,9 @@ func (vao *VAO) Enable(elements int, buffer *Buffer, index uint32, opts ...VAOOp
 	defer gl.BindVertexArray(0)
 	gl.BindBuffer(gl.ARRAY_BUFFER, buffer.id)
 	defer gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-	gl.EnableVertexAttribArray(index)
+	gl.EnableVertexAttribArray(attrib.Location())
 	gl.VertexAttribPointer(
-		index,
+		attrib.Location(),
 		int32(elements),
 		buffer.data.typ,
 		opt.normalized,

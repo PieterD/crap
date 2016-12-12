@@ -36,6 +36,37 @@ func (buffer *Buffer) Delete() {
 }
 
 func NewBuffer(idata interface{}, opts ...BufferOption) (*Buffer, error) {
+	opt := bufferOption{
+		freq:   STATIC,
+		nature: DRAW,
+	}
+	for _, o := range opts {
+		o(&opt)
+	}
+	var usage uint32
+	switch int(opt.freq) | int(opt.nature) {
+	case int(STATIC) | int(DRAW):
+		usage = gl.STATIC_DRAW
+	case int(STATIC) | int(READ):
+		usage = gl.STATIC_READ
+	case int(STATIC) | int(COPY):
+		usage = gl.STATIC_COPY
+	case int(STREAM) | int(DRAW):
+		usage = gl.STREAM_DRAW
+	case int(STREAM) | int(READ):
+		usage = gl.STREAM_READ
+	case int(STREAM) | int(COPY):
+		usage = gl.STREAM_COPY
+	case int(DYNAMIC) | int(DRAW):
+		usage = gl.DYNAMIC_DRAW
+	case int(DYNAMIC) | int(READ):
+		usage = gl.DYNAMIC_READ
+	case int(DYNAMIC) | int(COPY):
+		usage = gl.DYNAMIC_COPY
+	default:
+		panic(fmt.Errorf("Could not resolve buffer usage from options"))
+	}
+
 	var id uint32
 	gl.GenBuffers(1, &id)
 	gl.BindBuffer(gl.ARRAY_BUFFER, id)
@@ -44,7 +75,7 @@ func NewBuffer(idata interface{}, opts ...BufferOption) (*Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	gl.BufferData(gl.ARRAY_BUFFER, data.siz*data.length, data.ptr, gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, data.siz*data.length, data.ptr, usage)
 
 	return &Buffer{
 		id:   id,
@@ -67,6 +98,36 @@ func resolveData(idata interface{}) (iData, error) {
 }
 
 type bufferOption struct {
+	freq   BufferAccessFrequencyEnum
+	nature BufferAccessNatureEnum
 }
 
 type BufferOption func(opt *bufferOption)
+
+func BufferAccessFrequency(e BufferAccessFrequencyEnum) BufferOption {
+	return func(opt *bufferOption) {
+		opt.freq = e
+	}
+}
+
+type BufferAccessFrequencyEnum int
+
+const (
+	STATIC BufferAccessFrequencyEnum = iota
+	STREAM
+	DYNAMIC
+)
+
+func BufferAccessNature(e BufferAccessNatureEnum) BufferOption {
+	return func(opt *bufferOption) {
+		opt.nature = e
+	}
+}
+
+type BufferAccessNatureEnum int
+
+const (
+	DRAW BufferAccessNatureEnum = iota * 8
+	READ
+	COPY
+)

@@ -63,17 +63,16 @@ func main() {
 	Panic(err)
 	defer vao.Delete()
 
-	vbo, err := gli.NewBuffer(vertexData)
+	vbo, err := gli.NewBuffer(vertexData,
+		gli.BufferAccessFrequency(gli.DYNAMIC))
 	Panic(err)
 	defer vbo.Delete()
 
-	posLoc, err := program.AttribLocation("position")
-	Panic(err)
-	vao.Enable(4, vbo, posLoc, gli.VAOStride(8))
-
-	colLoc, err := program.AttribLocation("color")
-	Panic(err)
-	vao.Enable(4, vbo, colLoc, gli.VAOStride(8), gli.VAOOffset(4))
+	vao.Enable(4, vbo, program.Attrib("position"),
+		gli.VAOStride(8))
+	vao.Enable(4, vbo, program.Attrib("color"),
+		gli.VAOStride(8),
+		gli.VAOOffset(4))
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 

@@ -23,14 +23,6 @@ func (program *Program) Delete() {
 	gl.DeleteProgram(program.id)
 }
 
-func (program *Program) AttribLocation(attrname string) (uint32, error) {
-	loc := gl.GetAttribLocation(program.id, gl.Str(attrname+"\x00"))
-	if loc == -1 {
-		return 0, fmt.Errorf("Could not find location for attribute '%s'", attrname)
-	}
-	return uint32(loc), nil
-}
-
 func NewProgram(vertexSource, fragmentSource string) (*Program, error) {
 	vertexId, err := newShader(vertexSource, gl.VERTEX_SHADER)
 	if err != nil {
@@ -92,4 +84,28 @@ func newShader(source string, shaderType uint32) (uint32, error) {
 	}
 
 	return id, nil
+}
+
+type Attrib struct {
+	name     string
+	location int32
+}
+
+func (program *Program) Attrib(attrname string) Attrib {
+	location := gl.GetAttribLocation(program.id, gl.Str(attrname+"\x00"))
+	return Attrib{
+		name:     attrname,
+		location: location,
+	}
+}
+
+func (attrib Attrib) Valid() bool {
+	return attrib.location != -1
+}
+
+func (attrib Attrib) Location() uint32 {
+	if !attrib.Valid() {
+		panic(fmt.Errorf("Could not find location for attribute '%s'", attrib.name))
+	}
+	return uint32(attrib.location)
 }
