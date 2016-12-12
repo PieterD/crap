@@ -3,6 +3,7 @@ package main
 import (
 	"runtime"
 
+	"github.com/PieterD/crap/roguelike/gli"
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 )
@@ -49,8 +50,6 @@ func main() {
 	glfw.WindowHint(glfw.Resizable, glfw.False)
 	glfw.WindowHint(glfw.ContextVersionMajor, 2)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
-	//glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	//glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 	window, err := glfw.CreateWindow(800, 600, "Roguelike", nil, nil)
 	defer window.Destroy()
 	Panic(err)
@@ -59,35 +58,34 @@ func main() {
 	err = gl.Init()
 	Panic(err)
 
-	program, err := newProgram(vertexShaderText, fragmentShaderText)
+	program, err := gli.NewProgram(vertexShaderText, fragmentShaderText)
 	Panic(err)
+	defer program.Delete()
 
-	var vao uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
+	vao, err := gli.NewVAO()
+	Panic(err)
+	defer vao.Delete()
 
-	var posVbo uint32
-	gl.GenBuffers(1, &posVbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, posVbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertexData)*4, gl.Ptr(vertexData), gl.STATIC_DRAW)
-	posLoc := uint32(gl.GetAttribLocation(program, gl.Str("position\x00")))
-	gl.EnableVertexAttribArray(posLoc)
-	gl.VertexAttribPointer(posLoc, 4, gl.FLOAT, false, 0, gl.PtrOffset(0))
+	posVbo, err := gli.NewBuffer(vertexData)
+	Panic(err)
+	defer posVbo.Delete()
+	posLoc, err := program.AttribLocation("position")
+	Panic(err)
+	vao.Enable(posLoc, 4, posVbo).Done()
 
-	var colVbo uint32
-	gl.GenBuffers(1, &colVbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, colVbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(colorData)*4, gl.Ptr(colorData), gl.STATIC_DRAW)
-	colLoc := uint32(gl.GetAttribLocation(program, gl.Str("color\x00")))
-	gl.EnableVertexAttribArray(colLoc)
-	gl.VertexAttribPointer(colLoc, 4, gl.FLOAT, false, 0, gl.PtrOffset(0))
+	colVbo, err := gli.NewBuffer(colorData)
+	Panic(err)
+	defer colVbo.Delete()
+	colLoc, err := program.AttribLocation("color")
+	Panic(err)
+	vao.Enable(colLoc, 4, colVbo).Done()
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		gl.UseProgram(program)
-		gl.BindVertexArray(vao)
+		program.Use()
+		vao.Use()
 		gl.DrawArrays(gl.TRIANGLES, 0, 3)
 		window.SwapBuffers()
 		glfw.WaitEvents()
