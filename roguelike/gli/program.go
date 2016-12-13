@@ -115,6 +115,7 @@ func (attrib Attrib) Location() uint32 {
 }
 
 type Uniform struct {
+	program  *Program
 	name     string
 	location int32
 }
@@ -122,6 +123,7 @@ type Uniform struct {
 func (program *Program) Uniform(uniformname string) Uniform {
 	location := gl.GetUniformLocation(program.id, gl.Str(uniformname+"\x00"))
 	return Uniform{
+		program:  program,
 		name:     uniformname,
 		location: location,
 	}

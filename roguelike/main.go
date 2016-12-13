@@ -92,6 +92,7 @@ func main() {
 	texture := gli.NewTexture(img,
 		gli.TextureFilter(gli.LINEAR, gli.LINEAR),
 		gli.TextureWrap(gli.CLAMP_TO_EDGE, gli.CLAMP_TO_EDGE))
+	program.Use()
 	gl.Uniform1i(program.Uniform("tex").Location(), 0)
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
