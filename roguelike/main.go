@@ -16,26 +16,25 @@ func init() {
 }
 
 var vertexData = []float32{
-	0.75, 0.75, 0.0, 1.0,
 	1.0, 0.0, 0.0, 1.0,
-	1.0, 0.0,
-	0.75, -0.75, 0.0, 1.0,
+	1.0 / 16.0, 0.0 / 16.0,
 	0.0, 1.0, 0.0, 1.0,
-	1.0, 1.0,
-	-0.75, -0.75, 0.0, 1.0,
+	2.0 / 16.0, 0.0 / 16.0,
 	0.0, 0.0, 1.0, 1.0,
-	0.0, 1.0,
+	2.0 / 16.0, 1.0 / 16.0,
+	1.0, 1.0, 1.0, 1.0,
+	1.0 / 16.0, 1.0 / 16.0,
 }
 
 var vertexShaderText = `
 #version 110
-attribute vec4 position;
+attribute vec2 position;
 attribute vec4 color;
 attribute vec2 texCoord;
 varying vec4 theColor;
 varying vec2 theTexCoord;
 void main() {
-	gl_Position = position;
+	gl_Position = vec4(position, 0.0, 1.0);
 	theColor = color;
 	theTexCoord = texCoord;
 }
@@ -82,27 +81,6 @@ func main() {
 	Panic(err)
 	defer program.Delete()
 
-	// Create Vertex ArrayObject
-	vao, err := gli.NewVAO()
-	Panic(err)
-	defer vao.Delete()
-
-	// Create Buffer from vertex data
-	vbo, err := gli.NewBuffer(vertexData,
-		gli.BufferAccessFrequency(gli.DYNAMIC))
-	Panic(err)
-	defer vbo.Delete()
-
-	// Set up VAO
-	vao.Enable(4, vbo, program.Attrib("position"),
-		gli.VAOStride(10))
-	vao.Enable(4, vbo, program.Attrib("color"),
-		gli.VAOStride(10),
-		gli.VAOOffset(4))
-	vao.Enable(2, vbo, program.Attrib("texCoord"),
-		gli.VAOStride(10),
-		gli.VAOOffset(8))
-
 	// Load and initialize texture
 	img, err := gli.LoadImage("resources/rogue_yun_16x16.png")
 	Panic(err)
@@ -115,14 +93,46 @@ func main() {
 	// Set texture unit
 	program.Uniform("tex").SetInt(1)
 
+	// Create Vertex ArrayObject
+	vao, err := gli.NewVAO()
+	Panic(err)
+	defer vao.Delete()
+
+	// Create Buffer from vertex data
+	vbo, err := gli.NewBuffer(vertexData,
+		gli.BufferAccessFrequency(gli.DYNAMIC))
+	Panic(err)
+	defer vbo.Delete()
+
+	// Create grid, and the position and index buffers
+	grid, err := NewGrid(16, 16, texture.Size().X, texture.Size().Y)
+	Panic(err)
+	grid.Resize(width, height)
+	vData, vIndex := grid.Coordinates()
+	posvbo, err := gli.NewBuffer(vData)
+	Panic(err)
+	idxvbo, err := gli.NewBuffer(vIndex, gli.BufferElementArray())
+	Panic(err)
+	defer posvbo.Delete()
+
+	// Set up VAO
+	vao.Enable(2, posvbo, program.Attrib("position"))
+	vao.Enable(4, vbo, program.Attrib("color"),
+		gli.VAOStride(6),
+		gli.VAOOffset(0))
+	vao.Enable(2, vbo, program.Attrib("texCoord"),
+		gli.VAOStride(6),
+		gli.VAOOffset(4))
+
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
 	program.Use()
 	vao.Use()
 	texture.Use(1)
+	idxvbo.Use()
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		gl.DrawArrays(gl.TRIANGLES, 0, 3)
+		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
 		fmt.Printf("draw\n")
 		window.SwapBuffers()
 		glfw.WaitEvents()

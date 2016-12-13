@@ -8,8 +8,9 @@ import (
 )
 
 type Buffer struct {
-	id   uint32
-	data iDataDesc
+	id        uint32
+	bindpoint uint32
+	data      iDataDesc
 }
 
 type iDataDesc struct {
@@ -31,14 +32,19 @@ func (buffer *Buffer) Len() int {
 	return buffer.data.length
 }
 
+func (buffer *Buffer) Use() {
+	gl.BindBuffer(buffer.bindpoint, buffer.id)
+}
+
 func (buffer *Buffer) Delete() {
 	gl.DeleteBuffers(1, &buffer.id)
 }
 
 func NewBuffer(idata interface{}, opts ...BufferOption) (*Buffer, error) {
 	opt := bufferOption{
-		freq:   STATIC,
-		nature: DRAW,
+		freq:      STATIC,
+		nature:    DRAW,
+		bindpoint: gl.ARRAY_BUFFER,
 	}
 	for _, o := range opts {
 		o(&opt)
@@ -69,17 +75,18 @@ func NewBuffer(idata interface{}, opts ...BufferOption) (*Buffer, error) {
 
 	var id uint32
 	gl.GenBuffers(1, &id)
-	gl.BindBuffer(gl.ARRAY_BUFFER, id)
-	defer gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindBuffer(opt.bindpoint, id)
+	defer gl.BindBuffer(opt.bindpoint, 0)
 	data, err := resolveData(idata)
 	if err != nil {
 		return nil, err
 	}
-	gl.BufferData(gl.ARRAY_BUFFER, data.siz*data.length, data.ptr, usage)
+	gl.BufferData(opt.bindpoint, data.siz*data.length, data.ptr, usage)
 
 	return &Buffer{
-		id:   id,
-		data: data.iDataDesc,
+		id:        id,
+		data:      data.iDataDesc,
+		bindpoint: opt.bindpoint,
 	}, nil
 }
 
@@ -91,6 +98,11 @@ func resolveData(idata interface{}) (iData, error) {
 		d.siz = 4
 		d.length = len(data)
 		d.ptr = gl.Ptr(data)
+	case []uint32:
+		d.typ = gl.UNSIGNED_INT
+		d.siz = 4
+		d.length = len(data)
+		d.ptr = gl.Ptr(data)
 	default:
 		return iData{}, fmt.Errorf("Unusable data type for buffer")
 	}
@@ -98,8 +110,9 @@ func resolveData(idata interface{}) (iData, error) {
 }
 
 type bufferOption struct {
-	freq   BufferAccessFrequencyEnum
-	nature BufferAccessNatureEnum
+	freq      BufferAccessFrequencyEnum
+	nature    BufferAccessNatureEnum
+	bindpoint uint32
 }
 
 type BufferOption func(opt *bufferOption)
@@ -131,3 +144,9 @@ const (
 	READ
 	COPY
 )
+
+func BufferElementArray() BufferOption {
+	return func(opt *bufferOption) {
+		opt.bindpoint = gl.ELEMENT_ARRAY_BUFFER
+	}
+}
