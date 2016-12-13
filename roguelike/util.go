@@ -43,6 +43,5 @@ func newTexture(file string) (uint32, error) {
 		gl.RGBA,
 		gl.UNSIGNED_BYTE,
 		gl.Ptr(rgba.Pix))
-
 	return texture, nil
 }

@@ -99,6 +99,10 @@ func (program *Program) Attrib(attrname string) Attrib {
 	}
 }
 
+func (attrib Attrib) Name() string {
+	return attrib.name
+}
+
 func (attrib Attrib) Valid() bool {
 	return attrib.location != -1
 }
@@ -108,4 +112,32 @@ func (attrib Attrib) Location() uint32 {
 		panic(fmt.Errorf("Could not find location for attribute '%s'", attrib.name))
 	}
 	return uint32(attrib.location)
+}
+
+type Uniform struct {
+	name     string
+	location int32
+}
+
+func (program *Program) Uniform(uniformname string) Uniform {
+	location := gl.GetUniformLocation(program.id, gl.Str(uniformname+"\x00"))
+	return Uniform{
+		name:     uniformname,
+		location: location,
+	}
+}
+
+func (uniform Uniform) Name() string {
+	return uniform.name
+}
+
+func (uniform Uniform) Valid() bool {
+	return uniform.location != -1
+}
+
+func (uniform Uniform) Location() int32 {
+	if !uniform.Valid() {
+		panic(fmt.Errorf("Could not find location for uniform '%s'", uniform.name))
+	}
+	return int32(uniform.location)
 }
