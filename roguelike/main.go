@@ -92,8 +92,8 @@ func main() {
 	texture := gli.NewTexture(img,
 		gli.TextureFilter(gli.LINEAR, gli.LINEAR),
 		gli.TextureWrap(gli.CLAMP_TO_EDGE, gli.CLAMP_TO_EDGE))
-	program.Use()
-	gl.Uniform1i(program.Uniform("tex").Location(), 0)
+	textureUniform := program.Uniform("tex")
+	textureUniform.SetInt(1)
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
@@ -101,7 +101,7 @@ func main() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		program.Use()
 		vao.Use()
-		texture.Use(0)
+		texture.Use(1)
 		gl.DrawArrays(gl.TRIANGLES, 0, 3)
 		window.SwapBuffers()
 		glfw.WaitEvents()

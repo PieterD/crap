@@ -143,3 +143,7 @@ func (uniform Uniform) Location() int32 {
 	}
 	return int32(uniform.location)
 }
+
+func (uniform Uniform) SetInt(data ...int32) {
+	gl.ProgramUniform1iv(uniform.program.id, uniform.Location(), 1, &data[0])
+}
