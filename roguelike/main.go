@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"runtime"
 
 	_ "image/png"
@@ -51,14 +52,16 @@ void main() {
 `
 
 func main() {
+	width := 800
+	height := 600
 	// Initialize glfw and create window
 	err := glfw.Init()
 	Panic(err)
 	defer glfw.Terminate()
-	glfw.WindowHint(glfw.Resizable, glfw.False)
+	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 2)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
-	window, err := glfw.CreateWindow(800, 600, "Roguelike", nil, nil)
+	window, err := glfw.CreateWindow(width, height, "Roguelike", nil, nil)
 	defer window.Destroy()
 	Panic(err)
 	window.MakeContextCurrent()
@@ -66,6 +69,13 @@ func main() {
 	// Initialize opengl
 	err = gl.Init()
 	Panic(err)
+
+	window.SetSizeCallback(func(win *glfw.Window, w int, h int) {
+		fmt.Printf("resize\n")
+		width = w
+		height = h
+		gl.Viewport(0, 0, int32(width), int32(height))
+	})
 
 	// Create shaders and program
 	program, err := gli.NewProgram(vertexShaderText, fragmentShaderText)
@@ -113,6 +123,7 @@ func main() {
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		gl.DrawArrays(gl.TRIANGLES, 0, 3)
+		fmt.Printf("draw\n")
 		window.SwapBuffers()
 		glfw.WaitEvents()
 	}
