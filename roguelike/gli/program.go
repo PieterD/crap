@@ -8,9 +8,10 @@ import (
 )
 
 type Program struct {
-	id     uint32
-	vertId uint32
-	fragId uint32
+	id       uint32
+	vertId   uint32
+	fragId   uint32
+	uniforms map[string]Uniform
 }
 
 func (program *Program) Id() uint32 {
@@ -61,9 +62,10 @@ func NewProgram(vertexSource, fragmentSource string) (*Program, error) {
 	}
 
 	return &Program{
-		id:     id,
-		vertId: vertexId,
-		fragId: fragmentId,
+		id:       id,
+		vertId:   vertexId,
+		fragId:   fragmentId,
+		uniforms: uniforms(id),
 	}, nil
 }
 
@@ -120,19 +122,56 @@ func (attrib Attrib) Location() uint32 {
 	return uint32(attrib.location)
 }
 
+func uniforms(id uint32) map[string]Uniform {
+	var maxlength int32
+	gl.GetProgramiv(id, gl.ACTIVE_UNIFORM_MAX_LENGTH, &maxlength)
+	var numuniforms int32
+	gl.GetProgramiv(id, gl.ACTIVE_UNIFORMS, &numuniforms)
+	buf := make([]byte, maxlength)
+	m := make(map[string]Uniform)
+	for index := uint32(0); index < uint32(numuniforms); index++ {
+		name, dt, siz := uniform(id, index, buf)
+		loc := gl.GetUniformLocation(id, &buf[0])
+		if loc == -1 {
+			panic(fmt.Errorf("Expected location for indexed uniform '%s'", name))
+		}
+		m[name] = Uniform{
+			name:     name,
+			location: loc,
+			typ:      dt,
+			siz:      siz,
+		}
+	}
+	return m
+}
+
+func uniform(id uint32, index uint32, buf []byte) (name string, datatype uint32, size int) {
+	var length int32
+	var isize int32
+	var idatatype uint32
+	gl.GetActiveUniform(id, index, int32(len(buf)), &length, &isize, &idatatype, &buf[0])
+	return string(buf[:length : length+1]), idatatype, int(isize)
+}
+
 type Uniform struct {
 	program  *Program
 	name     string
 	location int32
+	typ      uint32
+	siz      int
 }
 
 func (program *Program) Uniform(uniformname string) Uniform {
-	location := gl.GetUniformLocation(program.id, gl.Str(uniformname+"\x00"))
-	return Uniform{
-		program:  program,
-		name:     uniformname,
-		location: location,
+	uniform, ok := program.uniforms[uniformname]
+	if !ok {
+		return Uniform{
+			program:  program,
+			name:     uniformname,
+			location: -1,
+		}
 	}
+	uniform.program = program
+	return uniform
 }
 
 func (uniform Uniform) Name() string {
@@ -151,5 +190,6 @@ func (uniform Uniform) Location() int32 {
 }
 
 func (uniform Uniform) SetInt(data ...int32) {
+	fmt.Printf("set %#v\n", uniform)
 	gl.ProgramUniform1iv(uniform.program.id, uniform.Location(), 1, &data[0])
 }
