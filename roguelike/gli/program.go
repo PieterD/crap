@@ -8,7 +8,9 @@ import (
 )
 
 type Program struct {
-	id uint32
+	id     uint32
+	vertId uint32
+	fragId uint32
 }
 
 func (program *Program) Id() uint32 {
@@ -21,6 +23,8 @@ func (program *Program) Use() {
 
 func (program *Program) Delete() {
 	gl.DeleteProgram(program.id)
+	gl.DeleteShader(program.vertId)
+	gl.DeleteShader(program.fragId)
 }
 
 func NewProgram(vertexSource, fragmentSource string) (*Program, error) {
@@ -57,7 +61,9 @@ func NewProgram(vertexSource, fragmentSource string) (*Program, error) {
 	}
 
 	return &Program{
-		id: id,
+		id:     id,
+		vertId: vertexId,
+		fragId: fragmentId,
 	}, nil
 }
 

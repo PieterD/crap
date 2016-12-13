@@ -51,6 +51,7 @@ void main() {
 `
 
 func main() {
+	// Initialize glfw and create window
 	err := glfw.Init()
 	Panic(err)
 	defer glfw.Terminate()
@@ -62,22 +63,27 @@ func main() {
 	Panic(err)
 	window.MakeContextCurrent()
 
+	// Initialize opengl
 	err = gl.Init()
 	Panic(err)
 
+	// Create shaders and program
 	program, err := gli.NewProgram(vertexShaderText, fragmentShaderText)
 	Panic(err)
 	defer program.Delete()
 
+	// Create Vertex ArrayObject
 	vao, err := gli.NewVAO()
 	Panic(err)
 	defer vao.Delete()
 
+	// Create Buffer from vertex data
 	vbo, err := gli.NewBuffer(vertexData,
 		gli.BufferAccessFrequency(gli.DYNAMIC))
 	Panic(err)
 	defer vbo.Delete()
 
+	// Set up VAO
 	vao.Enable(4, vbo, program.Attrib("position"),
 		gli.VAOStride(10))
 	vao.Enable(4, vbo, program.Attrib("color"),
@@ -87,21 +93,25 @@ func main() {
 		gli.VAOStride(10),
 		gli.VAOOffset(8))
 
+	// Load and initialize texture
 	img, err := gli.LoadImage("resources/rogue_yun_16x16.png")
 	Panic(err)
-	texture := gli.NewTexture(img,
+	texture, err := gli.NewTexture(img,
 		gli.TextureFilter(gli.LINEAR, gli.LINEAR),
 		gli.TextureWrap(gli.CLAMP_TO_EDGE, gli.CLAMP_TO_EDGE))
-	textureUniform := program.Uniform("tex")
-	textureUniform.SetInt(1)
+	Panic(err)
+	defer texture.Delete()
+
+	// Set texture unit
+	program.Uniform("tex").SetInt(1)
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
+	program.Use()
+	vao.Use()
+	texture.Use(1)
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		program.Use()
-		vao.Use()
-		texture.Use(1)
 		gl.DrawArrays(gl.TRIANGLES, 0, 3)
 		window.SwapBuffers()
 		glfw.WaitEvents()

@@ -45,9 +45,13 @@ func (texture *Texture) Size() image.Point {
 	return texture.size
 }
 
-func NewTexture(img *image.RGBA, opts ...TextureOption) *Texture {
+func (texture *Texture) Delete() {
+	gl.DeleteTextures(1, &texture.id)
+}
+
+func NewTexture(img *image.RGBA, opts ...TextureOption) (*Texture, error) {
 	if img.Stride != img.Rect.Size().X*4 {
-		panic(fmt.Errorf("unsupported stride in texture image"))
+		return nil, fmt.Errorf("unsupported stride in texture image")
 	}
 	opt := textureOption{
 		filterMin: LINEAR,
@@ -81,7 +85,7 @@ func NewTexture(img *image.RGBA, opts ...TextureOption) *Texture {
 	return &Texture{
 		id:   id,
 		size: img.Rect.Size(),
-	}
+	}, nil
 }
 
 type textureOption struct {
