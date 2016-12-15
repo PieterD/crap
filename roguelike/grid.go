@@ -63,8 +63,8 @@ func (grid *Grid) Resize(width, height int) {
 	grid.clearData()
 }
 
-func (grid *Grid) Coordinates() ([]float32, []uint32) {
-	return grid.coord, grid.index
+func (grid *Grid) Buffers() ([]float32, []uint32, []uint8) {
+	return grid.coord, grid.index, grid.data
 }
 
 func (grid *Grid) updateSlices() {
@@ -161,10 +161,6 @@ func (grid *Grid) Set(x, y, r, fore, back int) {
 	data4[1] = uint8(ry + 1)
 	data4[2] = uint8(fore)
 	data4[3] = uint8(back)
-}
-
-func (grid *Grid) VertexData() []uint8 {
-	return grid.data
 }
 
 func (grid *Grid) Vertices() int32 {

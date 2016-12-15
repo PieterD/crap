@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"runtime"
 
 	_ "image/png"
@@ -80,13 +79,6 @@ func main() {
 	err = gl.Init()
 	Panic(err)
 
-	window.SetSizeCallback(func(win *glfw.Window, w int, h int) {
-		fmt.Printf("resize\n")
-		width = w
-		height = h
-		gl.Viewport(0, 0, int32(width), int32(height))
-	})
-
 	// Create shaders and program
 	program, err := gli.NewProgram(vertexShaderText, fragmentShaderText)
 	Panic(err)
@@ -106,25 +98,34 @@ func main() {
 	Panic(err)
 	defer vao.Delete()
 
-	// Create grid, and the position and index buffers
+	// Create grid
 	grid, err := NewGrid(16, 16, texture.Size().X, texture.Size().Y)
 	Panic(err)
 	grid.Resize(width, height)
-	vData, vIndex := grid.Coordinates()
-	posvbo, err := gli.NewBuffer(vData)
+	vCoords, vIndex, vData := grid.Buffers()
+
+	// Create grid buffers
+	posvbo, err := gli.NewBuffer(vCoords)
 	Panic(err)
 	defer posvbo.Delete()
 	idxvbo, err := gli.NewBuffer(vIndex, gli.BufferElementArray())
 	Panic(err)
 	defer idxvbo.Delete()
-
-	grid.Set(0, 0, 1, 1, 0)
-	grid.Set(49, 0, 2, 1, 0)
-	grid.Set(0, 1, 2, 1, 0)
-	vbo, err := gli.NewBuffer(grid.VertexData(),
-		gli.BufferAccessFrequency(gli.DYNAMIC))
+	vbo, err := gli.NewBuffer(vData, gli.BufferAccessFrequency(gli.DYNAMIC))
 	Panic(err)
 	defer vbo.Delete()
+
+	window.SetSizeCallback(func(win *glfw.Window, w, h int) {
+		//fmt.Printf("resize\n")
+		width = w
+		height = h
+		gl.Viewport(0, 0, int32(width), int32(height))
+		grid.Resize(width, height)
+		vCoords, vIndex, vData := grid.Buffers()
+		posvbo.Upload(vCoords)
+		idxvbo.Upload(vIndex)
+		vbo.Upload(vData)
+	})
 
 	// Set up VAO
 	vao.Enable(2, posvbo, program.Attrib("position"))
@@ -142,14 +143,25 @@ func main() {
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
-	program.Use()
-	vao.Use()
-	texture.Use(1)
-	idxvbo.Use()
 	for !window.ShouldClose() {
-		gl.Clear(gl.COLOR_BUFFER_BIT)
-		gl.DrawElements(gl.TRIANGLES, grid.Vertices(), gl.UNSIGNED_INT, gl.PtrOffset(0))
 		//fmt.Printf("draw\n")
+
+		// Render scene
+		grid.Set(0, 0, 1, 1, 0)
+		grid.Set(49, 0, 2, 1, 0)
+		grid.Set(0, 1, 2, 1, 0)
+		_, _, vData = grid.Buffers()
+		vbo.Upload(vData)
+
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+
+		// Draw scene
+		program.Use()
+		vao.Use()
+		texture.Use(1)
+		idxvbo.Use()
+		gl.DrawElements(gl.TRIANGLES, grid.Vertices(), gl.UNSIGNED_INT, gl.PtrOffset(0))
+
 		window.SwapBuffers()
 		glfw.WaitEvents()
 	}

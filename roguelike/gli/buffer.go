@@ -10,6 +10,7 @@ import (
 type Buffer struct {
 	id        uint32
 	bindpoint uint32
+	usage     uint32
 	data      iDataDesc
 }
 
@@ -72,22 +73,36 @@ func NewBuffer(idata interface{}, opts ...BufferOption) (*Buffer, error) {
 	default:
 		panic(fmt.Errorf("Could not resolve buffer usage from options"))
 	}
-
-	var id uint32
-	gl.GenBuffers(1, &id)
-	gl.BindBuffer(opt.bindpoint, id)
-	defer gl.BindBuffer(opt.bindpoint, 0)
 	data, err := resolveData(idata)
 	if err != nil {
 		return nil, err
 	}
-	gl.BufferData(opt.bindpoint, data.siz*data.length, data.ptr, usage)
 
-	return &Buffer{
+	var id uint32
+	gl.GenBuffers(1, &id)
+
+	buffer := &Buffer{
 		id:        id,
 		data:      data.iDataDesc,
+		usage:     usage,
 		bindpoint: opt.bindpoint,
-	}, nil
+	}
+
+	buffer.Upload(idata)
+	return buffer, nil
+}
+
+func (buffer *Buffer) Upload(idata interface{}) {
+	data, err := resolveData(idata)
+	if err != nil {
+		panic(err)
+	}
+	if data.typ != buffer.data.typ {
+		panic(fmt.Errorf("buffer data type mismatch: %04X and %04X", buffer.data.typ, data.typ))
+	}
+	gl.BindBuffer(buffer.bindpoint, buffer.id)
+	defer gl.BindBuffer(buffer.bindpoint, 0)
+	gl.BufferData(buffer.bindpoint, data.siz*data.length, data.ptr, buffer.usage)
 }
 
 func resolveData(idata interface{}) (iData, error) {
