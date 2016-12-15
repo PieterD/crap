@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"runtime"
 
 	_ "image/png"
@@ -127,6 +128,14 @@ func main() {
 		vbo.Upload(vData)
 	})
 
+	window.SetKeyCallback(func(win *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+		fmt.Printf("key=%v code=%d, action=%v, mods=%v\n", key, scancode, action, mods)
+	})
+
+	window.SetCharCallback(func(win *glfw.Window, key rune) {
+		fmt.Printf("char=%d(%c)\n", key, key)
+	})
+
 	// Set up VAO
 	vao.Enable(2, posvbo, program.Attrib("position"))
 	vao.Enable(2, vbo, program.Attrib("texCoord"),
@@ -147,11 +156,12 @@ func main() {
 		//fmt.Printf("draw\n")
 
 		// Render scene
+		grid.clearData()
 		grid.Set(0, 0, 1, 1, 0)
 		grid.Set(49, 0, 2, 1, 0)
 		grid.Set(0, 1, 2, 1, 0)
 		_, _, vData = grid.Buffers()
-		vbo.Upload(vData)
+		vbo.Update(0, vData)
 
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 

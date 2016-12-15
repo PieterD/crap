@@ -105,6 +105,19 @@ func (buffer *Buffer) Upload(idata interface{}) {
 	gl.BufferData(buffer.bindpoint, data.siz*data.length, data.ptr, buffer.usage)
 }
 
+func (buffer *Buffer) Update(offset int, idata interface{}) {
+	data, err := resolveData(idata)
+	if err != nil {
+		panic(err)
+	}
+	if data.typ != buffer.data.typ {
+		panic(fmt.Errorf("buffer data type mismatch: %04X and %04X", buffer.data.typ, data.typ))
+	}
+	gl.BindBuffer(buffer.bindpoint, buffer.id)
+	defer gl.BindBuffer(buffer.bindpoint, 0)
+	gl.BufferSubData(buffer.bindpoint, offset*data.siz, data.length*data.siz, data.ptr)
+}
+
 func resolveData(idata interface{}) (iData, error) {
 	var d iData
 	switch data := idata.(type) {

@@ -5,6 +5,11 @@ import (
 	"image"
 )
 
+type DrawableGrid interface {
+	GridSize() image.Point
+	Set(x, y, r, fore, back int)
+}
+
 type Grid struct {
 	screenwidth  int
 	screenheight int
@@ -25,6 +30,10 @@ type Grid struct {
 	coord []float32
 	index []uint32
 	data  []uint8
+}
+
+func (grid *Grid) GridSize() image.Point {
+	return image.Point{X: grid.cols, Y: grid.rows}
 }
 
 func (grid *Grid) RuneSize() image.Point {
@@ -131,6 +140,7 @@ func (grid *Grid) fcoord(x, y int) (fx float32, fy float32) {
 }
 
 func (grid *Grid) Set(x, y, r, fore, back int) {
+	y = grid.rows - 1 - y
 	if x >= grid.cols || y >= grid.rows {
 		return
 	}
