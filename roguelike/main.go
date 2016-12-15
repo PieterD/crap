@@ -15,15 +15,22 @@ func init() {
 	runtime.LockOSThread()
 }
 
-var vertexTexCoords = []float32{
-	1.0 / 16.0, 0.0 / 16.0,
-	2.0 / 16.0, 0.0 / 16.0,
-	2.0 / 16.0, 1.0 / 16.0,
-	1.0 / 16.0, 1.0 / 16.0,
+var vertexTexCoords = []uint8{
+	1, 0,
+	2, 0,
+	2, 1,
+	1, 1,
 }
 
 var vertexColors = []uint8{
 	1, 2, 3, 0,
+}
+
+var vertexData = []uint8{
+	1, 0, 1,
+	2, 0, 2,
+	2, 1, 3,
+	1, 1, 0,
 }
 
 var colorData = []float32{
@@ -39,12 +46,13 @@ attribute vec2 position;
 attribute float color;
 attribute vec2 texCoord;
 uniform vec3 colorData[4];
+uniform vec2 runeSize;
 varying vec4 theColor;
 varying vec2 theTexCoord;
 void main() {
 	gl_Position = vec4(position, 0.0, 1.0);
 	theColor = vec4(colorData[int(color)], 1.0);
-	theTexCoord = texCoord;
+	theTexCoord = vec2(texCoord.x / runeSize.x, texCoord.y / runeSize.y);
 }
 `
 
@@ -98,24 +106,15 @@ func main() {
 	Panic(err)
 	defer texture.Delete()
 
-	// Set texture unit
-	program.Uniform("tex").SetSampler(1)
-	program.Uniform("colorData[0]").SetFloat(colorData...)
-
 	// Create Vertex ArrayObject
 	vao, err := gli.NewVAO()
 	Panic(err)
 	defer vao.Delete()
 
-	// Create Buffer of vertex colors
-	colvbo, err := gli.NewBuffer(vertexColors)
+	// Create buffer for vertex data
+	vbo, err := gli.NewBuffer(vertexData)
 	Panic(err)
-	defer colvbo.Delete()
-
-	// Create Buffer of vertex texture coordinates
-	texvbo, err := gli.NewBuffer(vertexTexCoords)
-	Panic(err)
-	defer texvbo.Delete()
+	defer vbo.Delete()
 
 	// Create grid, and the position and index buffers
 	grid, err := NewGrid(16, 16, texture.Size().X, texture.Size().Y)
@@ -130,8 +129,13 @@ func main() {
 
 	// Set up VAO
 	vao.Enable(2, posvbo, program.Attrib("position"))
-	vao.Enable(1, colvbo, program.Attrib("color"))
-	vao.Enable(2, texvbo, program.Attrib("texCoord"))
+	vao.Enable(2, vbo, program.Attrib("texCoord"), gli.VAOStride(3))
+	vao.Enable(1, vbo, program.Attrib("color"), gli.VAOStride(3), gli.VAOOffset(2))
+
+	// Set uniforms
+	program.Uniform("tex").SetSampler(1)
+	program.Uniform("colorData[0]").SetFloat(colorData...)
+	program.Uniform("runeSize").SetFloat(float32(grid.RuneSize().X), float32(grid.RuneSize().Y))
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 

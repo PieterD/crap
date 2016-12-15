@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"image"
+)
 
 type Grid struct {
 	screenwidth  int
@@ -18,6 +21,10 @@ type Grid struct {
 	texcols  int
 	texrows  int
 	texcodes int
+}
+
+func (grid *Grid) RuneSize() image.Point {
+	return image.Point{X: grid.runewidth, Y: grid.runeheight}
 }
 
 func NewGrid(runewidth, runeheight, texwidth, texheight int) (*Grid, error) {
