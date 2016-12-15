@@ -145,12 +145,12 @@ func uniforms(id uint32) map[string]Uniform {
 	return m
 }
 
-func uniform(id uint32, index uint32, buf []byte) (name string, datatype uint32, size int) {
+func uniform(id uint32, index uint32, buf []byte) (name string, datatype uint32, size int32) {
 	var length int32
 	var isize int32
 	var idatatype uint32
 	gl.GetActiveUniform(id, index, int32(len(buf)), &length, &isize, &idatatype, &buf[0])
-	return string(buf[:length : length+1]), idatatype, int(isize)
+	return string(buf[:length : length+1]), idatatype, isize
 }
 
 type Uniform struct {
@@ -158,7 +158,7 @@ type Uniform struct {
 	name     string
 	location int32
 	typ      uint32
-	siz      int
+	siz      int32
 }
 
 func (program *Program) Uniform(uniformname string) Uniform {
@@ -189,7 +189,44 @@ func (uniform Uniform) Location() int32 {
 	return int32(uniform.location)
 }
 
+func (uniform Uniform) SetSampler(data ...int32) {
+	fmt.Printf("set %#v\n", uniform)
+	switch uniform.typ {
+	case gl.SAMPLER, gl.SAMPLER_1D, gl.SAMPLER_2D, gl.SAMPLER_3D:
+		gl.ProgramUniform1iv(uniform.program.id, uniform.Location(), uniform.siz, &data[0])
+	default:
+		panic(fmt.Errorf("Unusable gl type '%04X", uniform.typ))
+	}
+}
+
 func (uniform Uniform) SetInt(data ...int32) {
 	fmt.Printf("set %#v\n", uniform)
-	gl.ProgramUniform1iv(uniform.program.id, uniform.Location(), 1, &data[0])
+	switch uniform.typ {
+	case gl.INT:
+		gl.ProgramUniform1iv(uniform.program.id, uniform.Location(), uniform.siz, &data[0])
+	case gl.INT_VEC2:
+		gl.ProgramUniform2iv(uniform.program.id, uniform.Location(), uniform.siz, &data[0])
+	case gl.INT_VEC3:
+		gl.ProgramUniform3iv(uniform.program.id, uniform.Location(), uniform.siz, &data[0])
+	case gl.INT_VEC4:
+		gl.ProgramUniform4iv(uniform.program.id, uniform.Location(), uniform.siz, &data[0])
+	default:
+		panic(fmt.Errorf("Unusable gl type '%04X", uniform.typ))
+	}
+}
+
+func (uniform Uniform) SetFloat(data ...float32) {
+	fmt.Printf("set %#v\n", uniform)
+	switch uniform.typ {
+	case gl.FLOAT:
+		gl.ProgramUniform1fv(uniform.program.id, uniform.Location(), uniform.siz, &data[0])
+	case gl.FLOAT_VEC2:
+		gl.ProgramUniform2fv(uniform.program.id, uniform.Location(), uniform.siz, &data[0])
+	case gl.FLOAT_VEC3:
+		gl.ProgramUniform3fv(uniform.program.id, uniform.Location(), uniform.siz, &data[0])
+	case gl.FLOAT_VEC4:
+		gl.ProgramUniform4fv(uniform.program.id, uniform.Location(), uniform.siz, &data[0])
+	default:
+		panic(fmt.Errorf("Unusable gl type '%04X'", uniform.typ))
+	}
 }

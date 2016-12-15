@@ -23,22 +23,27 @@ var vertexTexCoords = []float32{
 }
 
 var vertexColors = []uint8{
-	255, 0, 0,
-	0, 255, 0,
-	0, 0, 255,
-	255, 255, 255,
+	1, 2, 3, 0,
+}
+
+var colorData = []float32{
+	1.0, 1.0, 1.0,
+	1.0, 0.0, 0.0,
+	0.0, 1.0, 0.0,
+	0.0, 0.0, 1.0,
 }
 
 var vertexShaderText = `
 #version 110
 attribute vec2 position;
-attribute vec3 color;
+attribute float color;
 attribute vec2 texCoord;
+uniform vec3 colorData[4];
 varying vec4 theColor;
 varying vec2 theTexCoord;
 void main() {
 	gl_Position = vec4(position, 0.0, 1.0);
-	theColor = vec4(color, 1.0);
+	theColor = vec4(colorData[int(color)], 1.0);
 	theTexCoord = texCoord;
 }
 `
@@ -94,7 +99,8 @@ func main() {
 	defer texture.Delete()
 
 	// Set texture unit
-	program.Uniform("tex").SetInt(1)
+	program.Uniform("tex").SetSampler(1)
+	program.Uniform("colorData[0]").SetFloat(colorData...)
 
 	// Create Vertex ArrayObject
 	vao, err := gli.NewVAO()
@@ -124,7 +130,7 @@ func main() {
 
 	// Set up VAO
 	vao.Enable(2, posvbo, program.Attrib("position"))
-	vao.Enable(3, colvbo, program.Attrib("color"), gli.VAONormalize())
+	vao.Enable(1, colvbo, program.Attrib("color"))
 	vao.Enable(2, texvbo, program.Attrib("texCoord"))
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
@@ -136,7 +142,7 @@ func main() {
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
-		fmt.Printf("draw\n")
+		//fmt.Printf("draw\n")
 		window.SwapBuffers()
 		glfw.WaitEvents()
 	}
