@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/PieterD/crap/roguelike/grid"
+	"github.com/PieterD/crap/roguelike/grid/gridutil"
 )
 
 type Game struct {
@@ -11,9 +12,8 @@ type Game struct {
 }
 
 func (g *Game) Draw(d grid.DrawableGrid) {
-	d.Set(0, 0, 1, grid.White, grid.Black)
-	d.Set(49, 0, 2, grid.White, grid.Black)
-	d.Set(0, 1, 2, grid.White, grid.Black)
+	gridutil.SingleBox(d, d.GridSize(), grid.White, grid.Black)
+	d.Set(1, 1, 25, grid.Green, grid.Black)
 }
 
 func (g *Game) Char(r rune) {
@@ -28,7 +28,7 @@ func (g *Game) Key(e grid.KeyEvent) {
 }
 
 func (g *Game) Fin(last bool) bool {
-	fmt.Printf("finish %t\n", last)
+	//fmt.Printf("finish %t\n", last)
 	return g.die
 }
 

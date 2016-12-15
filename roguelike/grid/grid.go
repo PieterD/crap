@@ -6,7 +6,7 @@ import (
 )
 
 type DrawableGrid interface {
-	GridSize() image.Point
+	GridSize() image.Rectangle
 	Set(x, y, r int, fore, back Color)
 }
 
@@ -32,8 +32,11 @@ type Grid struct {
 	data  []uint8
 }
 
-func (grid *Grid) GridSize() image.Point {
-	return image.Point{X: grid.cols, Y: grid.rows}
+func (grid *Grid) GridSize() image.Rectangle {
+	return image.Rectangle{
+		Min: image.Point{X: 0, Y: 0},
+		Max: image.Point{X: grid.cols, Y: grid.rows},
+	}
 }
 
 func (grid *Grid) RuneSize() image.Point {
