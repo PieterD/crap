@@ -7,6 +7,7 @@ import (
 )
 
 type Game struct {
+	die bool
 }
 
 func (g *Game) Draw(d grid.DrawableGrid) {
@@ -21,6 +22,14 @@ func (g *Game) Char(r rune) {
 
 func (g *Game) Key(e grid.KeyEvent) {
 	fmt.Printf("key %s %#v\n", e.Key(), e)
+	if e.Key() == grid.KeyEscape {
+		g.die = true
+	}
+}
+
+func (g *Game) Fin(last bool) bool {
+	fmt.Printf("finish %t\n", last)
+	return g.die
 }
 
 func New() *Game {

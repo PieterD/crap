@@ -14,6 +14,7 @@ type EventHandler interface {
 	Draw(g DrawableGrid)
 	Char(r rune)
 	Key(k KeyEvent)
+	Fin(last bool) bool
 }
 
 func init() {
@@ -52,6 +53,7 @@ void main() {
 `
 
 func Run(charset string, charwidth, charheight int, eh EventHandler) {
+	defer eh.Fin(true)
 	width := 800
 	height := 600
 	// Initialize glfw and create window
@@ -147,7 +149,7 @@ func Run(charset string, charwidth, charheight int, eh EventHandler) {
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
-	for !window.ShouldClose() {
+	for !window.ShouldClose() && !eh.Fin(false) {
 		//fmt.Printf("draw\n")
 
 		// Render scene
