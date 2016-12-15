@@ -15,25 +15,15 @@ func init() {
 	runtime.LockOSThread()
 }
 
-var vertexTexCoords = []uint8{
-	1, 0,
-	2, 0,
-	2, 1,
-	1, 1,
-}
-
-var vertexColors = []uint8{
-	1, 2, 3, 0,
-}
-
 var vertexData = []uint8{
-	1, 0, 1,
-	2, 0, 2,
-	2, 1, 3,
-	1, 1, 0,
+	1, 0, 0, 1,
+	2, 0, 0, 1,
+	2, 1, 0, 1,
+	1, 1, 0, 1,
 }
 
 var colorData = []float32{
+	0.0, 0.0, 0.0,
 	1.0, 1.0, 1.0,
 	1.0, 0.0, 0.0,
 	0.0, 1.0, 0.0,
@@ -43,26 +33,31 @@ var colorData = []float32{
 var vertexShaderText = `
 #version 110
 attribute vec2 position;
-attribute float color;
+attribute float foreColor;
+attribute float backColor;
 attribute vec2 texCoord;
-uniform vec3 colorData[4];
+uniform vec3 colorData[5];
 uniform vec2 runeSize;
-varying vec4 theColor;
+varying vec3 theForeColor;
+varying vec3 theBackColor;
 varying vec2 theTexCoord;
 void main() {
 	gl_Position = vec4(position, 0.0, 1.0);
-	theColor = vec4(colorData[int(color)], 1.0);
+	theForeColor = colorData[int(foreColor)];
+	theBackColor = colorData[int(backColor)];
 	theTexCoord = vec2(texCoord.x / runeSize.x, texCoord.y / runeSize.y);
 }
 `
 
 var fragmentShaderText = `
 #version 110
-varying vec4 theColor;
+varying vec3 theForeColor;
+varying vec3 theBackColor;
 varying vec2 theTexCoord;
 uniform sampler2D tex;
 void main() {
-	gl_FragColor = theColor * texture2D(tex, theTexCoord);
+	vec4 texColor = texture2D(tex, theTexCoord);
+	gl_FragColor = vec4(mix(theBackColor, theForeColor, texColor.a), 1.0);
 }
 `
 
@@ -129,8 +124,12 @@ func main() {
 
 	// Set up VAO
 	vao.Enable(2, posvbo, program.Attrib("position"))
-	vao.Enable(2, vbo, program.Attrib("texCoord"), gli.VAOStride(3))
-	vao.Enable(1, vbo, program.Attrib("color"), gli.VAOStride(3), gli.VAOOffset(2))
+	vao.Enable(2, vbo, program.Attrib("texCoord"),
+		gli.VAOStride(4))
+	vao.Enable(1, vbo, program.Attrib("foreColor"),
+		gli.VAOStride(4), gli.VAOOffset(2))
+	vao.Enable(1, vbo, program.Attrib("backColor"),
+		gli.VAOStride(4), gli.VAOOffset(3))
 
 	// Set uniforms
 	program.Uniform("tex").SetSampler(1)
