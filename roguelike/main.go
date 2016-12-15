@@ -15,27 +15,30 @@ func init() {
 	runtime.LockOSThread()
 }
 
-var vertexData = []float32{
-	1.0, 0.0, 0.0, 1.0,
+var vertexTexCoords = []float32{
 	1.0 / 16.0, 0.0 / 16.0,
-	0.0, 1.0, 0.0, 1.0,
 	2.0 / 16.0, 0.0 / 16.0,
-	0.0, 0.0, 1.0, 1.0,
 	2.0 / 16.0, 1.0 / 16.0,
-	1.0, 1.0, 1.0, 1.0,
 	1.0 / 16.0, 1.0 / 16.0,
+}
+
+var vertexColors = []uint8{
+	255, 0, 0,
+	0, 255, 0,
+	0, 0, 255,
+	255, 255, 255,
 }
 
 var vertexShaderText = `
 #version 110
 attribute vec2 position;
-attribute vec4 color;
+attribute vec3 color;
 attribute vec2 texCoord;
 varying vec4 theColor;
 varying vec2 theTexCoord;
 void main() {
 	gl_Position = vec4(position, 0.0, 1.0);
-	theColor = color;
+	theColor = vec4(color, 1.0);
 	theTexCoord = texCoord;
 }
 `
@@ -98,11 +101,15 @@ func main() {
 	Panic(err)
 	defer vao.Delete()
 
-	// Create Buffer from vertex data
-	vbo, err := gli.NewBuffer(vertexData,
-		gli.BufferAccessFrequency(gli.DYNAMIC))
+	// Create Buffer of vertex colors
+	colvbo, err := gli.NewBuffer(vertexColors)
 	Panic(err)
-	defer vbo.Delete()
+	defer colvbo.Delete()
+
+	// Create Buffer of vertex texture coordinates
+	texvbo, err := gli.NewBuffer(vertexTexCoords)
+	Panic(err)
+	defer texvbo.Delete()
 
 	// Create grid, and the position and index buffers
 	grid, err := NewGrid(16, 16, texture.Size().X, texture.Size().Y)
@@ -117,12 +124,8 @@ func main() {
 
 	// Set up VAO
 	vao.Enable(2, posvbo, program.Attrib("position"))
-	vao.Enable(4, vbo, program.Attrib("color"),
-		gli.VAOStride(6),
-		gli.VAOOffset(0))
-	vao.Enable(2, vbo, program.Attrib("texCoord"),
-		gli.VAOStride(6),
-		gli.VAOOffset(4))
+	vao.Enable(3, colvbo, program.Attrib("color"), gli.VAONormalize())
+	vao.Enable(2, texvbo, program.Attrib("texCoord"))
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 

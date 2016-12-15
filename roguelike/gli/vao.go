@@ -30,9 +30,9 @@ func NewVAO() (*VAO, error) {
 
 func (vao *VAO) Enable(elements int, buffer *Buffer, attrib Attrib, opts ...VAOOption) {
 	opt := vaoOption{
-		stride:     0,
-		offset:     0,
-		normalized: false,
+		stride:    0,
+		offset:    0,
+		normalize: false,
 	}
 	for _, o := range opts {
 		o(&opt)
@@ -46,22 +46,22 @@ func (vao *VAO) Enable(elements int, buffer *Buffer, attrib Attrib, opts ...VAOO
 		attrib.Location(),
 		int32(elements),
 		buffer.data.typ,
-		opt.normalized,
+		opt.normalize,
 		int32(opt.stride*buffer.data.siz),
 		gl.PtrOffset(opt.offset*buffer.data.siz))
 }
 
 type vaoOption struct {
-	stride     int
-	offset     int
-	normalized bool
+	stride    int
+	offset    int
+	normalize bool
 }
 
 type VAOOption func(opt *vaoOption)
 
-func VAONormalized() VAOOption {
+func VAONormalize() VAOOption {
 	return func(opt *vaoOption) {
-		opt.normalized = true
+		opt.normalize = true
 	}
 }
 

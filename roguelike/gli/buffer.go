@@ -98,6 +98,16 @@ func resolveData(idata interface{}) (iData, error) {
 		d.siz = 4
 		d.length = len(data)
 		d.ptr = gl.Ptr(data)
+	case []uint8:
+		d.typ = gl.UNSIGNED_BYTE
+		d.siz = 1
+		d.length = len(data)
+		d.ptr = gl.Ptr(data)
+	case []uint16:
+		d.typ = gl.UNSIGNED_SHORT
+		d.siz = 2
+		d.length = len(data)
+		d.ptr = gl.Ptr(data)
 	case []uint32:
 		d.typ = gl.UNSIGNED_INT
 		d.siz = 4
