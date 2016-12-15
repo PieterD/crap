@@ -21,6 +21,10 @@ type Grid struct {
 	texcols  int
 	texrows  int
 	texcodes int
+
+	coord []float32
+	index []uint32
+	data  []uint8
 }
 
 func (grid *Grid) RuneSize() image.Point {
@@ -54,22 +58,50 @@ func (grid *Grid) Resize(width, height int) {
 	grid.rows = grid.screenheight / grid.runeheight
 	grid.padx = (grid.screenwidth - grid.cols*grid.runewidth) / 2
 	grid.pady = (grid.screenheight - grid.rows*grid.runeheight) / 2
+	grid.updateSlices()
+	grid.updateCoordinates()
+	grid.clearData()
 }
 
 func (grid *Grid) Coordinates() ([]float32, []uint32) {
-	vert := make([]float32, grid.cols*grid.rows*2*4)
-	index := make([]uint32, grid.cols*grid.rows*6)
+	return grid.coord, grid.index
+}
+
+func (grid *Grid) updateSlices() {
+	coordSize := grid.cols * grid.rows * 2 * 4
+	indexSize := grid.cols * grid.rows * 6
+	dataSize := grid.cols * grid.rows * 4 * 4
+	if cap(grid.coord) < coordSize {
+		grid.coord = make([]float32, coordSize)
+	} else {
+		grid.coord = grid.coord[:coordSize]
+	}
+
+	if cap(grid.index) < indexSize {
+		grid.index = make([]uint32, indexSize)
+	} else {
+		grid.index = grid.index[:indexSize]
+	}
+
+	if cap(grid.data) < dataSize {
+		grid.data = make([]uint8, dataSize)
+	} else {
+		grid.data = grid.data[:dataSize]
+	}
+}
+
+func (grid *Grid) updateCoordinates() {
 	vpos := uint32(0)
 	ipos := 0
 	for y := 0; y < grid.rows; y++ {
 		for x := 0; x < grid.cols; x++ {
-			vstart := (y*grid.rows + x) * 2 * 4
-			vcur := vert[vstart : vstart+2*4]
+			vstart := (y*grid.cols + x) * 2 * 4
+			vcur := grid.coord[vstart : vstart+2*4]
 			vcur[0], vcur[1] = grid.fcoord(x, y+1)
 			vcur[2], vcur[3] = grid.fcoord(x+1, y+1)
 			vcur[4], vcur[5] = grid.fcoord(x+1, y)
 			vcur[6], vcur[7] = grid.fcoord(x, y)
-			icur := index[ipos : ipos+6]
+			icur := grid.index[ipos : ipos+6]
 			icur[0] = vpos
 			icur[1] = vpos + 1
 			icur[2] = vpos + 2
@@ -80,7 +112,12 @@ func (grid *Grid) Coordinates() ([]float32, []uint32) {
 			ipos += 6
 		}
 	}
-	return vert, index
+}
+
+func (grid *Grid) clearData() {
+	for i := range grid.data {
+		grid.data[i] = 0
+	}
 }
 
 func (grid *Grid) fcoord(x, y int) (fx float32, fy float32) {
@@ -91,4 +128,45 @@ func (grid *Grid) fcoord(x, y int) (fx float32, fy float32) {
 	fx = float32(itlx)/fwidth*2.0 - 1.0
 	fy = float32(itly)/fheight*2.0 - 1.0
 	return fx, fy
+}
+
+func (grid *Grid) Set(x, y, r, fore, back int) {
+	if x >= grid.cols || y >= grid.rows {
+		return
+	}
+	idx := x + y*grid.cols
+	rx := r % grid.texcols
+	ry := r / grid.texcols
+	data := grid.data[idx*4*4 : idx*4*4+4*4]
+	data1 := data[0:4]
+	data2 := data[4:8]
+	data3 := data[8:12]
+	data4 := data[12:16]
+	data1[0] = uint8(rx)
+	data1[1] = uint8(ry)
+	data1[2] = uint8(fore)
+	data1[3] = uint8(back)
+
+	data2[0] = uint8(rx + 1)
+	data2[1] = uint8(ry)
+	data2[2] = uint8(fore)
+	data2[3] = uint8(back)
+
+	data3[0] = uint8(rx + 1)
+	data3[1] = uint8(ry + 1)
+	data3[2] = uint8(fore)
+	data3[3] = uint8(back)
+
+	data4[0] = uint8(rx)
+	data4[1] = uint8(ry + 1)
+	data4[2] = uint8(fore)
+	data4[3] = uint8(back)
+}
+
+func (grid *Grid) VertexData() []uint8 {
+	return grid.data
+}
+
+func (grid *Grid) Vertices() int32 {
+	return int32(len(grid.index))
 }

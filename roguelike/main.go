@@ -106,11 +106,6 @@ func main() {
 	Panic(err)
 	defer vao.Delete()
 
-	// Create buffer for vertex data
-	vbo, err := gli.NewBuffer(vertexData)
-	Panic(err)
-	defer vbo.Delete()
-
 	// Create grid, and the position and index buffers
 	grid, err := NewGrid(16, 16, texture.Size().X, texture.Size().Y)
 	Panic(err)
@@ -118,9 +113,18 @@ func main() {
 	vData, vIndex := grid.Coordinates()
 	posvbo, err := gli.NewBuffer(vData)
 	Panic(err)
+	defer posvbo.Delete()
 	idxvbo, err := gli.NewBuffer(vIndex, gli.BufferElementArray())
 	Panic(err)
-	defer posvbo.Delete()
+	defer idxvbo.Delete()
+
+	grid.Set(0, 0, 1, 1, 0)
+	grid.Set(49, 0, 2, 1, 0)
+	grid.Set(0, 1, 2, 1, 0)
+	vbo, err := gli.NewBuffer(grid.VertexData(),
+		gli.BufferAccessFrequency(gli.DYNAMIC))
+	Panic(err)
+	defer vbo.Delete()
 
 	// Set up VAO
 	vao.Enable(2, posvbo, program.Attrib("position"))
@@ -144,7 +148,7 @@ func main() {
 	idxvbo.Use()
 	for !window.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, gl.PtrOffset(0))
+		gl.DrawElements(gl.TRIANGLES, grid.Vertices(), gl.UNSIGNED_INT, gl.PtrOffset(0))
 		//fmt.Printf("draw\n")
 		window.SwapBuffers()
 		glfw.WaitEvents()
