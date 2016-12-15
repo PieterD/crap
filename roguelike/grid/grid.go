@@ -1,4 +1,4 @@
-package main
+package grid
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 type DrawableGrid interface {
 	GridSize() image.Point
-	Set(x, y, r, fore, back int)
+	Set(x, y, r int, fore, back Color)
 }
 
 type Grid struct {
@@ -139,7 +139,7 @@ func (grid *Grid) fcoord(x, y int) (fx float32, fy float32) {
 	return fx, fy
 }
 
-func (grid *Grid) Set(x, y, r, fore, back int) {
+func (grid *Grid) Set(x, y, r int, fore, back Color) {
 	y = grid.rows - 1 - y
 	if x >= grid.cols || y >= grid.rows {
 		return
