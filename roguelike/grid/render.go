@@ -54,8 +54,6 @@ void main() {
 `
 
 func Run(charset string, charwidth, charheight int, eh EventHandler) {
-	mousetrans := mouseTranslator{}
-	keytrans := keyTranslator{}
 	defer eh.Fin(true)
 	width := 800
 	height := 600
@@ -110,6 +108,9 @@ func Run(charset string, charwidth, charheight int, eh EventHandler) {
 	vbo, err := gli.NewBuffer(vData, gli.BufferAccessFrequency(gli.DYNAMIC))
 	Panic(err)
 	defer vbo.Delete()
+
+	mousetrans := newMouseTranslator(grid)
+	keytrans := newKeyTranslator()
 
 	window.SetSizeCallback(func(win *glfw.Window, w, h int) {
 		//fmt.Printf("resize\n")

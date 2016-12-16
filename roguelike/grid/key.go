@@ -41,6 +41,10 @@ var ignoreKeys = map[Key]struct{}{
 	KeyRightSuper:   struct{}{},
 }
 
+func newKeyTranslator() *keyTranslator {
+	return &keyTranslator{}
+}
+
 type keyTranslator struct{}
 
 func (trans *keyTranslator) Key(gk glfw.Key, action glfw.Action, mods glfw.ModifierKey) (KeyEvent, bool) {

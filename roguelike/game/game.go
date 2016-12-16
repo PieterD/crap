@@ -15,7 +15,7 @@ type Game struct {
 }
 
 func (g *Game) Draw(d grid.DrawableGrid) {
-	gridutil.SingleBox(d, d.GridSize(), grid.White, grid.Black)
+	gridutil.SingleBox(d, d.GridSize(), grid.Black, grid.White)
 	gridutil.Text(d, image.Point{X: 2, Y: 2}, "Hello moo", grid.Red, grid.Black)
 	var arrow int
 	switch g.dir {
