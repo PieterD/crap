@@ -6,28 +6,10 @@ import (
 	"github.com/go-gl/glfw/v3.2/glfw"
 )
 
-type Key int
-
 type KeyEvent struct {
-	k      Key
-	mods   glfw.ModifierKey
-	repeat bool
-}
-
-func (e KeyEvent) Key() Key {
-	return e.k
-}
-
-func (e KeyEvent) Shift() bool {
-	return e.mods&glfw.ModShift == glfw.ModShift
-}
-
-func (e KeyEvent) Control() bool {
-	return e.mods&glfw.ModControl == glfw.ModControl
-}
-
-func (e KeyEvent) Alt() bool {
-	return e.mods&glfw.ModAlt == glfw.ModAlt
+	Key    Key
+	Mod    ModifierKey
+	Repeat bool
 }
 
 var ignoreKeys = map[Key]struct{}{
@@ -53,14 +35,37 @@ func (trans *keyTranslator) Key(gk glfw.Key, action glfw.Action, mods glfw.Modif
 		_, ok := ignoreKeys[k]
 		if !ok {
 			return KeyEvent{
-				k:      k,
-				mods:   mods,
-				repeat: action == glfw.Repeat,
+				Key:    k,
+				Mod:    ModifierKey(mods),
+				Repeat: action == glfw.Repeat,
 			}, true
 		}
 	}
 	return KeyEvent{}, false
 }
+
+type ModifierKey int
+
+func (m ModifierKey) Shift() bool {
+	return m&ModShift == ModShift
+}
+
+func (m ModifierKey) Control() bool {
+	return m&ModControl == ModControl
+}
+
+func (m ModifierKey) Alt() bool {
+	return m&ModAlt == ModAlt
+}
+
+const (
+	ModShift   ModifierKey = ModifierKey(glfw.ModShift)
+	ModControl ModifierKey = ModifierKey(glfw.ModControl)
+	ModAlt     ModifierKey = ModifierKey(glfw.ModAlt)
+	ModSuper   ModifierKey = ModifierKey(glfw.ModSuper)
+)
+
+type Key int
 
 const (
 	KeyUnknown      Key = Key(glfw.KeyUnknown)

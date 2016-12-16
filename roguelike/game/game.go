@@ -36,8 +36,8 @@ func (g *Game) Char(r rune) {
 }
 
 func (g *Game) Key(e grid.KeyEvent) {
-	fmt.Printf("key %s %#v\n", e.Key(), e)
-	switch e.Key() {
+	fmt.Printf("key %#v\n", e)
+	switch e.Key {
 	case grid.KeyEscape:
 		g.die = true
 	case grid.KeyUp:

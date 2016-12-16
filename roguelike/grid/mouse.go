@@ -136,8 +136,7 @@ type MouseDragEvent struct {
 type DragState int
 
 const (
-	NoDrag DragState = iota
-	StartDrag
+	StartDrag DragState = iota
 	ContinueDrag
 	EndDrag
 )
