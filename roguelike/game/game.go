@@ -43,10 +43,16 @@ func (g *Game) Key(e grid.KeyEvent) {
 	case grid.KeyUp:
 		g.forward()
 	case grid.KeyLeft:
-		g.dir = (g.dir - 1) % 4
+		g.dir = (g.dir + 3) % 4
 	case grid.KeyRight:
 		g.dir = (g.dir + 1) % 4
+	case grid.KeyDown:
+		g.dir = (g.dir + 2) % 4
 	}
+}
+
+func (g *Game) Mouse(e grid.MouseEvent) {
+	fmt.Printf("mouse %#v\n", e)
 }
 
 func (g *Game) forward() {

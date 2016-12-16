@@ -41,7 +41,9 @@ var ignoreKeys = map[Key]struct{}{
 	KeyRightSuper:   struct{}{},
 }
 
-func translateKey(gk glfw.Key, action glfw.Action, mods glfw.ModifierKey) (KeyEvent, bool) {
+type keyTranslator struct{}
+
+func (trans *keyTranslator) Key(gk glfw.Key, action glfw.Action, mods glfw.ModifierKey) (KeyEvent, bool) {
 	k := Key(gk)
 	if action == glfw.Press || action == glfw.Repeat {
 		_, ok := ignoreKeys[k]

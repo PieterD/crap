@@ -14,6 +14,7 @@ type EventHandler interface {
 	Draw(g DrawableGrid)
 	Char(r rune)
 	Key(k KeyEvent)
+	Mouse(k MouseEvent)
 	Fin(last bool) bool
 }
 
@@ -53,6 +54,8 @@ void main() {
 `
 
 func Run(charset string, charwidth, charheight int, eh EventHandler) {
+	mousetrans := mouseTranslator{}
+	keytrans := keyTranslator{}
 	defer eh.Fin(true)
 	width := 800
 	height := 600
@@ -122,7 +125,7 @@ func Run(charset string, charwidth, charheight int, eh EventHandler) {
 
 	window.SetKeyCallback(func(win *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 		//fmt.Printf("key=%v code=%d, action=%v, mods=%v\n", key, scancode, action, mods)
-		e, ok := translateKey(key, action, mods)
+		e, ok := keytrans.Key(key, action, mods)
 		if ok {
 			eh.Key(e)
 		}
@@ -131,6 +134,20 @@ func Run(charset string, charwidth, charheight int, eh EventHandler) {
 	window.SetCharCallback(func(win *glfw.Window, key rune) {
 		eh.Char(key)
 		//fmt.Printf("char=%d(%c)\n", key, key)
+	})
+
+	window.SetCursorPosCallback(func(win *glfw.Window, x float64, y float64) {
+		e, ok := mousetrans.Pos(x, y)
+		if ok {
+			eh.Mouse(e)
+		}
+	})
+
+	window.SetMouseButtonCallback(func(win *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+		e, ok := mousetrans.Button(button, action, mods)
+		if ok {
+			eh.Mouse(e)
+		}
 	})
 
 	// Set up VAO
