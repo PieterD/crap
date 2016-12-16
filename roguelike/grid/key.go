@@ -58,6 +58,10 @@ func (m ModifierKey) Alt() bool {
 	return m&ModAlt == ModAlt
 }
 
+func (m ModifierKey) Super() bool {
+	return m&ModSuper == ModSuper
+}
+
 const (
 	ModShift   ModifierKey = ModifierKey(glfw.ModShift)
 	ModControl ModifierKey = ModifierKey(glfw.ModControl)
