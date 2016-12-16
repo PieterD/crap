@@ -51,8 +51,16 @@ func (g *Game) Key(e grid.KeyEvent) {
 	}
 }
 
-func (g *Game) Mouse(e grid.MouseEvent) {
-	fmt.Printf("mouse %#v\n", e)
+func (g *Game) MouseMove(e grid.MouseMoveEvent) {
+	fmt.Printf("mousemove  %#v\n", e)
+}
+
+func (g *Game) MouseClick(e grid.MouseClickEvent) {
+	fmt.Printf("mouseclick %#v\n", e)
+}
+
+func (g *Game) MouseDrag(e grid.MouseDragEvent) {
+	fmt.Printf("mousedrag  %#v\n", e)
 }
 
 func (g *Game) forward() {

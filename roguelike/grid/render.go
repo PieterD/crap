@@ -14,7 +14,9 @@ type EventHandler interface {
 	Draw(g DrawableGrid)
 	Char(r rune)
 	Key(k KeyEvent)
-	Mouse(k MouseEvent)
+	MouseMove(k MouseMoveEvent)
+	MouseClick(k MouseClickEvent)
+	MouseDrag(k MouseDragEvent)
 	Fin(last bool) bool
 }
 
@@ -109,7 +111,7 @@ func Run(charset string, charwidth, charheight int, eh EventHandler) {
 	Panic(err)
 	defer vbo.Delete()
 
-	mousetrans := newMouseTranslator(grid)
+	mousetrans := newMouseTranslator(grid, eh)
 	keytrans := newKeyTranslator()
 
 	window.SetSizeCallback(func(win *glfw.Window, w, h int) {
@@ -138,17 +140,11 @@ func Run(charset string, charwidth, charheight int, eh EventHandler) {
 	})
 
 	window.SetCursorPosCallback(func(win *glfw.Window, x float64, y float64) {
-		e, ok := mousetrans.Pos(x, y)
-		if ok {
-			eh.Mouse(e)
-		}
+		mousetrans.Pos(x, y)
 	})
 
 	window.SetMouseButtonCallback(func(win *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-		e, ok := mousetrans.Button(button, action, mods)
-		if ok {
-			eh.Mouse(e)
-		}
+		mousetrans.Button(button, action, mods)
 	})
 
 	// Set up VAO

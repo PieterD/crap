@@ -1,7 +1,6 @@
 package grid
 
 import (
-	"fmt"
 	"image"
 
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -9,6 +8,7 @@ import (
 
 type mouseTranslator struct {
 	grid   *Grid
+	eh     EventHandler
 	last   image.Point
 	down   bool
 	drag   bool
@@ -16,29 +16,30 @@ type mouseTranslator struct {
 	start  image.Point
 }
 
-func newMouseTranslator(grid *Grid) *mouseTranslator {
+func newMouseTranslator(grid *Grid, eh EventHandler) *mouseTranslator {
 	return &mouseTranslator{
 		grid: grid,
+		eh:   eh,
 		last: image.Point{X: -1, Y: -1},
 	}
 }
 
-func (trans *mouseTranslator) Pos(posx, posy float64) (MouseEvent, bool) {
+func (trans *mouseTranslator) Pos(posx, posy float64) {
 	x := (int(posx) - trans.grid.padx)
 	y := (int(posy) - trans.grid.pady)
 
 	if x < 0 || y < 0 {
-		return MouseEvent{}, false
+		return
 	}
 
 	x /= trans.grid.runewidth
 	y /= trans.grid.runeheight
 
 	if trans.last.X == x && trans.last.Y == y {
-		return MouseEvent{}, false
+		return
 	}
 	if x >= trans.grid.cols || y >= trans.grid.rows {
-		return MouseEvent{}, false
+		return
 	}
 
 	trans.last.X = x
@@ -46,26 +47,28 @@ func (trans *mouseTranslator) Pos(posx, posy float64) (MouseEvent, bool) {
 
 	if trans.down && !trans.drag {
 		trans.drag = true
-		return MouseEvent{
-			pos:    trans.last,
-			drag:   StartDrag,
-			start:  trans.start,
-			button: trans.button,
-		}, true
+		trans.eh.MouseDrag(MouseDragEvent{
+			To:     trans.last,
+			From:   trans.start,
+			State:  StartDrag,
+			Button: trans.button,
+		})
+		return
 	}
 
 	if trans.down && trans.drag {
-		return MouseEvent{
-			pos:    trans.last,
-			drag:   ContinueDrag,
-			start:  trans.start,
-			button: trans.button,
-		}, true
+		trans.eh.MouseDrag(MouseDragEvent{
+			To:     trans.last,
+			From:   trans.start,
+			State:  ContinueDrag,
+			Button: trans.button,
+		})
+		return
 	}
 
-	return MouseEvent{
-		pos: trans.last,
-	}, true
+	trans.eh.MouseMove(MouseMoveEvent{
+		Pos: trans.last,
+	})
 }
 
 type MouseButton int
@@ -76,57 +79,54 @@ const (
 	MouseButtonMiddle MouseButton = MouseButton(glfw.MouseButtonMiddle)
 )
 
-func (trans *mouseTranslator) Button(gbutton glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) (MouseEvent, bool) {
-	fmt.Printf("button %#v %#v\n", gbutton, action)
+func (trans *mouseTranslator) Button(gbutton glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
 	if gbutton != glfw.MouseButtonLeft && gbutton != glfw.MouseButtonRight && gbutton != glfw.MouseButtonMiddle {
-		return MouseEvent{}, false
+		return
 	}
 	button := MouseButton(gbutton)
 	if action == glfw.Press {
 		if trans.down {
-			return MouseEvent{}, false
+			return
 		}
 		trans.down = true
 		trans.drag = false
 		trans.button = button
 		trans.start = trans.last
-		return MouseEvent{}, false
+		return
 	}
 	if action == glfw.Release {
 		if !trans.down || trans.button != button {
-			return MouseEvent{}, false
+			return
 		}
-		var e MouseEvent
 		if trans.drag {
-			e = MouseEvent{
-				pos:    trans.last,
-				drag:   EndDrag,
-				start:  trans.start,
-				button: trans.button,
-			}
+			trans.eh.MouseDrag(MouseDragEvent{
+				To:     trans.last,
+				From:   trans.start,
+				State:  EndDrag,
+				Button: trans.button,
+			})
 		} else {
-			e = MouseEvent{
-				pos:    trans.last,
-				press:  true,
-				button: trans.button,
-			}
+			trans.eh.MouseClick(MouseClickEvent{
+				Pos:    trans.last,
+				Button: trans.button,
+			})
 		}
 		trans.down = false
 		trans.drag = false
-		return e, true
+		return
 	}
-	return MouseEvent{}, false
 }
 
-type MouseEvent struct {
-	pos    image.Point
-	drag   DragState
-	start  image.Point
-	press  bool
-	button MouseButton
+type MouseMoveEvent struct {
+	Pos image.Point
 }
 
-type DragEvent struct {
+type MouseClickEvent struct {
+	Pos    image.Point
+	Button MouseButton
+}
+
+type MouseDragEvent struct {
 	From   image.Point
 	To     image.Point
 	State  DragState
@@ -141,26 +141,3 @@ const (
 	ContinueDrag
 	EndDrag
 )
-
-func (e MouseEvent) Pos() image.Point {
-	return e.pos
-}
-
-func (e MouseEvent) Click() (MouseButton, bool) {
-	if e.press {
-		return e.button, true
-	}
-	return 0, false
-}
-
-func (e MouseEvent) Drag() (DragEvent, bool) {
-	if e.drag == NoDrag {
-		return DragEvent{}, false
-	}
-	return DragEvent{
-		From:   e.start,
-		To:     e.pos,
-		State:  e.drag,
-		Button: e.button,
-	}, true
-}
