@@ -15,6 +15,26 @@ type Glyph struct {
 
 func Translate(screen image.Rectangle, center image.Point, atlas image.Rectangle) image.Point {
 	tl := center.Sub(screen.Max.Div(2))
+	if screen.Max.X > atlas.Max.X {
+		tl.X = -(screen.Max.X - atlas.Max.X) / 2
+	} else {
+		if tl.X < 0 {
+			tl.X = 0
+		}
+		if tl.X >= atlas.Max.X-screen.Max.X {
+			tl.X = atlas.Max.X - screen.Max.X
+		}
+	}
+	if screen.Max.Y > atlas.Max.Y {
+		tl.Y = -(screen.Max.Y - atlas.Max.Y) / 2
+	} else {
+		if tl.Y < 0 {
+			tl.Y = 0
+		}
+		if tl.Y >= atlas.Max.Y-screen.Max.Y {
+			tl.Y = atlas.Max.Y - screen.Max.Y
+		}
+	}
 	return tl
 }
 
@@ -24,26 +44,30 @@ type Atlas struct {
 }
 
 func New() *Atlas {
+	w := 100
+	h := 100
 	atlas := &Atlas{
 		cells: make(map[image.Point]Cell),
 		bounds: image.Rectangle{
 			Min: image.Point{X: 0, Y: 0},
-			Max: image.Point{X: 100, Y: 100},
+			Max: image.Point{X: w, Y: h},
 		},
 	}
-	for x := 0; x < 100; x++ {
-		for y := 0; y < 100; y++ {
+	for x := 0; x < w; x++ {
+		for y := 0; y < h; y++ {
 			atlas.cells[image.Point{X: x, Y: y}] = Cell{feature: feature.Floor}
 		}
 	}
-	for i := 0; i < 100; i++ {
-		atlas.cells[image.Point{X: i, Y: 0}] = Cell{feature: feature.Wall}
-		atlas.cells[image.Point{X: i, Y: 99}] = Cell{feature: feature.Wall}
-		atlas.cells[image.Point{X: 0, Y: i}] = Cell{feature: feature.Wall}
-		atlas.cells[image.Point{X: 99, Y: i}] = Cell{feature: feature.Wall}
+	for x := 0; x < w; x++ {
+		atlas.cells[image.Point{X: x, Y: 0}] = Cell{feature: feature.Wall}
+		atlas.cells[image.Point{X: x, Y: h - 1}] = Cell{feature: feature.Wall}
 	}
-	for x := 0; x < 100; x += 10 {
-		for y := 0; y < 100; y += 10 {
+	for y := 0; y < h; y++ {
+		atlas.cells[image.Point{X: 0, Y: y}] = Cell{feature: feature.Wall}
+		atlas.cells[image.Point{X: w - 1, Y: y}] = Cell{feature: feature.Wall}
+	}
+	for x := 0; x < w; x += 10 {
+		for y := 0; y < h; y += 10 {
 			atlas.cells[image.Point{X: x, Y: y}] = Cell{feature: feature.Wall}
 		}
 	}
@@ -56,4 +80,8 @@ func (atlas *Atlas) Bounds() image.Rectangle {
 
 func (atlas *Atlas) Glyph(p image.Point) Glyph {
 	return atlas.cells[p].Glyph()
+}
+
+func (atlas *Atlas) Passable(p image.Point) bool {
+	return atlas.cells[p].feature.Passable
 }

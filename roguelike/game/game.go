@@ -65,13 +65,13 @@ func (g *Game) Key(e grid.KeyEvent) {
 	case grid.KeyEscape:
 		g.die = true
 	case grid.KeyUp:
-		g.forward()
+		g.CmdMove()
 	case grid.KeyLeft:
-		g.dir = (g.dir + 3) % 4
+		g.CmdTurn(turnLeft)
 	case grid.KeyRight:
-		g.dir = (g.dir + 1) % 4
+		g.CmdTurn(turnRight)
 	case grid.KeyDown:
-		g.dir = (g.dir + 2) % 4
+		g.CmdTurn(turnAround)
 	}
 }
 
@@ -85,19 +85,6 @@ func (g *Game) MouseClick(e grid.MouseClickEvent) {
 
 func (g *Game) MouseDrag(e grid.MouseDragEvent) {
 	fmt.Printf("mousedrag  %#v\n", e)
-}
-
-func (g *Game) forward() {
-	switch g.dir {
-	case 0:
-		g.pos.Y--
-	case 1:
-		g.pos.X++
-	case 2:
-		g.pos.Y++
-	case 3:
-		g.pos.X--
-	}
 }
 
 func (g *Game) Fin(last bool) bool {
