@@ -4,19 +4,41 @@ import (
 	"fmt"
 	"image"
 
+	"github.com/PieterD/crap/roguelike/game/atlas"
 	"github.com/PieterD/crap/roguelike/grid"
-	"github.com/PieterD/crap/roguelike/grid/gridutil"
 )
 
 type Game struct {
-	die  bool
-	x, y int
-	dir  int
+	die   bool
+	pos   image.Point
+	dir   int
+	atlas *atlas.Atlas
+}
+
+func New() *Game {
+	return &Game{
+		pos:   image.Point{X: 1, Y: 1},
+		dir:   2,
+		atlas: atlas.New(),
+	}
 }
 
 func (g *Game) Draw(d grid.DrawableGrid) {
-	gridutil.SingleBox(d, d.GridSize(), grid.Black, grid.White)
-	gridutil.Text(d, image.Point{X: 2, Y: 2}, "Hello moo", grid.Red, grid.Black)
+	screenBounds := d.GridSize()
+	atlasBounds := g.atlas.Bounds()
+	translator := atlas.Translate(screenBounds, g.pos, atlasBounds)
+	for x := 0; x < screenBounds.Max.X; x++ {
+		for y := 0; y < screenBounds.Max.Y; y++ {
+			screenCoord := image.Point{X: x, Y: y}
+			atlasCoord := screenCoord.Add(translator)
+			if atlasCoord.In(atlasBounds) {
+				glyph := g.atlas.Glyph(atlasCoord)
+				d.Set(screenCoord.X, screenCoord.Y, glyph.Code, glyph.Fore, glyph.Back)
+			}
+		}
+	}
+	//gridutil.SingleBox(d, d.GridSize(), grid.Black, grid.White)
+	//gridutil.Text(d, image.Point{X: 2, Y: 2}, "Hello moo", grid.Red, grid.Black)
 	var arrow int
 	switch g.dir {
 	case 0:
@@ -28,7 +50,9 @@ func (g *Game) Draw(d grid.DrawableGrid) {
 	case 3:
 		arrow = 27
 	}
-	d.Set(g.x, g.y, arrow, grid.Green, grid.Black)
+	//d.Set(g.x, g.y, arrow, grid.Green, grid.Black)
+	trpos := g.pos.Sub(translator)
+	d.Set(trpos.X, trpos.Y, arrow, grid.Green, grid.Black)
 }
 
 func (g *Game) Char(r rune) {
@@ -66,25 +90,17 @@ func (g *Game) MouseDrag(e grid.MouseDragEvent) {
 func (g *Game) forward() {
 	switch g.dir {
 	case 0:
-		g.y--
+		g.pos.Y--
 	case 1:
-		g.x++
+		g.pos.X++
 	case 2:
-		g.y++
+		g.pos.Y++
 	case 3:
-		g.x--
+		g.pos.X--
 	}
 }
 
 func (g *Game) Fin(last bool) bool {
 	//fmt.Printf("finish %t\n", last)
 	return g.die
-}
-
-func New() *Game {
-	return &Game{
-		x:   1,
-		y:   1,
-		dir: 2,
-	}
 }
