@@ -30,7 +30,7 @@ attribute vec2 position;
 attribute float foreColor;
 attribute float backColor;
 attribute vec2 texCoord;
-uniform vec3 colorData[5];
+uniform vec3 colorData[22];
 uniform vec2 runeSize;
 varying vec3 theForeColor;
 varying vec3 theBackColor;

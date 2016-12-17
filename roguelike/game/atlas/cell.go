@@ -26,8 +26,8 @@ func (cell Cell) Glyph() Glyph {
 		}
 	case feature.Floor:
 		return Glyph{
-			Code: 46,
-			Fore: grid.White,
+			Code: 176,
+			Fore: grid.DarkGray,
 			Back: grid.Black,
 		}
 	default:
