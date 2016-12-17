@@ -162,13 +162,13 @@ func (atlas *Atlas) Glyph(p image.Point) Glyph {
 	switch cell.feature {
 	case feature.Wall:
 		return Glyph{
-			Code: doubleWall[atlas.wallrune(p)],
+			Code: atlas.wallrune(p, doubleWall),
 			Fore: grid.White,
 			Back: grid.Black,
 		}
 	case feature.Floor:
 		return Glyph{
-			Code: 176,
+			Code: atlas.floorrune(p, floorRune),
 			Fore: grid.DarkGray,
 			Back: grid.Black,
 		}
@@ -189,7 +189,7 @@ var singleWall = []int{79, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197
 var doubleWall = []int{233, 186, 205, 200, 201, 187, 188, 204, 203, 185, 202, 206}
 var wallRune = []int{0, 1, 2, 3, 1, 1, 4, 7, 2, 6, 2, 10, 5, 9, 8, 11}
 
-func (atlas *Atlas) wallrune(p image.Point) int {
+func (atlas *Atlas) wallrune(p image.Point, runes []int) int {
 	x := image.Point{X: 1}
 	y := image.Point{Y: 1}
 	bits := 0
@@ -205,5 +205,17 @@ func (atlas *Atlas) wallrune(p image.Point) int {
 	if atlas.cells[p.Sub(x)].feature.Wallable {
 		bits |= 8
 	}
-	return wallRune[bits]
+	return runes[wallRune[bits]]
+}
+
+//var floorRune = []int{44, 46, 96, 249, 250}
+//var floorRune = []int{44, 46, 96, 249, 39}
+//var floorRune = []int{44, 46, 96, 249, 39, 250, 250}
+var floorRune = []int{250, 44, 250, 46, 250, 96, 250, 249, 250, 39, 250}
+
+func (atlas *Atlas) floorrune(p image.Point, runes []int) int {
+	x := uint64(p.X)
+	y := uint64(p.Y)
+	ui := ((x<<32)|y)*(x^y) + y - x
+	return runes[ui%uint64(len(runes))]
 }
