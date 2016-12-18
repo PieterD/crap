@@ -74,6 +74,15 @@ func New() *Atlas {
 
 	wallTest(atlas)
 
+	for x := 0; x <= 10; x++ {
+		atlas.setFeature(45+x, 5, aspect.Wall)
+		atlas.setFeature(45+x, 15, aspect.Wall)
+		atlas.setFeature(45, 5+x, aspect.Wall)
+		atlas.setFeature(55, 5+x, aspect.Wall)
+	}
+	atlas.setFeature(50, 5, aspect.ClosedDoor)
+	atlas.setFeature(50, 10, aspect.Floor)
+
 	return atlas
 }
 
@@ -151,6 +160,16 @@ func (atlas *Atlas) Bounds() image.Rectangle {
 	return atlas.bounds
 }
 
+func (atlas *Atlas) GetFeature(pos image.Point) aspect.Feature {
+	return atlas.cells[pos].feature
+}
+
+func (atlas *Atlas) SetFeature(pos image.Point, feature aspect.Feature) {
+	c := atlas.cells[pos]
+	c.feature = feature
+	atlas.cells[pos] = c
+}
+
 func (atlas *Atlas) setFeature(x, y int, ft aspect.Feature) {
 	cell := atlas.cells[image.Point{X: x, Y: y}]
 	cell.feature = ft
@@ -172,6 +191,18 @@ func (atlas *Atlas) Glyph(p image.Point) Glyph {
 			Fore: grid.DarkGray,
 			Back: grid.Black,
 		}
+	case aspect.ClosedDoor:
+		return Glyph{
+			Code: 43,
+			Fore: grid.DarkRed,
+			Back: grid.Black,
+		}
+	case aspect.OpenDoor:
+		return Glyph{
+			Code: 47,
+			Fore: grid.DarkRed,
+			Back: grid.Black,
+		}
 	default:
 		return Glyph{
 			Code: 32,
@@ -186,7 +217,8 @@ func (atlas *Atlas) Passable(p image.Point) bool {
 }
 
 //var singleWall = []int{79, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
-var singleWall = []int{9, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
+//var singleWall = []int{9, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
+var singleWall = []int{233, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
 var doubleWall = []int{233, 186, 205, 200, 201, 187, 188, 204, 203, 185, 202, 206}
 var wallRune = []int{0, 1, 2, 3, 1, 1, 4, 7, 2, 6, 2, 10, 5, 9, 8, 11}
 

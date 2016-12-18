@@ -1,6 +1,10 @@
 package game
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/PieterD/crap/roguelike/game/atlas/aspect"
+)
 
 type turnDirection int
 
@@ -25,6 +29,9 @@ func (g *Game) CmdMove() {
 	}
 	if g.atlas.Passable(npos) {
 		g.pos = npos
+	} else if g.atlas.GetFeature(npos) == aspect.ClosedDoor {
+		fmt.Printf("you open the door.\n")
+		g.atlas.SetFeature(npos, aspect.OpenDoor)
 	} else {
 		fmt.Printf("thump!\n")
 	}

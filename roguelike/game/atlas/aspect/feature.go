@@ -21,3 +21,9 @@ var ClosedDoor = Feature{
 	Name:     "closed door",
 	Wallable: true,
 }
+var OpenDoor = Feature{
+	Name:        "open door",
+	Wallable:    true,
+	Passable:    true,
+	Transparent: true,
+}
