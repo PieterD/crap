@@ -3,6 +3,7 @@ package grid
 var colorData = []float32{
 	// Black to White
 	0.0, 0.0, 0.0,
+	0.25, 0.25, 0.25,
 	0.5, 0.5, 0.5,
 	229.0 / 256.0, 229.0 / 256.0, 229.0 / 256.0,
 	1.0, 1.0, 1.0,
@@ -42,6 +43,7 @@ type Color int
 
 const (
 	Black Color = iota
+	VeryDarkGray
 	DarkGray
 	Gray
 	White

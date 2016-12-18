@@ -16,11 +16,13 @@ type Game struct {
 }
 
 func New() *Game {
-	return &Game{
+	g := &Game{
 		pos:   image.Point{X: 1, Y: 1},
 		dir:   2,
 		atlas: atlas.New(),
 	}
+	g.atlas.Vision(g.pos)
+	return g
 }
 
 func (g *Game) Draw(d grid.DrawableGrid) {

@@ -39,8 +39,9 @@ func Translate(screen image.Rectangle, center image.Point, atlas image.Rectangle
 }
 
 type Atlas struct {
-	cells  map[image.Point]Cell
-	bounds image.Rectangle
+	cells      map[image.Point]Cell
+	bounds     image.Rectangle
+	visibility uint64
 }
 
 func New() *Atlas {
@@ -52,6 +53,7 @@ func New() *Atlas {
 			Min: image.Point{X: 0, Y: 0},
 			Max: image.Point{X: w, Y: h},
 		},
+		visibility: 1,
 	}
 	for x := 0; x < w; x++ {
 		for y := 0; y < h; y++ {
@@ -178,42 +180,64 @@ func (atlas *Atlas) setFeature(x, y int, ft aspect.Feature) {
 
 func (atlas *Atlas) Glyph(p image.Point) Glyph {
 	cell := atlas.cells[p]
+	var glyph Glyph
 	switch cell.feature {
 	case aspect.Wall:
-		return Glyph{
+		glyph = Glyph{
 			Code: atlas.wallrune(p, singleWall),
 			Fore: grid.Gray,
 			Back: grid.Black,
 		}
 	case aspect.Floor:
-		return Glyph{
+		glyph = Glyph{
 			Code: atlas.floorrune(p, floorRune),
 			Fore: grid.DarkGray,
 			Back: grid.Black,
 		}
 	case aspect.ClosedDoor:
-		return Glyph{
+		glyph = Glyph{
 			Code: 43,
 			Fore: grid.DarkRed,
 			Back: grid.Black,
 		}
 	case aspect.OpenDoor:
-		return Glyph{
+		glyph = Glyph{
 			Code: 47,
 			Fore: grid.DarkRed,
 			Back: grid.Black,
 		}
 	default:
-		return Glyph{
+		glyph = Glyph{
 			Code: 32,
 			Fore: grid.Black,
 			Back: grid.Black,
 		}
 	}
+	if !atlas.Visible(p) {
+		if glyph.Fore != grid.Black {
+			glyph.Fore = grid.VeryDarkGray
+		}
+		glyph.Back = grid.Black
+	}
+	return glyph
 }
 
 func (atlas *Atlas) Passable(p image.Point) bool {
 	return atlas.cells[p].feature.Passable
+}
+
+func (atlas *Atlas) Transparent(p image.Point) bool {
+	return atlas.cells[p].feature.Transparent
+}
+
+func (atlas *Atlas) SetVisible(p image.Point) {
+	cell := atlas.cells[p]
+	cell.visibility = atlas.visibility
+	atlas.cells[p] = cell
+}
+
+func (atlas *Atlas) Visible(p image.Point) bool {
+	return atlas.cells[p].visibility == atlas.visibility
 }
 
 //var singleWall = []int{79, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
@@ -244,7 +268,8 @@ func (atlas *Atlas) wallrune(p image.Point, runes []int) int {
 //var floorRune = []int{44, 46, 96, 249, 250}
 //var floorRune = []int{44, 46, 96, 249, 39}
 //var floorRune = []int{44, 46, 96, 249, 39, 250, 250}
-var floorRune = []int{250, 44, 250, 46, 250, 96, 250, 249, 250, 39, 250}
+//var floorRune = []int{250, 44, 250, 46, 250, 96, 250, 249, 250, 39, 250}
+var floorRune = []int{250}
 
 func (atlas *Atlas) floorrune(p image.Point, runes []int) int {
 	x := uint64(p.X)
