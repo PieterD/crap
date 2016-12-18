@@ -52,7 +52,7 @@ func (g *Game) Draw(d grid.DrawableGrid) {
 	}
 	//d.Set(g.x, g.y, arrow, grid.Green, grid.Black)
 	trpos := g.pos.Sub(translator)
-	d.Set(trpos.X, trpos.Y, arrow, grid.Green, grid.Black)
+	d.Set(trpos.X, trpos.Y, arrow, grid.BrightGreen, grid.Black)
 }
 
 func (g *Game) Char(r rune) {

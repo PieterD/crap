@@ -3,7 +3,7 @@ package atlas
 import (
 	"image"
 
-	"github.com/PieterD/crap/roguelike/game/atlas/feature"
+	"github.com/PieterD/crap/roguelike/game/atlas/aspect"
 	"github.com/PieterD/crap/roguelike/grid"
 )
 
@@ -55,20 +55,20 @@ func New() *Atlas {
 	}
 	for x := 0; x < w; x++ {
 		for y := 0; y < h; y++ {
-			atlas.cells[image.Point{X: x, Y: y}] = Cell{feature: feature.Floor}
+			atlas.cells[image.Point{X: x, Y: y}] = Cell{feature: aspect.Floor}
 		}
 	}
 	for x := 0; x < w; x++ {
-		atlas.cells[image.Point{X: x, Y: 0}] = Cell{feature: feature.Wall}
-		atlas.cells[image.Point{X: x, Y: h - 1}] = Cell{feature: feature.Wall}
+		atlas.cells[image.Point{X: x, Y: 0}] = Cell{feature: aspect.Wall}
+		atlas.cells[image.Point{X: x, Y: h - 1}] = Cell{feature: aspect.Wall}
 	}
 	for y := 0; y < h; y++ {
-		atlas.cells[image.Point{X: 0, Y: y}] = Cell{feature: feature.Wall}
-		atlas.cells[image.Point{X: w - 1, Y: y}] = Cell{feature: feature.Wall}
+		atlas.cells[image.Point{X: 0, Y: y}] = Cell{feature: aspect.Wall}
+		atlas.cells[image.Point{X: w - 1, Y: y}] = Cell{feature: aspect.Wall}
 	}
 	for x := 0; x < w; x += 10 {
 		for y := 0; y < h; y += 10 {
-			atlas.cells[image.Point{X: x, Y: y}] = Cell{feature: feature.Wall}
+			atlas.cells[image.Point{X: x, Y: y}] = Cell{feature: aspect.Wall}
 		}
 	}
 
@@ -79,79 +79,79 @@ func New() *Atlas {
 
 func wallTest(atlas *Atlas) {
 	// specials
-	atlas.setFeature(10, 10, feature.Wall)
+	atlas.setFeature(10, 10, aspect.Wall)
 
-	atlas.setFeature(10, 20, feature.Wall)
-	atlas.setFeature(10, 19, feature.Wall)
-	atlas.setFeature(10, 21, feature.Wall)
+	atlas.setFeature(10, 20, aspect.Wall)
+	atlas.setFeature(10, 19, aspect.Wall)
+	atlas.setFeature(10, 21, aspect.Wall)
 
-	atlas.setFeature(10, 30, feature.Wall)
-	atlas.setFeature(9, 30, feature.Wall)
-	atlas.setFeature(11, 30, feature.Wall)
+	atlas.setFeature(10, 30, aspect.Wall)
+	atlas.setFeature(9, 30, aspect.Wall)
+	atlas.setFeature(11, 30, aspect.Wall)
 
-	atlas.setFeature(10, 40, feature.Wall)
-	atlas.setFeature(9, 40, feature.Wall)
-	atlas.setFeature(11, 40, feature.Wall)
-	atlas.setFeature(10, 39, feature.Wall)
-	atlas.setFeature(10, 41, feature.Wall)
+	atlas.setFeature(10, 40, aspect.Wall)
+	atlas.setFeature(9, 40, aspect.Wall)
+	atlas.setFeature(11, 40, aspect.Wall)
+	atlas.setFeature(10, 39, aspect.Wall)
+	atlas.setFeature(10, 41, aspect.Wall)
 
 	// doubles
-	atlas.setFeature(20, 10, feature.Wall)
-	atlas.setFeature(20, 9, feature.Wall)
+	atlas.setFeature(20, 10, aspect.Wall)
+	atlas.setFeature(20, 9, aspect.Wall)
 
-	atlas.setFeature(20, 20, feature.Wall)
-	atlas.setFeature(21, 20, feature.Wall)
+	atlas.setFeature(20, 20, aspect.Wall)
+	atlas.setFeature(21, 20, aspect.Wall)
 
-	atlas.setFeature(20, 30, feature.Wall)
-	atlas.setFeature(20, 31, feature.Wall)
+	atlas.setFeature(20, 30, aspect.Wall)
+	atlas.setFeature(20, 31, aspect.Wall)
 
-	atlas.setFeature(20, 40, feature.Wall)
-	atlas.setFeature(19, 40, feature.Wall)
+	atlas.setFeature(20, 40, aspect.Wall)
+	atlas.setFeature(19, 40, aspect.Wall)
 
 	// triples
-	atlas.setFeature(30, 10, feature.Wall)
-	atlas.setFeature(30, 9, feature.Wall)
-	atlas.setFeature(31, 10, feature.Wall)
+	atlas.setFeature(30, 10, aspect.Wall)
+	atlas.setFeature(30, 9, aspect.Wall)
+	atlas.setFeature(31, 10, aspect.Wall)
 
-	atlas.setFeature(30, 20, feature.Wall)
-	atlas.setFeature(31, 20, feature.Wall)
-	atlas.setFeature(30, 21, feature.Wall)
+	atlas.setFeature(30, 20, aspect.Wall)
+	atlas.setFeature(31, 20, aspect.Wall)
+	atlas.setFeature(30, 21, aspect.Wall)
 
-	atlas.setFeature(30, 30, feature.Wall)
-	atlas.setFeature(29, 30, feature.Wall)
-	atlas.setFeature(30, 31, feature.Wall)
+	atlas.setFeature(30, 30, aspect.Wall)
+	atlas.setFeature(29, 30, aspect.Wall)
+	atlas.setFeature(30, 31, aspect.Wall)
 
-	atlas.setFeature(30, 40, feature.Wall)
-	atlas.setFeature(30, 39, feature.Wall)
-	atlas.setFeature(29, 40, feature.Wall)
+	atlas.setFeature(30, 40, aspect.Wall)
+	atlas.setFeature(30, 39, aspect.Wall)
+	atlas.setFeature(29, 40, aspect.Wall)
 
 	// quads
-	atlas.setFeature(40, 10, feature.Wall)
-	atlas.setFeature(40, 9, feature.Wall)
-	atlas.setFeature(40, 11, feature.Wall)
-	atlas.setFeature(41, 10, feature.Wall)
+	atlas.setFeature(40, 10, aspect.Wall)
+	atlas.setFeature(40, 9, aspect.Wall)
+	atlas.setFeature(40, 11, aspect.Wall)
+	atlas.setFeature(41, 10, aspect.Wall)
 
-	atlas.setFeature(40, 20, feature.Wall)
-	atlas.setFeature(41, 20, feature.Wall)
-	atlas.setFeature(40, 21, feature.Wall)
-	atlas.setFeature(39, 20, feature.Wall)
+	atlas.setFeature(40, 20, aspect.Wall)
+	atlas.setFeature(41, 20, aspect.Wall)
+	atlas.setFeature(40, 21, aspect.Wall)
+	atlas.setFeature(39, 20, aspect.Wall)
 
-	atlas.setFeature(40, 30, feature.Wall)
-	atlas.setFeature(40, 29, feature.Wall)
-	atlas.setFeature(39, 30, feature.Wall)
-	atlas.setFeature(40, 31, feature.Wall)
+	atlas.setFeature(40, 30, aspect.Wall)
+	atlas.setFeature(40, 29, aspect.Wall)
+	atlas.setFeature(39, 30, aspect.Wall)
+	atlas.setFeature(40, 31, aspect.Wall)
 
-	atlas.setFeature(40, 40, feature.Wall)
-	atlas.setFeature(40, 39, feature.Wall)
-	atlas.setFeature(41, 40, feature.Wall)
-	atlas.setFeature(39, 40, feature.Wall)
+	atlas.setFeature(40, 40, aspect.Wall)
+	atlas.setFeature(40, 39, aspect.Wall)
+	atlas.setFeature(41, 40, aspect.Wall)
+	atlas.setFeature(39, 40, aspect.Wall)
 }
 
 func (atlas *Atlas) Bounds() image.Rectangle {
 	return atlas.bounds
 }
 
-func (atlas *Atlas) setFeature(x, y int, ft feature.Feature) {
+func (atlas *Atlas) setFeature(x, y int, ft aspect.Feature) {
 	cell := atlas.cells[image.Point{X: x, Y: y}]
 	cell.feature = ft
 	atlas.cells[image.Point{X: x, Y: y}] = cell
@@ -160,13 +160,13 @@ func (atlas *Atlas) setFeature(x, y int, ft feature.Feature) {
 func (atlas *Atlas) Glyph(p image.Point) Glyph {
 	cell := atlas.cells[p]
 	switch cell.feature {
-	case feature.Wall:
+	case aspect.Wall:
 		return Glyph{
-			Code: atlas.wallrune(p, doubleWall),
-			Fore: grid.White,
+			Code: atlas.wallrune(p, singleWall),
+			Fore: grid.Gray,
 			Back: grid.Black,
 		}
-	case feature.Floor:
+	case aspect.Floor:
 		return Glyph{
 			Code: atlas.floorrune(p, floorRune),
 			Fore: grid.DarkGray,
@@ -185,7 +185,8 @@ func (atlas *Atlas) Passable(p image.Point) bool {
 	return atlas.cells[p].feature.Passable
 }
 
-var singleWall = []int{79, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
+//var singleWall = []int{79, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
+var singleWall = []int{9, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
 var doubleWall = []int{233, 186, 205, 200, 201, 187, 188, 204, 203, 185, 202, 206}
 var wallRune = []int{0, 1, 2, 3, 1, 1, 4, 7, 2, 6, 2, 10, 5, 9, 8, 11}
 

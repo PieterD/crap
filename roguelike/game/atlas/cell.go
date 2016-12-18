@@ -1,13 +1,13 @@
 package atlas
 
-import "github.com/PieterD/crap/roguelike/game/atlas/feature"
+import "github.com/PieterD/crap/roguelike/game/atlas/aspect"
 
 type Cell struct {
 	// Floor, wall, etc
-	feature feature.Feature
+	feature aspect.Feature
 
 	// Chest, water, altar, lava, etc
-	//furnishings []Furnishing
+	furnishing aspect.Furniture
 
 	// Sword, armor, food, gold
 	//objects     []Object
