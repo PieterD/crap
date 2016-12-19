@@ -76,7 +76,7 @@ func New() *Atlas {
 
 	wallTest(atlas)
 
-	max := 45
+	max := 5
 	for i := 1; i <= max; i++ {
 		atlas.setFeature(max, i, aspect.Wall)
 		atlas.setFeature(i, max, aspect.Wall)

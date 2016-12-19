@@ -57,37 +57,27 @@ func (v *ShadowCast) Vision(source image.Point) {
 }
 
 func (v *ShadowCast) visionOctant(col int, startSlope, endSlope float64, trans visionTransform) {
-	//fmt.Printf("vision col=%d startSlope=%f endSlope=%f\n", col, startSlope, endSlope)
-	//defer fmt.Printf("return\n")
 	wall := false
 	for x := col; startSlope > endSlope && !wall; x++ {
-		//fmt.Printf(" x=%d\n", x)
 		q := int(startSlope*float64(x)) + 1
 		for y := q; y >= 0; y-- {
-			//fmt.Printf("  startSlope=%f endSlope=%f\n", startSlope, endSlope)
 			hiSlope := (float64(y) - 0.5) / (float64(x) - 0.5)
 			loSlope := (float64(y) + 0.5) / (float64(x) - 0.5)
-			//fmt.Printf("  y=%d lo=%f hi=%f\n", y, loSlope, hiSlope)
 			if hiSlope > startSlope {
-				//fmt.Printf("   continue\n")
 				continue
 			}
 			if loSlope < endSlope {
-				//fmt.Printf("   break\n")
 				break
 			}
 			pos := trans(image.Point{X: x, Y: y})
 			v.m.MakeVisible(pos)
-			//fmt.Printf("   wall = %t\n", wall)
 			if !v.m.IsTransparent(pos) {
 				if !wall {
-					//fmt.Printf("   new wall\n")
 					wall = true
 					v.visionOctant(x+1, startSlope, loSlope, trans)
 				}
 			} else {
 				if wall {
-					//fmt.Printf("   end wall\n")
 					wall = false
 					startSlope = (float64(y) + 0.5) / (float64(x) + 0.5)
 				}
@@ -95,43 +85,3 @@ func (v *ShadowCast) visionOctant(col int, startSlope, endSlope float64, trans v
 		}
 	}
 }
-
-/*
-func (v *ShadowCast) visionOctant(col int, minSlope, maxSlope float64, trans visionTransform) {
-	fmt.Printf("vision %d\n", col)
-	wall := false
-	x := col
-	for maxSlope > minSlope && !wall {
-		fmt.Printf("  %f %f\n", minSlope, maxSlope)
-		fStart := maxSlope * (float64(x) + 0.5)
-		fEnd := minSlope * (float64(x) + 0.5)
-		yStart := int(fStart + 0.5)
-		yEnd := int(fEnd + 0.5)
-		yRem := fStart - float64(yStart)
-		fmt.Printf("  yStart=%3d yEnd=%3d rem=%f\n", yStart, yEnd, yRem)
-		for y := yStart; y >= yEnd; y-- {
-			fmt.Printf("    x=%3d y=%3d\n", x, y)
-			pos := trans(image.Point{X: x, Y: y})
-			v.m.MakeVisible(pos)
-			if !v.m.IsTransparent(pos) {
-				fmt.Printf("      blocker\n")
-				if !wall {
-					wall = true
-					newSlope := float64(y*2+1) / float64(x*2-1)
-					if newSlope <= 1.0 {
-						fmt.Printf("        next\n")
-						v.visionOctant(col+1, newSlope, maxSlope, trans)
-						fmt.Printf("        end\n")
-					}
-				}
-				maxSlope = float64(y*2-1) / float64(x*2+1)
-			} else {
-				if wall {
-					wall = false
-				}
-			}
-		}
-		x++
-	}
-}
-*/
