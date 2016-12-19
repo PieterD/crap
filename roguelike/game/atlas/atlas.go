@@ -81,7 +81,6 @@ func New() *Atlas {
 		atlas.setFeature(max, i, aspect.Wall)
 		atlas.setFeature(i, max, aspect.Wall)
 	}
-
 	atlas.setFeature(max, 2, aspect.ClosedDoor)
 
 	for x := 0; x <= 10; x++ {
@@ -276,8 +275,9 @@ func (atlas *Atlas) wallrune(p image.Point, runes []int) int {
 //var floorRune = []int{44, 46, 96, 249, 250}
 //var floorRune = []int{44, 46, 96, 249, 39}
 //var floorRune = []int{44, 46, 96, 249, 39, 250, 250}
-//var floorRune = []int{250, 44, 250, 46, 250, 96, 250, 249, 250, 39, 250}
-var floorRune = []int{250}
+var floorRune = []int{250, 44, 250, 46, 250, 96, 250, 249, 250, 39, 250}
+
+//var floorRune = []int{250}
 
 func (atlas *Atlas) floorrune(p image.Point, runes []int) int {
 	x := uint64(p.X)

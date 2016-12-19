@@ -46,7 +46,6 @@ func NewShadowCast(m Map) *ShadowCast {
 func (v *ShadowCast) Vision(source image.Point) {
 	vt := visionTransformer{source: source}
 	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.identity))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.identity))
 	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.identity))
 	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.invx, vt.identity))
 	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invx, vt.identity))
@@ -59,13 +58,13 @@ func (v *ShadowCast) Vision(source image.Point) {
 func (v *ShadowCast) visionOctant(col int, startSlope, endSlope float64, trans visionTransform) {
 	wall := false
 	for x := col; startSlope > endSlope && !wall; x++ {
-		q := int(startSlope*float64(x)) + 1
-		for y := q; y >= 0; y-- {
+		approxStart := int(startSlope*float64(x)) + 1
+		for y := approxStart; y >= 0; y-- {
 			hiSlope := (float64(y) - 0.5) / (float64(x) - 0.5)
-			loSlope := (float64(y) + 0.5) / (float64(x) - 0.5)
 			if hiSlope > startSlope {
 				continue
 			}
+			loSlope := (float64(y) + 0.5) / (float64(x) - 0.5)
 			if loSlope < endSlope {
 				break
 			}

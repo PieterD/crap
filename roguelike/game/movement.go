@@ -33,6 +33,7 @@ func (g *Game) CmdMove() {
 	} else if g.atlas.GetFeature(npos) == aspect.ClosedDoor {
 		fmt.Printf("you open the door.\n")
 		g.atlas.SetFeature(npos, aspect.OpenDoor)
+		g.atlas.Vision(g.pos)
 	} else {
 		fmt.Printf("thump!\n")
 	}
