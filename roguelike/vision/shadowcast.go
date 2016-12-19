@@ -45,28 +45,29 @@ func NewShadowCast(m Map) *ShadowCast {
 
 func (v *ShadowCast) Vision(source image.Point) {
 	vt := visionTransformer{source: source}
-	v.visionOctant(1, 1, 1, 0.0, vt.compose(vt.identity))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.identity))
 	/*
-		atlas.visionOctant(1, 0.0, 1.0, vt.compose(vt.identity))
-		atlas.visionOctant(1, 0.0, 1.0, vt.compose(vt.swap, vt.identity))
-		atlas.visionOctant(1, 0.0, 1.0, vt.compose(vt.invx, vt.identity))
-		atlas.visionOctant(1, 0.0, 1.0, vt.compose(vt.swap, vt.invx, vt.identity))
-		atlas.visionOctant(1, 0.0, 1.0, vt.compose(vt.invy, vt.identity))
-		atlas.visionOctant(1, 0.0, 1.0, vt.compose(vt.swap, vt.invy, vt.identity))
-		atlas.visionOctant(1, 0.0, 1.0, vt.compose(vt.invy, vt.invx, vt.identity))
-		atlas.visionOctant(1, 0.0, 1.0, vt.compose(vt.swap, vt.invy, vt.invx, vt.identity))
+		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.identity))
+		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.identity))
+		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.invx, vt.identity))
+		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invx, vt.identity))
+		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.invy, vt.identity))
+		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invy, vt.identity))
+		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.invy, vt.invx, vt.identity))
+		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invy, vt.invx, vt.identity))
 	*/
 }
 
-func (v *ShadowCast) visionOctant(col, row int, startSlope, endSlope float64, trans visionTransform) {
-	//fmt.Printf("vision col=%d row=%d startSlope=%f endSlope=%f\n", col, row, startSlope, endSlope)
+func (v *ShadowCast) visionOctant(col int, startSlope, endSlope float64, trans visionTransform) {
+	//fmt.Printf("vision col=%d startSlope=%f endSlope=%f\n", col, startSlope, endSlope)
 	//defer fmt.Printf("return\n")
 	wall := false
 	for x := col; startSlope > endSlope && !wall; x++ {
 		//fmt.Printf(" x=%d\n", x)
-		for y := x; y >= 0; y-- {
+		q := int(startSlope*float64(x)) + 1
+		for y := q; y >= 0; y-- {
 			//fmt.Printf("  startSlope=%f endSlope=%f\n", startSlope, endSlope)
-			hiSlope := (float64(y) - 0.5) / (float64(x) + 0.5)
+			hiSlope := (float64(y) - 0.5) / (float64(x) - 0.5)
 			loSlope := (float64(y) + 0.5) / (float64(x) - 0.5)
 			//fmt.Printf("  y=%d lo=%f hi=%f\n", y, loSlope, hiSlope)
 			if hiSlope > startSlope {
@@ -84,7 +85,7 @@ func (v *ShadowCast) visionOctant(col, row int, startSlope, endSlope float64, tr
 				if !wall {
 					//fmt.Printf("   new wall\n")
 					wall = true
-					v.visionOctant(x+1, y+1, startSlope, loSlope, trans)
+					v.visionOctant(x+1, startSlope, loSlope, trans)
 				}
 			} else {
 				if wall {
