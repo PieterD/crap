@@ -46,16 +46,14 @@ func NewShadowCast(m Map) *ShadowCast {
 func (v *ShadowCast) Vision(source image.Point) {
 	vt := visionTransformer{source: source}
 	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.identity))
-	/*
-		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.identity))
-		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.identity))
-		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.invx, vt.identity))
-		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invx, vt.identity))
-		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.invy, vt.identity))
-		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invy, vt.identity))
-		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.invy, vt.invx, vt.identity))
-		atlas.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invy, vt.invx, vt.identity))
-	*/
+	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.identity))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.identity))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.invx, vt.identity))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invx, vt.identity))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.invy, vt.identity))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invy, vt.identity))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.invy, vt.invx, vt.identity))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invy, vt.invx, vt.identity))
 }
 
 func (v *ShadowCast) visionOctant(col int, startSlope, endSlope float64, trans visionTransform) {
