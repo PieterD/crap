@@ -48,7 +48,7 @@ func NewShadowCast(m Map) *ShadowCast {
 
 func (v *ShadowCast) Vision(source image.Point) {
 	vt := visionTransformer{source: source}
-	v.visionOctant(1, 0.0, 1.0, vt.compose(vt.identity))
+	v.visionOctant(1, 1, 1, 0.0, vt.compose(vt.identity))
 	/*
 		atlas.visionOctant(1, 0.0, 1.0, vt.compose(vt.identity))
 		atlas.visionOctant(1, 0.0, 1.0, vt.compose(vt.swap, vt.identity))
@@ -61,17 +61,48 @@ func (v *ShadowCast) Vision(source image.Point) {
 	*/
 }
 
-/*
-func (atlas *Atlas) visionOctant(col int, minSlope, maxSlope float64, trans visionTransform) {
+func (v *ShadowCast) visionOctant(col, row int, startSlope, endSlope float64, trans visionTransform) {
+	fmt.Printf("vision col=%d row=%d startSlope=%f endSlope=%f\n", col, row, startSlope, endSlope)
+	if startSlope <= endSlope {
+		fmt.Printf(" return\n")
+		return
+	}
 	wall := false
-	x := col
-	for maxSlope > minSlope && !wall {
-		leftX := x*2 - 1
-		bottomY := leftX * maxSlope
+	for x := col; !wall; x++ {
+		fmt.Printf(" x=%d\n", x)
+		for y := x; y >= 0; y-- {
+			fmt.Printf("  startSlope=%f endSlope=%f\n", startSlope, endSlope)
+			hiSlope := (float64(y) - 0.5) / (float64(x) + 0.5)
+			loSlope := (float64(y) + 0.5) / (float64(x) - 0.5)
+			fmt.Printf("  y=%d lo=%f hi=%f\n", y, loSlope, hiSlope)
+			if hiSlope > startSlope {
+				fmt.Printf("   continue\n")
+				continue
+			}
+			if loSlope < endSlope {
+				fmt.Printf("   break\n")
+				break
+			}
+			pos := trans(image.Point{X: x, Y: y})
+			v.m.MakeVisible(pos)
+			if !v.m.IsTransparent(pos) {
+				if !wall {
+					fmt.Printf("   wall\n")
+					wall = true
+					v.visionOctant(x+1, y+1, startSlope, loSlope, trans)
+				}
+			} else {
+				if wall {
+					fmt.Printf("   end wall\n")
+					wall = false
+					startSlope = (float64(y) + 0.5) / (float64(x) + 0.5)
+				}
+			}
+		}
 	}
 }
-*/
 
+/*
 func (v *ShadowCast) visionOctant(col int, minSlope, maxSlope float64, trans visionTransform) {
 	fmt.Printf("vision %d\n", col)
 	wall := false
@@ -109,3 +140,4 @@ func (v *ShadowCast) visionOctant(col int, minSlope, maxSlope float64, trans vis
 		x++
 	}
 }
+*/
