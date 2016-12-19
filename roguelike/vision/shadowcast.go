@@ -1,9 +1,6 @@
 package vision
 
-import (
-	"fmt"
-	"image"
-)
+import "image"
 
 type visionTransform func(image.Point) image.Point
 
@@ -62,38 +59,36 @@ func (v *ShadowCast) Vision(source image.Point) {
 }
 
 func (v *ShadowCast) visionOctant(col, row int, startSlope, endSlope float64, trans visionTransform) {
-	fmt.Printf("vision col=%d row=%d startSlope=%f endSlope=%f\n", col, row, startSlope, endSlope)
-	if startSlope <= endSlope {
-		fmt.Printf(" return\n")
-		return
-	}
+	//fmt.Printf("vision col=%d row=%d startSlope=%f endSlope=%f\n", col, row, startSlope, endSlope)
+	//defer fmt.Printf("return\n")
 	wall := false
-	for x := col; !wall; x++ {
-		fmt.Printf(" x=%d\n", x)
+	for x := col; startSlope > endSlope && !wall; x++ {
+		//fmt.Printf(" x=%d\n", x)
 		for y := x; y >= 0; y-- {
-			fmt.Printf("  startSlope=%f endSlope=%f\n", startSlope, endSlope)
+			//fmt.Printf("  startSlope=%f endSlope=%f\n", startSlope, endSlope)
 			hiSlope := (float64(y) - 0.5) / (float64(x) + 0.5)
 			loSlope := (float64(y) + 0.5) / (float64(x) - 0.5)
-			fmt.Printf("  y=%d lo=%f hi=%f\n", y, loSlope, hiSlope)
+			//fmt.Printf("  y=%d lo=%f hi=%f\n", y, loSlope, hiSlope)
 			if hiSlope > startSlope {
-				fmt.Printf("   continue\n")
+				//fmt.Printf("   continue\n")
 				continue
 			}
 			if loSlope < endSlope {
-				fmt.Printf("   break\n")
+				//fmt.Printf("   break\n")
 				break
 			}
 			pos := trans(image.Point{X: x, Y: y})
 			v.m.MakeVisible(pos)
+			//fmt.Printf("   wall = %t\n", wall)
 			if !v.m.IsTransparent(pos) {
 				if !wall {
-					fmt.Printf("   wall\n")
+					//fmt.Printf("   new wall\n")
 					wall = true
 					v.visionOctant(x+1, y+1, startSlope, loSlope, trans)
 				}
 			} else {
 				if wall {
-					fmt.Printf("   end wall\n")
+					//fmt.Printf("   end wall\n")
 					wall = false
 					startSlope = (float64(y) + 0.5) / (float64(x) + 0.5)
 				}
