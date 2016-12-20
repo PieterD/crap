@@ -13,23 +13,19 @@ func (vt visionTransformer) compose(ts ...visionTransform) visionTransform {
 		for _, t := range ts {
 			p = t(p)
 		}
-		return p
+		return p.Add(vt.source)
 	}
 }
 
-func (vt visionTransformer) identity(p image.Point) image.Point {
-	return p.Add(vt.source)
-}
-
-func (vt visionTransformer) swap(p image.Point) image.Point {
+func swap(p image.Point) image.Point {
 	return image.Point{X: p.Y, Y: p.X}
 }
 
-func (vt visionTransformer) invx(p image.Point) image.Point {
+func invx(p image.Point) image.Point {
 	return image.Point{X: -p.X, Y: p.Y}
 }
 
-func (vt visionTransformer) invy(p image.Point) image.Point {
+func invy(p image.Point) image.Point {
 	return image.Point{X: p.X, Y: -p.Y}
 }
 
@@ -45,14 +41,14 @@ func NewShadowCast(m Map) *ShadowCast {
 
 func (v *ShadowCast) Vision(source image.Point) {
 	vt := visionTransformer{source: source}
-	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.identity))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.identity))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.invx, vt.identity))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invx, vt.identity))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.invy, vt.identity))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invy, vt.identity))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.invy, vt.invx, vt.identity))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(vt.swap, vt.invy, vt.invx, vt.identity))
+	v.visionOctant(1, 1.0, 0.0, vt.compose())
+	v.visionOctant(1, 1.0, 0.0, vt.compose(swap))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(invx))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(swap, invx))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(invy))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(swap, invy))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(invy, invx))
+	v.visionOctant(1, 1.0, 0.0, vt.compose(swap, invy, invx))
 }
 
 func (v *ShadowCast) visionOctant(col int, startSlope, endSlope float64, trans visionTransform) {
