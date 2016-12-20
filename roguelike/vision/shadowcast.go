@@ -2,34 +2,12 @@ package vision
 
 import "image"
 
-type visionTransform func(image.Point) image.Point
-
-type visionTransformer struct {
-	source image.Point
+type ShadowCastMap interface {
+	SetVisible(p image.Point)
+	IsTransparent(p image.Point) bool
 }
 
-func (vt visionTransformer) compose(ts ...visionTransform) visionTransform {
-	return func(p image.Point) image.Point {
-		for _, t := range ts {
-			p = t(p)
-		}
-		return p.Add(vt.source)
-	}
-}
-
-func swap(p image.Point) image.Point {
-	return image.Point{X: p.Y, Y: p.X}
-}
-
-func invx(p image.Point) image.Point {
-	return image.Point{X: -p.X, Y: p.Y}
-}
-
-func invy(p image.Point) image.Point {
-	return image.Point{X: p.X, Y: -p.Y}
-}
-
-func ShadowCast(m Map, source image.Point) {
+func ShadowCast(m ShadowCastMap, source image.Point) {
 	vt := visionTransformer{source: source}
 	shadowCastOctant(1, 1.0, 0.0, m, vt.compose())
 	shadowCastOctant(1, 1.0, 0.0, m, vt.compose(swap))
@@ -41,7 +19,7 @@ func ShadowCast(m Map, source image.Point) {
 	shadowCastOctant(1, 1.0, 0.0, m, vt.compose(swap, invy, invx))
 }
 
-func shadowCastOctant(col int, startSlope, endSlope float64, m Map, trans visionTransform) {
+func shadowCastOctant(col int, startSlope, endSlope float64, m ShadowCastMap, trans visionTransform) {
 	wall := false
 	for x := col; startSlope > endSlope && !wall; x++ {
 		approxStart := int(startSlope*float64(x)) + 1

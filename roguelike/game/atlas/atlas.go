@@ -5,6 +5,7 @@ import (
 
 	"github.com/PieterD/crap/roguelike/game/atlas/aspect"
 	"github.com/PieterD/crap/roguelike/grid"
+	"github.com/PieterD/crap/roguelike/vision"
 )
 
 type Glyph struct {
@@ -245,6 +246,11 @@ func (atlas *Atlas) SetVisible(p image.Point) {
 
 func (atlas *Atlas) IsVisible(p image.Point) bool {
 	return atlas.cells[p].visibility == atlas.visibility
+}
+
+func (atlas *Atlas) Vision(source image.Point) {
+	atlas.visibility++
+	vision.ShadowCast(atlas, source)
 }
 
 //var singleWall = []int{79, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
