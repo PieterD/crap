@@ -250,7 +250,7 @@ func (atlas *Atlas) IsVisible(p image.Point) bool {
 
 func (atlas *Atlas) Vision(source image.Point) {
 	atlas.visibility++
-	vision.ShadowCast(atlas, source)
+	vision.ShadowCast(atlas, vision.EndlessRadius(), source)
 }
 
 //var singleWall = []int{79, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
