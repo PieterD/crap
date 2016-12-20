@@ -27,7 +27,7 @@ func (g *Game) CmdMove() {
 	case 3:
 		npos.X--
 	}
-	if g.atlas.Passable(npos) {
+	if g.atlas.IsPassable(npos) {
 		g.pos = npos
 		g.atlas.Vision(g.pos)
 	} else if g.atlas.GetFeature(npos) == aspect.ClosedDoor {

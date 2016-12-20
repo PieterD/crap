@@ -29,29 +29,19 @@ func invy(p image.Point) image.Point {
 	return image.Point{X: p.X, Y: -p.Y}
 }
 
-type ShadowCast struct {
-	m Map
-}
-
-func NewShadowCast(m Map) *ShadowCast {
-	return &ShadowCast{
-		m: m,
-	}
-}
-
-func (v *ShadowCast) Vision(source image.Point) {
+func ShadowCast(m Map, source image.Point) {
 	vt := visionTransformer{source: source}
-	v.visionOctant(1, 1.0, 0.0, vt.compose())
-	v.visionOctant(1, 1.0, 0.0, vt.compose(swap))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(invx))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(swap, invx))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(invy))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(swap, invy))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(invy, invx))
-	v.visionOctant(1, 1.0, 0.0, vt.compose(swap, invy, invx))
+	shadowCastOctant(1, 1.0, 0.0, m, vt.compose())
+	shadowCastOctant(1, 1.0, 0.0, m, vt.compose(swap))
+	shadowCastOctant(1, 1.0, 0.0, m, vt.compose(invx))
+	shadowCastOctant(1, 1.0, 0.0, m, vt.compose(swap, invx))
+	shadowCastOctant(1, 1.0, 0.0, m, vt.compose(invy))
+	shadowCastOctant(1, 1.0, 0.0, m, vt.compose(swap, invy))
+	shadowCastOctant(1, 1.0, 0.0, m, vt.compose(invy, invx))
+	shadowCastOctant(1, 1.0, 0.0, m, vt.compose(swap, invy, invx))
 }
 
-func (v *ShadowCast) visionOctant(col int, startSlope, endSlope float64, trans visionTransform) {
+func shadowCastOctant(col int, startSlope, endSlope float64, m Map, trans visionTransform) {
 	wall := false
 	for x := col; startSlope > endSlope && !wall; x++ {
 		approxStart := int(startSlope*float64(x)) + 1
@@ -65,11 +55,11 @@ func (v *ShadowCast) visionOctant(col int, startSlope, endSlope float64, trans v
 				break
 			}
 			pos := trans(image.Point{X: x, Y: y})
-			v.m.MakeVisible(pos)
-			if !v.m.IsTransparent(pos) {
+			m.SetVisible(pos)
+			if !m.IsTransparent(pos) {
 				if !wall {
 					wall = true
-					v.visionOctant(x+1, startSlope, loSlope, trans)
+					shadowCastOctant(x+1, startSlope, loSlope, m, trans)
 				}
 			} else {
 				if wall {

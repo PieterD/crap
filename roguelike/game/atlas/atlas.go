@@ -220,7 +220,7 @@ func (atlas *Atlas) Glyph(p image.Point) Glyph {
 			Back: grid.Black,
 		}
 	}
-	if !atlas.Visible(p) {
+	if !atlas.IsVisible(p) {
 		if glyph.Fore != grid.Black {
 			glyph.Fore = grid.VeryDarkGray
 		}
@@ -229,11 +229,11 @@ func (atlas *Atlas) Glyph(p image.Point) Glyph {
 	return glyph
 }
 
-func (atlas *Atlas) Passable(p image.Point) bool {
+func (atlas *Atlas) IsPassable(p image.Point) bool {
 	return atlas.cells[p].feature.Passable
 }
 
-func (atlas *Atlas) Transparent(p image.Point) bool {
+func (atlas *Atlas) IsTransparent(p image.Point) bool {
 	return atlas.cells[p].feature.Transparent
 }
 
@@ -243,7 +243,7 @@ func (atlas *Atlas) SetVisible(p image.Point) {
 	atlas.cells[p] = cell
 }
 
-func (atlas *Atlas) Visible(p image.Point) bool {
+func (atlas *Atlas) IsVisible(p image.Point) bool {
 	return atlas.cells[p].visibility == atlas.visibility
 }
 
