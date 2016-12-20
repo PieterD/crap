@@ -40,16 +40,23 @@ func Translate(screen image.Rectangle, center image.Point, atlas image.Rectangle
 }
 
 type Atlas struct {
-	cells      map[image.Point]Cell
+	cells      []Cell
 	bounds     image.Rectangle
 	visibility uint64
+}
+
+func (atlas *Atlas) cell(p image.Point) *Cell {
+	if !p.In(atlas.bounds) {
+		return &Cell{}
+	}
+	return &atlas.cells[p.X+p.Y*atlas.bounds.Max.X]
 }
 
 func New() *Atlas {
 	w := 100
 	h := 100
 	atlas := &Atlas{
-		cells: make(map[image.Point]Cell),
+		cells: make([]Cell, w*h),
 		bounds: image.Rectangle{
 			Min: image.Point{X: 0, Y: 0},
 			Max: image.Point{X: w, Y: h},
@@ -58,20 +65,20 @@ func New() *Atlas {
 	}
 	for x := 0; x < w; x++ {
 		for y := 0; y < h; y++ {
-			atlas.cells[image.Point{X: x, Y: y}] = Cell{feature: aspect.Floor}
+			atlas.setFeature(x, y, aspect.Floor)
 		}
 	}
 	for x := 0; x < w; x++ {
-		atlas.cells[image.Point{X: x, Y: 0}] = Cell{feature: aspect.Wall}
-		atlas.cells[image.Point{X: x, Y: h - 1}] = Cell{feature: aspect.Wall}
+		atlas.setFeature(x, 0, aspect.Wall)
+		atlas.setFeature(x, h-1, aspect.Wall)
 	}
 	for y := 0; y < h; y++ {
-		atlas.cells[image.Point{X: 0, Y: y}] = Cell{feature: aspect.Wall}
-		atlas.cells[image.Point{X: w - 1, Y: y}] = Cell{feature: aspect.Wall}
+		atlas.setFeature(0, y, aspect.Wall)
+		atlas.setFeature(w-1, y, aspect.Wall)
 	}
 	for x := 0; x < w; x += 10 {
 		for y := 0; y < h; y += 10 {
-			atlas.cells[image.Point{X: x, Y: y}] = Cell{feature: aspect.Wall}
+			atlas.setFeature(x, y, aspect.Wall)
 		}
 	}
 
@@ -171,23 +178,19 @@ func (atlas *Atlas) Bounds() image.Rectangle {
 }
 
 func (atlas *Atlas) GetFeature(pos image.Point) aspect.Feature {
-	return atlas.cells[pos].feature
+	return atlas.cell(pos).feature
 }
 
 func (atlas *Atlas) SetFeature(pos image.Point, feature aspect.Feature) {
-	c := atlas.cells[pos]
-	c.feature = feature
-	atlas.cells[pos] = c
+	atlas.cell(pos).feature = feature
 }
 
 func (atlas *Atlas) setFeature(x, y int, ft aspect.Feature) {
-	cell := atlas.cells[image.Point{X: x, Y: y}]
-	cell.feature = ft
-	atlas.cells[image.Point{X: x, Y: y}] = cell
+	atlas.SetFeature(image.Point{X: x, Y: y}, ft)
 }
 
 func (atlas *Atlas) Glyph(p image.Point) Glyph {
-	cell := atlas.cells[p]
+	cell := atlas.cell(p)
 	var glyph Glyph
 	switch cell.feature {
 	case aspect.Wall:
@@ -231,21 +234,19 @@ func (atlas *Atlas) Glyph(p image.Point) Glyph {
 }
 
 func (atlas *Atlas) IsPassable(p image.Point) bool {
-	return atlas.cells[p].feature.Passable
+	return atlas.cell(p).feature.Passable
 }
 
 func (atlas *Atlas) IsTransparent(p image.Point) bool {
-	return atlas.cells[p].feature.Transparent
+	return atlas.cell(p).feature.Transparent
 }
 
 func (atlas *Atlas) SetVisible(p image.Point) {
-	cell := atlas.cells[p]
-	cell.visibility = atlas.visibility
-	atlas.cells[p] = cell
+	atlas.cell(p).visibility = atlas.visibility
 }
 
 func (atlas *Atlas) IsVisible(p image.Point) bool {
-	return atlas.cells[p].visibility == atlas.visibility
+	return atlas.cell(p).visibility == atlas.visibility
 }
 
 func (atlas *Atlas) Vision(source image.Point) {
@@ -263,16 +264,16 @@ func (atlas *Atlas) wallrune(p image.Point, runes []int) int {
 	x := image.Point{X: 1}
 	y := image.Point{Y: 1}
 	bits := 0
-	if atlas.cells[p.Sub(y)].feature.Wallable {
+	if atlas.cell(p.Sub(y)).feature.Wallable {
 		bits |= 1
 	}
-	if atlas.cells[p.Add(x)].feature.Wallable {
+	if atlas.cell(p.Add(x)).feature.Wallable {
 		bits |= 2
 	}
-	if atlas.cells[p.Add(y)].feature.Wallable {
+	if atlas.cell(p.Add(y)).feature.Wallable {
 		bits |= 4
 	}
-	if atlas.cells[p.Sub(x)].feature.Wallable {
+	if atlas.cell(p.Sub(x)).feature.Wallable {
 		bits |= 8
 	}
 	return runes[wallRune[bits]]

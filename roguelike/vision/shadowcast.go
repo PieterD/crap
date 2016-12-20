@@ -1,6 +1,9 @@
 package vision
 
-import "image"
+import (
+	"image"
+	"sync"
+)
 
 type ShadowCastMap interface {
 	SetVisible(p image.Point)
@@ -17,6 +20,28 @@ func ShadowCast(m ShadowCastMap, r Radius, source image.Point) {
 	shadowCastOctant(1, 1.0, 0.0, m, r, vt.compose(swap, invy))
 	shadowCastOctant(1, 1.0, 0.0, m, r, vt.compose(invy, invx))
 	shadowCastOctant(1, 1.0, 0.0, m, r, vt.compose(swap, invy, invx))
+}
+
+func ShadowCastPar(m ShadowCastMap, r Radius, source image.Point) {
+	vt := visionTransformer{source: source}
+	wg := &sync.WaitGroup{}
+	wg.Add(4)
+	go shadowCastPar(wg, m, r, vt.compose())
+	go shadowCastPar(wg, m, r, vt.compose(invx))
+	go shadowCastPar(wg, m, r, vt.compose(invy))
+	go shadowCastPar(wg, m, r, vt.compose(invy, invx))
+	wg.Wait()
+	wg.Add(4)
+	go shadowCastPar(wg, m, r, vt.compose(swap))
+	go shadowCastPar(wg, m, r, vt.compose(swap, invx))
+	go shadowCastPar(wg, m, r, vt.compose(swap, invy))
+	go shadowCastPar(wg, m, r, vt.compose(swap, invy, invx))
+	wg.Wait()
+}
+
+func shadowCastPar(wg *sync.WaitGroup, m ShadowCastMap, r Radius, trans visionTransform) {
+	defer wg.Done()
+	shadowCastOctant(1, 1.0, 0.0, m, r, trans)
 }
 
 func shadowCastOctant(col int, startSlope, endSlope float64, m ShadowCastMap, r Radius, trans visionTransform) {
