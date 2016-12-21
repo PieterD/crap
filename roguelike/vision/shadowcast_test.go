@@ -45,6 +45,14 @@ func (m *testShadowCastMap) IsTransparent(p image.Point) bool {
 	return m.cell(p).transparent
 }
 
+type shadowCastTest struct {
+	name   string
+	m      *testShadowCastMap
+	r      Radius
+	source image.Point
+	f      func(m ShadowCastMap, r Radius, source image.Point)
+}
+
 func BenchmarkTinyRoom(b *testing.B) {
 	m := newTestShadowCastMap(100, 100)
 	r := EndlessRadius()
@@ -55,9 +63,20 @@ func BenchmarkTinyRoom(b *testing.B) {
 		m.cell(image.Point{X: 51, Y: i}).transparent = false
 	}
 	source := image.Point{X: 50, Y: 50}
-	for n := 0; n < b.N; n++ {
-		m.visible++
-		ShadowCast(m, r, source)
+	tests := []shadowCastTest{
+		{"ShadowCast", m, r, source, ShadowCast},
+	}
+	run(b, tests)
+}
+
+func run(bb *testing.B, tests []shadowCastTest) {
+	for _, test := range tests {
+		bb.Run(test.name, func(b *testing.B) {
+			for n := 0; n < b.N; n++ {
+				test.m.visible++
+				ShadowCast(test.m, test.r, test.source)
+			}
+		})
 	}
 }
 
@@ -65,20 +84,20 @@ func BenchmarkLargeEmptyCenter(b *testing.B) {
 	m := newTestShadowCastMap(100, 100)
 	r := EndlessRadius()
 	source := image.Point{X: 50, Y: 50}
-	for n := 0; n < b.N; n++ {
-		m.visible++
-		ShadowCast(m, r, source)
+	tests := []shadowCastTest{
+		{"ShadowCast", m, r, source, ShadowCast},
 	}
+	run(b, tests)
 }
 
 func BenchmarkLargeEmptyLeft(b *testing.B) {
 	m := newTestShadowCastMap(100, 100)
 	r := EndlessRadius()
 	source := image.Point{X: 1, Y: 50}
-	for n := 0; n < b.N; n++ {
-		m.visible++
-		ShadowCast(m, r, source)
+	tests := []shadowCastTest{
+		{"ShadowCast", m, r, source, ShadowCast},
 	}
+	run(b, tests)
 }
 
 func BenchmarkLargeScattered10(b *testing.B) {
@@ -90,10 +109,10 @@ func BenchmarkLargeScattered10(b *testing.B) {
 		}
 	}
 	source := image.Point{X: 50, Y: 50}
-	for n := 0; n < b.N; n++ {
-		m.visible++
-		ShadowCast(m, r, source)
+	tests := []shadowCastTest{
+		{"ShadowCast", m, r, source, ShadowCast},
 	}
+	run(b, tests)
 }
 
 func BenchmarkLargeScattered5(b *testing.B) {
@@ -105,8 +124,8 @@ func BenchmarkLargeScattered5(b *testing.B) {
 		}
 	}
 	source := image.Point{X: 50, Y: 50}
-	for n := 0; n < b.N; n++ {
-		m.visible++
-		ShadowCast(m, r, source)
+	tests := []shadowCastTest{
+		{"ShadowCast", m, r, source, ShadowCast},
 	}
+	run(b, tests)
 }
