@@ -9,14 +9,10 @@ type ShadowCastMap interface {
 
 func ShadowCast(m ShadowCastMap, r Radius, source image.Point) {
 	vt := visionTransformer{source: source}
-	shadowCastOctant(1, 1.0, 0.0, m, r, vt.compose())
-	shadowCastOctant(1, 1.0, 0.0, m, r, vt.compose(swap))
-	shadowCastOctant(1, 1.0, 0.0, m, r, vt.compose(invx))
-	shadowCastOctant(1, 1.0, 0.0, m, r, vt.compose(swap, invx))
-	shadowCastOctant(1, 1.0, 0.0, m, r, vt.compose(invy))
-	shadowCastOctant(1, 1.0, 0.0, m, r, vt.compose(swap, invy))
-	shadowCastOctant(1, 1.0, 0.0, m, r, vt.compose(invy, invx))
-	shadowCastOctant(1, 1.0, 0.0, m, r, vt.compose(swap, invy, invx))
+	for i := range quads {
+		shadowCastOctant(1, 1.0, 0.0, m, r, vt.quad(i).norm)
+		shadowCastOctant(1, 1.0, 0.0, m, r, vt.quad(i).swap)
+	}
 }
 
 func shadowCastOctant(col int, startSlope, endSlope float64, m ShadowCastMap, r Radius, trans visionTransform) {

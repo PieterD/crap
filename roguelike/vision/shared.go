@@ -6,25 +6,29 @@ type visionTransform func(image.Point) image.Point
 
 type visionTransformer struct {
 	source image.Point
+	mul    image.Point
 }
 
-func (vt visionTransformer) compose(ts ...visionTransform) visionTransform {
-	return func(p image.Point) image.Point {
-		for _, t := range ts {
-			p = t(p)
-		}
-		return p.Add(vt.source)
-	}
+var quads = []image.Point{
+	{X: 1, Y: 1},
+	{X: 1, Y: -1},
+	{X: -1, Y: 1},
+	{X: -1, Y: -1},
 }
 
-func swap(p image.Point) image.Point {
-	return image.Point{X: p.Y, Y: p.X}
+func (vt visionTransformer) quad(i int) visionTransformer {
+	vt.mul = quads[i]
+	return vt
 }
 
-func invx(p image.Point) image.Point {
-	return image.Point{X: -p.X, Y: p.Y}
+func (vt visionTransformer) norm(p image.Point) image.Point {
+	x := p.X * vt.mul.X
+	y := p.Y * vt.mul.Y
+	return image.Point{X: x + vt.source.X, Y: y + vt.source.Y}
 }
 
-func invy(p image.Point) image.Point {
-	return image.Point{X: p.X, Y: -p.Y}
+func (vt visionTransformer) swap(p image.Point) image.Point {
+	x := p.X * vt.mul.X
+	y := p.Y * vt.mul.Y
+	return image.Point{X: y + vt.source.X, Y: x + vt.source.Y}
 }
