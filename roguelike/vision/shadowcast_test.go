@@ -64,6 +64,7 @@ func BenchmarkTinyRoom(b *testing.B) {
 	}
 	source := image.Point{X: 50, Y: 50}
 	tests := []shadowCastTest{
+		{"ShadowCastFloat", m, r, source, ShadowCastFloat},
 		{"ShadowCast", m, r, source, ShadowCast},
 	}
 	run(b, tests)
@@ -74,7 +75,7 @@ func run(bb *testing.B, tests []shadowCastTest) {
 		bb.Run(test.name, func(b *testing.B) {
 			for n := 0; n < b.N; n++ {
 				test.m.visible++
-				ShadowCast(test.m, test.r, test.source)
+				test.f(test.m, test.r, test.source)
 			}
 		})
 	}
@@ -85,6 +86,7 @@ func BenchmarkLargeEmptyCenter(b *testing.B) {
 	r := EndlessRadius()
 	source := image.Point{X: 50, Y: 50}
 	tests := []shadowCastTest{
+		{"ShadowCastFloat", m, r, source, ShadowCastFloat},
 		{"ShadowCast", m, r, source, ShadowCast},
 	}
 	run(b, tests)
@@ -95,6 +97,7 @@ func BenchmarkLargeEmptyLeft(b *testing.B) {
 	r := EndlessRadius()
 	source := image.Point{X: 1, Y: 50}
 	tests := []shadowCastTest{
+		{"ShadowCastFloat", m, r, source, ShadowCastFloat},
 		{"ShadowCast", m, r, source, ShadowCast},
 	}
 	run(b, tests)
@@ -110,6 +113,7 @@ func BenchmarkLargeScattered10(b *testing.B) {
 	}
 	source := image.Point{X: 50, Y: 50}
 	tests := []shadowCastTest{
+		{"ShadowCastFloat", m, r, source, ShadowCastFloat},
 		{"ShadowCast", m, r, source, ShadowCast},
 	}
 	run(b, tests)
@@ -125,6 +129,7 @@ func BenchmarkLargeScattered5(b *testing.B) {
 	}
 	source := image.Point{X: 50, Y: 50}
 	tests := []shadowCastTest{
+		{"ShadowCastFloat", m, r, source, ShadowCastFloat},
 		{"ShadowCast", m, r, source, ShadowCast},
 	}
 	run(b, tests)

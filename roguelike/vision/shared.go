@@ -32,3 +32,35 @@ func (vt visionTransformer) swap(p image.Point) image.Point {
 	y := p.Y * vt.mul.Y
 	return image.Point{X: y + vt.source.X, Y: x + vt.source.Y}
 }
+
+type fraction struct {
+	num, den int64
+}
+
+func newFraction(num, den int) fraction {
+	return fraction{
+		num: int64(num),
+		den: int64(den),
+	}
+}
+
+func one() fraction {
+	return newFraction(1, 1)
+}
+
+func zero() fraction {
+	return newFraction(0, 1)
+}
+
+func (a fraction) less(b fraction) bool {
+	return a.num*b.den < b.num*a.den
+}
+
+func (a fraction) mul(s int) fraction {
+	a.num *= int64(s)
+	return a
+}
+
+func (a fraction) whole() int {
+	return int(a.num / a.den)
+}

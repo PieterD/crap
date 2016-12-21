@@ -10,25 +10,25 @@ type ShadowCastMap interface {
 func ShadowCast(m ShadowCastMap, r Radius, source image.Point) {
 	vt := visionTransformer{source: source}
 	for i := range quads {
-		shadowCastOctant(1, 1.0, 0.0, m, r, vt.quad(i).norm)
-		shadowCastOctant(1, 1.0, 0.0, m, r, vt.quad(i).swap)
+		shadowCastOctant(1, one(), zero(), m, r, vt.quad(i).norm)
+		shadowCastOctant(1, one(), zero(), m, r, vt.quad(i).swap)
 	}
 }
 
-func shadowCastOctant(col int, startSlope, endSlope float64, m ShadowCastMap, r Radius, trans visionTransform) {
+func shadowCastOctant(col int, startSlope, endSlope fraction, m ShadowCastMap, r Radius, trans visionTransform) {
 	wall := false
-	for x := col; startSlope > endSlope && !wall && r.In(x, 0); x++ {
-		approxStart := int(startSlope*float64(x)) + 1
+	for x := col; endSlope.less(startSlope) && !wall && r.In(x, 0); x++ {
+		approxStart := startSlope.mul(x).whole() + 1
 		for y := approxStart; y >= 0; y-- {
 			if !r.In(x, y) {
 				continue
 			}
-			hiSlope := (float64(y) - 0.5) / (float64(x) - 0.5)
-			if hiSlope > startSlope {
+			hiSlope := newFraction(y*2-1, x*2-1)
+			if startSlope.less(hiSlope) {
 				continue
 			}
-			loSlope := (float64(y) + 0.5) / (float64(x) - 0.5)
-			if loSlope < endSlope {
+			loSlope := newFraction(y*2+1, x*2-1)
+			if loSlope.less(endSlope) {
 				break
 			}
 			pos := trans(image.Point{X: x, Y: y})
@@ -41,7 +41,7 @@ func shadowCastOctant(col int, startSlope, endSlope float64, m ShadowCastMap, r 
 			} else {
 				if wall {
 					wall = false
-					startSlope = (float64(y) + 0.5) / (float64(x) + 0.5)
+					startSlope = newFraction(y*2+1, x*2+1)
 				}
 			}
 		}
