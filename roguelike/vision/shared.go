@@ -7,6 +7,7 @@ type visionTransform func(image.Point) image.Point
 type visionTransformer struct {
 	source image.Point
 	mul    image.Point
+	swapxy bool
 }
 
 var quads = []image.Point{
@@ -21,16 +22,18 @@ func (vt visionTransformer) quad(i int) visionTransformer {
 	return vt
 }
 
-func (vt visionTransformer) norm(p image.Point) image.Point {
-	x := p.X * vt.mul.X
-	y := p.Y * vt.mul.Y
-	return image.Point{X: x + vt.source.X, Y: y + vt.source.Y}
+func (vt visionTransformer) swap() visionTransformer {
+	vt.swapxy = true
+	return vt
 }
 
-func (vt visionTransformer) swap(p image.Point) image.Point {
+func (vt visionTransformer) trans(p image.Point) image.Point {
 	x := p.X * vt.mul.X
 	y := p.Y * vt.mul.Y
-	return image.Point{X: y + vt.source.X, Y: x + vt.source.Y}
+	if vt.swapxy {
+		x, y = y, x
+	}
+	return image.Point{X: x + vt.source.X, Y: y + vt.source.Y}
 }
 
 type fraction struct {

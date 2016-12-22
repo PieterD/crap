@@ -66,6 +66,7 @@ func BenchmarkTinyRoom(b *testing.B) {
 	tests := []shadowCastTest{
 		{"ShadowCastFloat", m, r, source, ShadowCastFloat},
 		{"ShadowCast", m, r, source, ShadowCast},
+		{"ShadowCastPar", m, r, source, ShadowCastPar},
 	}
 	run(b, tests)
 }
@@ -88,6 +89,7 @@ func BenchmarkLargeEmptyCenter(b *testing.B) {
 	tests := []shadowCastTest{
 		{"ShadowCastFloat", m, r, source, ShadowCastFloat},
 		{"ShadowCast", m, r, source, ShadowCast},
+		{"ShadowCastPar", m, r, source, ShadowCastPar},
 	}
 	run(b, tests)
 }
@@ -99,6 +101,7 @@ func BenchmarkLargeEmptyLeft(b *testing.B) {
 	tests := []shadowCastTest{
 		{"ShadowCastFloat", m, r, source, ShadowCastFloat},
 		{"ShadowCast", m, r, source, ShadowCast},
+		{"ShadowCastPar", m, r, source, ShadowCastPar},
 	}
 	run(b, tests)
 }
@@ -115,6 +118,7 @@ func BenchmarkLargeScattered10(b *testing.B) {
 	tests := []shadowCastTest{
 		{"ShadowCastFloat", m, r, source, ShadowCastFloat},
 		{"ShadowCast", m, r, source, ShadowCast},
+		{"ShadowCastPar", m, r, source, ShadowCastPar},
 	}
 	run(b, tests)
 }
@@ -131,6 +135,7 @@ func BenchmarkLargeScattered5(b *testing.B) {
 	tests := []shadowCastTest{
 		{"ShadowCastFloat", m, r, source, ShadowCastFloat},
 		{"ShadowCast", m, r, source, ShadowCast},
+		{"ShadowCastPar", m, r, source, ShadowCastPar},
 	}
 	run(b, tests)
 }
