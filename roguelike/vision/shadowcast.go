@@ -1,7 +1,6 @@
 package vision
 
 import (
-	"fmt"
 	"image"
 	"runtime"
 )
@@ -22,9 +21,8 @@ var recvchan chan bool
 
 func init() {
 	routines := runtime.GOMAXPROCS(-1)
-	fmt.Printf("routines: %d\n", routines)
-	sendchan = make(chan callShadowCastMap, 8)
-	recvchan = make(chan bool, 8)
+	sendchan = make(chan callShadowCastMap, 4)
+	recvchan = make(chan bool, 4)
 	for i := 0; i < routines; i++ {
 		go func() {
 			for call := range sendchan {
