@@ -6,7 +6,7 @@ type Cell struct {
 	// Floor, wall, etc
 	feature aspect.Feature
 
-	visibility uint64
+	visible uint64
 	// Chest, water, altar, lava, etc
 	//furnishing aspect.Furniture
 
