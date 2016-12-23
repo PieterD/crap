@@ -7,9 +7,14 @@ type Cell struct {
 	feature aspect.Feature
 
 	visible uint64
+	seen    bool
 	// Chest, water, altar, lava, etc
 	//furnishing aspect.Furniture
 
 	// Sword, armor, food, gold
 	//objects     []Object
+}
+
+func (cell Cell) IsWallable() bool {
+	return cell.seen && cell.feature.Wallable
 }

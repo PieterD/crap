@@ -77,6 +77,7 @@ func New() *Atlas {
 		atlas.setFeature(w-1, y, aspect.Wall)
 	}
 	GenTestlevel(atlas)
+	//GenCave(atlas)
 	return atlas
 }
 
@@ -98,44 +99,44 @@ func (atlas *Atlas) setFeature(x, y int, ft aspect.Feature) {
 
 func (atlas *Atlas) Glyph(p image.Point) Glyph {
 	cell := atlas.cell(p)
-	var glyph Glyph
-	switch cell.feature {
-	case aspect.Wall:
-		glyph = Glyph{
-			Code: atlas.wallrune(p, singleWall),
-			Fore: grid.Gray,
-			Back: grid.Black,
-		}
-	case aspect.Floor:
-		glyph = Glyph{
-			Code: atlas.floorrune(p, floorRune),
-			Fore: grid.DarkGray,
-			Back: grid.Black,
-		}
-	case aspect.ClosedDoor:
-		glyph = Glyph{
-			Code: 43,
-			Fore: grid.DarkRed,
-			Back: grid.Black,
-		}
-	case aspect.OpenDoor:
-		glyph = Glyph{
-			Code: 47,
-			Fore: grid.DarkRed,
-			Back: grid.Black,
-		}
-	default:
-		glyph = Glyph{
-			Code: 32,
-			Fore: grid.Black,
-			Back: grid.Black,
-		}
+	glyph := Glyph{
+		Code: 32,
+		Fore: grid.Black,
+		Back: grid.Black,
 	}
-	if !atlas.IsVisible(p) {
-		if glyph.Fore != grid.Black {
-			glyph.Fore = grid.VeryDarkGray
+	if atlas.cell(p).seen {
+		switch cell.feature {
+		case aspect.Wall:
+			glyph = Glyph{
+				Code: atlas.wallrune(p, singleWall),
+				Fore: grid.Gray,
+				Back: grid.Black,
+			}
+		case aspect.Floor:
+			glyph = Glyph{
+				Code: atlas.floorrune(p, floorRune),
+				Fore: grid.DarkGray,
+				Back: grid.Black,
+			}
+		case aspect.ClosedDoor:
+			glyph = Glyph{
+				Code: 43,
+				Fore: grid.DarkRed,
+				Back: grid.Black,
+			}
+		case aspect.OpenDoor:
+			glyph = Glyph{
+				Code: 47,
+				Fore: grid.DarkRed,
+				Back: grid.Black,
+			}
 		}
-		glyph.Back = grid.Black
+		if !atlas.IsVisible(p) {
+			if glyph.Fore != grid.Black {
+				glyph.Fore = grid.VeryDarkGray
+			}
+			glyph.Back = grid.Black
+		}
 	}
 	return glyph
 }
@@ -150,6 +151,7 @@ func (atlas *Atlas) IsTransparent(p image.Point) bool {
 
 func (atlas *Atlas) SetVisible(p image.Point) {
 	atlas.cell(p).visible = atlas.visible
+	atlas.cell(p).seen = true
 }
 
 func (atlas *Atlas) IsVisible(p image.Point) bool {
@@ -171,16 +173,16 @@ func (atlas *Atlas) wallrune(p image.Point, runes []int) int {
 	x := image.Point{X: 1}
 	y := image.Point{Y: 1}
 	bits := 0
-	if atlas.cell(p.Sub(y)).feature.Wallable {
+	if atlas.cell(p.Sub(y)).IsWallable() {
 		bits |= 1
 	}
-	if atlas.cell(p.Add(x)).feature.Wallable {
+	if atlas.cell(p.Add(x)).IsWallable() {
 		bits |= 2
 	}
-	if atlas.cell(p.Add(y)).feature.Wallable {
+	if atlas.cell(p.Add(y)).IsWallable() {
 		bits |= 4
 	}
-	if atlas.cell(p.Sub(x)).feature.Wallable {
+	if atlas.cell(p.Sub(x)).IsWallable() {
 		bits |= 8
 	}
 	return runes[wallRune[bits]]

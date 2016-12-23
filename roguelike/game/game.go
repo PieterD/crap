@@ -17,7 +17,7 @@ type Game struct {
 
 func New() *Game {
 	g := &Game{
-		pos:   image.Point{X: 1, Y: 4},
+		pos:   image.Point{X: 4, Y: 4},
 		dir:   2,
 		atlas: atlas.New(),
 	}
