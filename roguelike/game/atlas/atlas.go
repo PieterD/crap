@@ -76,8 +76,8 @@ func New() *Atlas {
 		atlas.setFeature(0, y, aspect.Wall)
 		atlas.setFeature(w-1, y, aspect.Wall)
 	}
-	GenTestlevel(atlas)
-	//GenCave(atlas)
+	//GenTestlevel(atlas)
+	GenCave(atlas)
 	return atlas
 }
 
