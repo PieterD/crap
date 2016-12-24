@@ -14,7 +14,3 @@ type Cell struct {
 	// Sword, armor, food, gold
 	//objects     []Object
 }
-
-func (cell Cell) IsWallable(seen bool) bool {
-	return cell.feature.Wallable && (!seen || cell.seen)
-}

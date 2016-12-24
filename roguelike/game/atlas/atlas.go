@@ -6,9 +6,9 @@ import (
 	"github.com/PieterD/crap/roguelike/game/atlas/aspect"
 	"github.com/PieterD/crap/roguelike/grid"
 	"github.com/PieterD/crap/roguelike/vision"
+	"github.com/PieterD/crap/roguelike/wallify"
 	"math/rand"
 	"time"
-	"github.com/PieterD/crap/roguelike/wallify"
 )
 
 type Glyph struct {
