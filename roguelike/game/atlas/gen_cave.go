@@ -208,7 +208,7 @@ func (cs *caveSlice) setAtlas(atlas *Atlas) {
 
 func GenCave(atlas *Atlas) {
 	cs := newCaveSlice(atlas)
-	for try:=0; try<50; try++ {
+	for try := 0; try < 50; try++ {
 		cs.fillBorders(3)
 		cs.fillRandomCells(45)
 
