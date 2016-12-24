@@ -6,8 +6,8 @@ import (
 	"github.com/PieterD/crap/roguelike/game/atlas/aspect"
 	"github.com/PieterD/crap/roguelike/grid"
 	"github.com/PieterD/crap/roguelike/vision"
-	"time"
 	"math/rand"
+	"time"
 )
 
 type Glyph struct {
@@ -85,9 +85,9 @@ func New() *Atlas {
 }
 
 func (atlas *Atlas) ExploreAll() {
-	for y:=0;y<atlas.bounds.Max.Y;y++ {
-		for x:=0; x<atlas.bounds.Max.X; x++ {
-			atlas.cell(image.Point{X:x, Y:y}).seen = true
+	for y := 0; y < atlas.bounds.Max.Y; y++ {
+		for x := 0; x < atlas.bounds.Max.X; x++ {
+			atlas.cell(image.Point{X: x, Y: y}).seen = true
 		}
 	}
 }
@@ -179,22 +179,60 @@ func (atlas *Atlas) Vision(source image.Point) {
 var singleWall = []int{233, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
 var doubleWall = []int{233, 186, 205, 200, 201, 187, 188, 204, 203, 185, 202, 206}
 var wallRune = []int{0, 1, 2, 3, 1, 1, 4, 7, 2, 6, 2, 10, 5, 9, 8, 11}
+var invisiWall = []int{5, 10, 3, 6, 12, 9, 1, 2, 4, 8}
 
 func (atlas *Atlas) wallrune(p image.Point, runes []int) int {
 	x := image.Point{X: 1}
 	y := image.Point{Y: 1}
 	bits := 0
-	if atlas.cell(p.Sub(y)).IsWallable() {
+	if atlas.cell(p.Sub(y)).IsWallable(false) {
 		bits |= 1
 	}
-	if atlas.cell(p.Add(x)).IsWallable() {
+	if atlas.cell(p.Add(x)).IsWallable(false) {
 		bits |= 2
 	}
-	if atlas.cell(p.Add(y)).IsWallable() {
+	if atlas.cell(p.Add(y)).IsWallable(false) {
 		bits |= 4
 	}
-	if atlas.cell(p.Sub(x)).IsWallable() {
+	if atlas.cell(p.Sub(x)).IsWallable(false) {
 		bits |= 8
+	}
+	switch bits {
+	case 7, 14, 13, 11, 15:
+		bits = 0
+		if atlas.cell(p.Sub(y)).IsWallable(true) {
+			bits |= 1
+		}
+		if atlas.cell(p.Add(x)).IsWallable(true) {
+			bits |= 2
+		}
+		if atlas.cell(p.Add(y)).IsWallable(true) {
+			bits |= 4
+		}
+		if atlas.cell(p.Sub(x)).IsWallable(true) {
+			bits |= 8
+		}
+		if bits == 0 {
+			bits = 0
+			if atlas.cell(p.Sub(y)).IsWallable(false) {
+				bits |= 1
+			}
+			if atlas.cell(p.Add(x)).IsWallable(false) {
+				bits |= 2
+			}
+			if atlas.cell(p.Add(y)).IsWallable(false) {
+				bits |= 4
+			}
+			if atlas.cell(p.Sub(x)).IsWallable(false) {
+				bits |= 8
+			}
+			for _, iw := range invisiWall {
+				if bits&iw == iw {
+					bits = iw
+					break
+				}
+			}
+		}
 	}
 	return runes[wallRune[bits]]
 }

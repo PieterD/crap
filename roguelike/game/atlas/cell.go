@@ -15,6 +15,6 @@ type Cell struct {
 	//objects     []Object
 }
 
-func (cell Cell) IsWallable() bool {
-	return cell.seen && cell.feature.Wallable
+func (cell Cell) IsWallable(seen bool) bool {
+	return cell.feature.Wallable && (!seen || cell.seen)
 }
