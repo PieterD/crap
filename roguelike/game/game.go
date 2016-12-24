@@ -74,6 +74,8 @@ func (g *Game) Key(e grid.KeyEvent) {
 		g.CmdTurn(turnRight)
 	case grid.KeyDown:
 		g.CmdTurn(turnAround)
+	case grid.KeySpace:
+		g.atlas.ExploreAll()
 	}
 }
 

@@ -26,12 +26,12 @@ func GenCave(atlas *Atlas) {
 		swp, cells = cells, swp
 		for y := 1; y < h-1; y++ {
 			for x := 1; x < w-1; x++ {
-				idxTo := x+y*w
+				idxTo := x + y*w
 				neighbors := 0
-				for yy:=-1; yy<=1; yy++ {
+				for yy := -1; yy <= 1; yy++ {
 					for xx := -1; xx <= 1; xx++ {
-						idxFrom := (x+xx)+(y+yy)*w
-						if swp[idxFrom] == 1{
+						idxFrom := (x + xx) + (y+yy)*w
+						if swp[idxFrom] == 1 {
 							neighbors++
 						}
 					}

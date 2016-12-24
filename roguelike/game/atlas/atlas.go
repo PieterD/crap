@@ -6,6 +6,8 @@ import (
 	"github.com/PieterD/crap/roguelike/game/atlas/aspect"
 	"github.com/PieterD/crap/roguelike/grid"
 	"github.com/PieterD/crap/roguelike/vision"
+	"time"
+	"math/rand"
 )
 
 type Glyph struct {
@@ -53,6 +55,7 @@ func (atlas *Atlas) cell(p image.Point) *Cell {
 }
 
 func New() *Atlas {
+	rand.Seed(time.Now().UnixNano())
 	w := 100
 	h := 100
 	atlas := &Atlas{
@@ -79,6 +82,14 @@ func New() *Atlas {
 	//GenTestlevel(atlas)
 	GenCave(atlas)
 	return atlas
+}
+
+func (atlas *Atlas) ExploreAll() {
+	for y:=0;y<atlas.bounds.Max.Y;y++ {
+		for x:=0; x<atlas.bounds.Max.X; x++ {
+			atlas.cell(image.Point{X:x, Y:y}).seen = true
+		}
+	}
 }
 
 func (atlas *Atlas) Bounds() image.Rectangle {
