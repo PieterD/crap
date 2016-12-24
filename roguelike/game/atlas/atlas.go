@@ -8,6 +8,7 @@ import (
 	"github.com/PieterD/crap/roguelike/vision"
 	"math/rand"
 	"time"
+	"github.com/PieterD/crap/roguelike/wallify"
 )
 
 type Glyph struct {
@@ -119,7 +120,7 @@ func (atlas *Atlas) Glyph(p image.Point) Glyph {
 		switch cell.feature {
 		case aspect.Wall:
 			glyph = Glyph{
-				Code: atlas.wallrune(p, singleWall),
+				Code: wallify.Wallify(atlas, p, wallify.SingleWall),
 				Fore: grid.Gray,
 				Back: grid.Black,
 			}
@@ -169,72 +170,17 @@ func (atlas *Atlas) IsVisible(p image.Point) bool {
 	return atlas.cell(p).visible == atlas.visible
 }
 
+func (atlas *Atlas) IsWallable(p image.Point) bool {
+	return atlas.cell(p).feature.Wallable
+}
+
+func (atlas *Atlas) IsSeen(p image.Point) bool {
+	return atlas.cell(p).seen
+}
+
 func (atlas *Atlas) Vision(source image.Point) {
 	atlas.visible++
 	vision.ShadowCastPar(atlas, vision.EndlessRadius(), source)
-}
-
-//var singleWall = []int{79, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
-//var singleWall = []int{9, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
-var singleWall = []int{233, 179, 196, 192, 218, 191, 217, 195, 194, 180, 193, 197}
-var doubleWall = []int{233, 186, 205, 200, 201, 187, 188, 204, 203, 185, 202, 206}
-var wallRune = []int{0, 1, 2, 3, 1, 1, 4, 7, 2, 6, 2, 10, 5, 9, 8, 11}
-var invisiWall = []int{5, 10, 3, 6, 12, 9, 1, 2, 4, 8}
-
-func (atlas *Atlas) wallrune(p image.Point, runes []int) int {
-	x := image.Point{X: 1}
-	y := image.Point{Y: 1}
-	bits := 0
-	if atlas.cell(p.Sub(y)).IsWallable(false) {
-		bits |= 1
-	}
-	if atlas.cell(p.Add(x)).IsWallable(false) {
-		bits |= 2
-	}
-	if atlas.cell(p.Add(y)).IsWallable(false) {
-		bits |= 4
-	}
-	if atlas.cell(p.Sub(x)).IsWallable(false) {
-		bits |= 8
-	}
-	switch bits {
-	case 7, 14, 13, 11, 15:
-		bits = 0
-		if atlas.cell(p.Sub(y)).IsWallable(true) {
-			bits |= 1
-		}
-		if atlas.cell(p.Add(x)).IsWallable(true) {
-			bits |= 2
-		}
-		if atlas.cell(p.Add(y)).IsWallable(true) {
-			bits |= 4
-		}
-		if atlas.cell(p.Sub(x)).IsWallable(true) {
-			bits |= 8
-		}
-		if bits == 0 {
-			bits = 0
-			if atlas.cell(p.Sub(y)).IsWallable(false) {
-				bits |= 1
-			}
-			if atlas.cell(p.Add(x)).IsWallable(false) {
-				bits |= 2
-			}
-			if atlas.cell(p.Add(y)).IsWallable(false) {
-				bits |= 4
-			}
-			if atlas.cell(p.Sub(x)).IsWallable(false) {
-				bits |= 8
-			}
-			for _, iw := range invisiWall {
-				if bits&iw == iw {
-					bits = iw
-					break
-				}
-			}
-		}
-	}
-	return runes[wallRune[bits]]
 }
 
 //var floorRune = []int{44, 46, 96, 249, 250}
