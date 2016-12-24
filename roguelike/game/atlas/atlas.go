@@ -58,7 +58,7 @@ func (atlas *Atlas) cell(p image.Point) *Cell {
 func New() *Atlas {
 	rand.Seed(time.Now().UnixNano())
 	w := 100
-	h := 100
+	h := 60
 	atlas := &Atlas{
 		cells: make([]Cell, w*h),
 		bounds: image.Rectangle{

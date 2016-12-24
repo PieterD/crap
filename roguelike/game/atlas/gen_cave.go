@@ -1,7 +1,6 @@
 package atlas
 
 import (
-	"fmt"
 	"github.com/PieterD/crap/roguelike/game/atlas/aspect"
 	"image"
 	"math/rand"
@@ -107,6 +106,12 @@ func (cs *caveSlice) closeDiagonalGaps() {
 	}
 }
 
+func (cs *caveSlice) clear() {
+	for i := range cs.cells {
+		cs.cells[i] = 0
+	}
+}
+
 func (cs *caveSlice) clearSwp() {
 	for i := range cs.swp {
 		cs.swp[i] = 0
@@ -128,8 +133,8 @@ func (cs *caveSlice) singleCave() bool {
 	if !cs.fillLargeCave() {
 		return false
 	}
-	for y:=0; y<cs.h; y++ {
-		for x:=0; x<cs.w; x++ {
+	for y := 0; y < cs.h; y++ {
+		for x := 0; x < cs.w; x++ {
 			if cs.getSwp(x, y) == 0 && cs.get(x, y) == 0 {
 				cs.set(1, x, y)
 			}
@@ -139,12 +144,10 @@ func (cs *caveSlice) singleCave() bool {
 }
 
 func (cs *caveSlice) fillLargeCave() bool {
-	tries := 10
 	try := 0
-	for try = 0; try < tries; try++ {
+	for try = 0; try < 50; try++ {
 		cs.clearSwp()
 		sx, sy := cs.randomFloor()
-		fmt.Printf("x=%d, y=%d\n", sx, sy)
 		num := cs.fill(sx, sy, func(x, y int) bool {
 			if x < 0 || y < 0 || x >= cs.w || y >= cs.h {
 				// Out of bounds
@@ -162,8 +165,7 @@ func (cs *caveSlice) fillLargeCave() bool {
 			cs.setSwp(1, x, y)
 			return true
 		})
-		perc := (num*100) / (cs.w * cs.h)
-		fmt.Printf("floors: %d (%d%%)\n", num, perc)
+		perc := (num * 100) / (cs.w * cs.h)
 		if perc >= 55 {
 			return true
 		}
@@ -206,14 +208,22 @@ func (cs *caveSlice) setAtlas(atlas *Atlas) {
 
 func GenCave(atlas *Atlas) {
 	cs := newCaveSlice(atlas)
-	cs.fillBorders(3)
-	cs.fillRandomCells(45)
+	for try:=0; try<50; try++ {
+		cs.fillBorders(3)
+		cs.fillRandomCells(45)
 
-	// Run the automaton 5 times
-	for cycle := 0; cycle < 7; cycle++ {
-		cs.automaton()
+		// Run the automaton 5 times
+		for cycle := 0; cycle < 7; cycle++ {
+			cs.automaton()
+		}
+		cs.closeDiagonalGaps()
+		if cs.singleCave() {
+			cs.setAtlas(atlas)
+			return
+		} else {
+			cs.clear()
+			cs.clearSwp()
+		}
 	}
-	cs.closeDiagonalGaps()
-	cs.singleCave()
-	cs.setAtlas(atlas)
+	panic("Could not generate a suitable cave after 50 tries!")
 }
