@@ -16,11 +16,14 @@ type Game struct {
 }
 
 func New() *Game {
+	atlas := atlas.New()
+	pos := atlas.RandomFloor()
 	g := &Game{
-		pos:   image.Point{X: 4, Y: 4},
+		pos:   pos,
 		dir:   2,
-		atlas: atlas.New(),
+		atlas: atlas,
 	}
+
 	g.atlas.Vision(g.pos)
 	return g
 }

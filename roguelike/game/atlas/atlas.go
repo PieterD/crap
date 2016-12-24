@@ -178,6 +178,18 @@ func (atlas *Atlas) IsSeen(p image.Point) bool {
 	return atlas.cell(p).seen
 }
 
+func (atlas *Atlas) RandomFloor() image.Point {
+	for try := 0; try < 1000; try++ {
+		x := rand.Intn(atlas.bounds.Max.X)
+		y := rand.Intn(atlas.bounds.Max.Y)
+		p := image.Point{X: x, Y: y}
+		if atlas.cell(p).feature == aspect.Floor {
+			return p
+		}
+	}
+	panic("Couldn't find random floor after 1000 tries!")
+}
+
 func (atlas *Atlas) Vision(source image.Point) {
 	atlas.visible++
 	vision.ShadowCastPar(atlas, vision.EndlessRadius(), source)
