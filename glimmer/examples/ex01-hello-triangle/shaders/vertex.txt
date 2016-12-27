@@ -1,0 +1,13 @@
+in vec4 Position;
+in mat4 Matrix DYNAMIC(MyBuffer);
+in vec3 Color;
+in float Float[2];
+
+out Vertex {
+	smooth vec4 Color;
+} Out;
+
+void main() {
+	gl_Position = Position * Matrix;
+	Out.Color = vec4(Color, 1.0);
+}

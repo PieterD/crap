@@ -1,0 +1,6 @@
+*.exe
+*.swp
+*.swo
+cover.profile
+.idea
+glimmer.iml
